@@ -66,6 +66,14 @@ El trabajo colaborativo se realizará mediante **GitHub**, utilizando ramas de d
 
 ## 6. Planificación del Proyecto (15 Semanas)
 
+Semana	Actividades Principales	Entregables
+1	Reunión inicial, definición de alcance y análisis de requisitos.	Documento de planificación
+2	Diseño de interfaz y flujo de usuario en Figma.	Prototipo de pantallas.
+3	Configuración de entorno Flutter y Firebase.	Proyecto base configurado.
+4 - 12	Desarrollo del sprint	Aplicación.
+11	Pruebas unitarias y de integración.	Informe de pruebas técnicas.
+12	Pruebas con usuarios (niños, docentes).	Resultados de pruebas de usabilidad.
+13	Corrección de errores y ajustes finales.	Versión candidata 
 
 
 ---
