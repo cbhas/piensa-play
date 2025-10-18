@@ -64,24 +64,18 @@ El trabajo colaborativo se realizará mediante **GitHub**, utilizando ramas de d
 
 ---
 
-## 6. Planificación del Proyecto (15 Semanas)
+## 6. Planificación del Proyecto 
 
-Semana	Actividades Principales	Entregables
-1	Reunión inicial, definición de alcance y análisis de requisitos.	Documento de planificación
-2	Diseño de interfaz y flujo de usuario en Figma.	Prototipo de pantallas.
-3	Configuración de entorno Flutter y Firebase.	Proyecto base configurado.
-4 - 12	Desarrollo del sprint	Aplicación.
-11	Pruebas unitarias y de integración.	Informe de pruebas técnicas.
-12	Pruebas con usuarios (niños, docentes).	Resultados de pruebas de usabilidad.
-13	Corrección de errores y ajustes finales.	Versión candidata 
+La ejecución del proyecto durará 15 semanas desde la elaboración de su [**planificación**](https://github.com/cbhas/piensa-play/wiki/Planificaci%C3%B3n) hasta la fase final de pruebas.
 
+![Piensa Play](https://github.com/user-attachments/assets/c62ed0c8-cf3a-4d0e-a40e-7eb20a40dd00)
 
 ---
 
 ## 7. Estrategia de Sincronización y Almacenamiento Local
 
 El sistema empleará una arquitectura **offline-first**.  
-Los datos de progreso, respuestas y preguntas se almacenarán localmente en **SQLite o Hive**.  
+Los datos de progreso, respuestas y preguntas se almacenarán localmente.
 Cuando se detecte una conexión activa a internet, el sistema **sincronizará con Firebase**, enviando los resultados generados por los niños y recibiendo actualizaciones de preguntas o contenidos.  
 
 Se implementará control de versiones de datos y **timestamps** para evitar conflictos durante la sincronización.
