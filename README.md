@@ -15,7 +15,7 @@
 
 El presente documento describe la planificación detallada para el desarrollo de la aplicación móvil **PiensaPlay**, un proyecto orientado a promover la alfabetización mediática e informacional en niños de 8 a 12 años mediante actividades lúdicas y educativas.  
 La temática principal aborda la **prevención del bullying** y el **uso responsable de los medios digitales**.  
-Este plan abarca desde la etapa de planificación hasta las pruebas finales, con una duración total de **quince semanas**.
+Este plan abarca desde la etapa de planificación hasta las pruebas finales, con una duración total de **quince semanas**. 
 
 ---
 
