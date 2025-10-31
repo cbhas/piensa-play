@@ -5,6 +5,7 @@ import 'package:piensa_play/features/welcome/domain/usecases/get_welcome_config.
 import 'package:piensa_play/features/welcome/domain/usecases/show_tutorial.dart';
 import 'package:piensa_play/features/welcome/domain/usecases/start_adventure.dart';
 import 'package:piensa_play/features/welcome/domain/entities/welcome_config.dart';
+import 'package:piensa_play/core/routes/app_routes.dart';
 
 class WelcomePage extends StatefulWidget {
   const WelcomePage({Key? key}) : super(key: key);
@@ -34,6 +35,7 @@ class _WelcomePageState extends State<WelcomePage> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('¡Comenzando aventura!')),
       );
+      Navigator.of(context).pushReplacementNamed(AppRoutes.register);
     }
   }
 
@@ -78,7 +80,7 @@ class _WelcomePageState extends State<WelcomePage> {
     );
   }
 
-   Widget _buildMascotContainer() {
+Widget _buildMascotContainer() {
   return SizedBox(
     width: 180,
     height: 220, 

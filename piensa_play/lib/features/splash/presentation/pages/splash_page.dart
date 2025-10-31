@@ -109,11 +109,10 @@ class _SplashPageState extends State<SplashPage> with SingleTickerProviderStateM
   Widget _buildMascotContainer() {
   return SizedBox(
     width: 180,
-    height: 220, // Espacio extra arriba para las orejas
+    height: 220, 
     child: Stack(
       clipBehavior: Clip.none,
       children: [
-        // Círculo de fondo
         Positioned(
           bottom: 0,
           left: 0,
@@ -127,16 +126,15 @@ class _SplashPageState extends State<SplashPage> with SingleTickerProviderStateM
             ),
           ),
         ),
-        // Mascota escalada y posicionada
         Positioned(
-          bottom: 0, // Anclada al fondo
+          bottom: 0,
           left: 0,
           child: SizedBox(
             width: 180,
             height: 220,
             child: Transform.scale(
               scale: 1.3,
-              alignment: Alignment.bottomCenter, // Escala desde abajo
+              alignment: Alignment.bottomCenter,
               child: Image.asset(
                 _config.mascot,
                 width: 180,
