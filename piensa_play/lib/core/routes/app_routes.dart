@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:piensa_play/features/splash/presentation/pages/splash_page.dart';
 import 'package:piensa_play/features/welcome/presentation/pages/welcome_page.dart';
 import 'package:piensa_play/features/onboarding/presentation/pages/onboarding_page.dart';
+import 'package:piensa_play/features/home/presentation/pages/home_page.dart';
 
 class AppRoutes {
   static const String splash = '/';
@@ -15,6 +16,7 @@ class AppRoutes {
       splash: (context) => const SplashPage(),
       welcome: (context) => const WelcomePage(),
       onboarding: (context) => const OnboardingPage(),
+      home: (context) => const HomePage(), // Nueva ruta agregada
     };
   }
 }
