@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "958999170347",
+    "project_id": "piensa-play-6b08c",
+    "storage_bucket": "piensa-play-6b08c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:958999170347:android:bdd040040fb81a78e9c96e",
+        "android_client_info": {
+          "package_name": "com.example.piensa_play"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAWVQlbOC85su6tcATEyTxD2Ai20s9kJ0s"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
