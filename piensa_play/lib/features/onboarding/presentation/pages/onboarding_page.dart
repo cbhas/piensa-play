@@ -65,7 +65,11 @@ class _OnboardingPageState extends State<OnboardingPage> {
         avatarId: _selectedAvatarId!,
       );
 
+      print('🔵 Guardando perfil: nombre=${profile.name}, edad=${profile.age}, avatarId=${profile.avatarId}');
+
       await _saveUserProfile.execute(profile);
+
+      print('🟢 Perfil guardado exitosamente');
 
       if (mounted) {
         Navigator.pushReplacementNamed(context, '/home');
