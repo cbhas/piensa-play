@@ -35,7 +35,7 @@ class _WelcomePageState extends State<WelcomePage> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('¡Comenzando aventura!')),
       );
-      Navigator.of(context).pushReplacementNamed(AppRoutes.register);
+      Navigator.of(context).pushReplacementNamed(AppRoutes.onboarding);
     }
   }
 
