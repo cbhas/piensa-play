@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/theme/app_animations.dart';
 import '../../domain/entities/achievement.dart';
 import '../../domain/entities/badge.dart' as entities;
 import '../../domain/entities/recent_activity.dart';
@@ -73,7 +74,7 @@ class _AchievementsPageState extends State<AchievementsPage> {
           ? const Center(child: CircularProgressIndicator())
           : Column(
               children: [
-                const ProgressHeader(),
+                const ProgressHeader().slideFromTop(),
                 Expanded(
                   child: SingleChildScrollView(
                     child: Column(
@@ -84,11 +85,17 @@ class _AchievementsPageState extends State<AchievementsPage> {
                             level: _achievement!.currentLevel,
                             totalXP: _achievement!.totalXP,
                             coins: _achievement!.coins,
+                          ).fadeInSlide(
+                            delay: const Duration(milliseconds: 200),
                           ),
                         const SizedBox(height: 16),
-                        BadgeGrid(badges: _badges),
+                        BadgeGrid(
+                          badges: _badges,
+                        ).fadeInSlide(delay: const Duration(milliseconds: 300)),
                         const SizedBox(height: 16),
-                        RecentActivitiesList(activities: _activities),
+                        RecentActivitiesList(
+                          activities: _activities,
+                        ).fadeInSlide(delay: const Duration(milliseconds: 400)),
                         const SizedBox(height: 20),
                       ],
                     ),

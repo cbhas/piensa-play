@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/theme/app_animations.dart';
 import '../../domain/entities/avatar.dart';
 
 class AvatarSelector extends StatelessWidget {
@@ -72,10 +73,12 @@ class AvatarSelector extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 8),
-
               ],
             ),
           ),
+        ).staggeredEntry(
+          index: index,
+          staggerDelay: const Duration(milliseconds: 80),
         );
       },
     );

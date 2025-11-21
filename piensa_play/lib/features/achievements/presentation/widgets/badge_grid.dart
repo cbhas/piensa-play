@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/theme/app_animations.dart';
 import '../../domain/entities/badge.dart' as entities;
 import 'badge_item.dart';
 
@@ -92,6 +93,9 @@ class BadgeGrid extends StatelessWidget {
                 title: badge.title,
                 icon: _getIconFromName(badge.iconName),
                 isUnlocked: badge.isUnlocked,
+              ).staggeredEntry(
+                index: index,
+                staggerDelay: const Duration(milliseconds: 60),
               );
             },
           ),

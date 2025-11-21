@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/theme/app_animations.dart';
 import '../../domain/entities/recent_activity.dart';
 import 'activity_item.dart';
 
@@ -66,11 +67,16 @@ class RecentActivitiesList extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          ...activities.map((activity) {
+          ...activities.asMap().entries.map((entry) {
+            final index = entry.key;
+            final activity = entry.value;
             return ActivityItem(
               description: activity.description,
               xpReward: activity.xpReward,
               icon: _getIconFromName(activity.iconName),
+            ).staggeredEntry(
+              index: index,
+              staggerDelay: const Duration(milliseconds: 60),
             );
           }),
         ],

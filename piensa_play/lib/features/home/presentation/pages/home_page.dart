@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/theme/app_animations.dart';
 import '../../domain/entities/dashboard_stats.dart';
 import '../../domain/entities/user_progress.dart';
 import '../../domain/usecases/get_dashboard_stats.dart';
@@ -81,12 +82,16 @@ class _HomePageState extends State<HomePage> {
           ? const Center(child: CircularProgressIndicator())
           : Column(
               children: [
-                DashboardHeader(avatarPath: _getAvatarPath(_avatarId)),
+                DashboardHeader(
+                  avatarPath: _getAvatarPath(_avatarId),
+                ).slideFromTop(duration: const Duration(milliseconds: 400)),
                 Expanded(
                   child: SingleChildScrollView(
                     child: Column(
                       children: [
-                        MissionBanner(onPressed: () {}),
+                        MissionBanner(
+                          onPressed: () {},
+                        ).fadeInSlide(delay: const Duration(milliseconds: 200)),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 20),
                           child: GridView.count(
@@ -104,7 +109,7 @@ class _HomePageState extends State<HomePage> {
                                 color: AppTheme.accentGreen,
                                 borderColor: AppTheme.accentGreen,
                                 onTap: () {},
-                              ),
+                              ).staggeredEntry(index: 0),
                               DashboardCard(
                                 title: 'Glosario',
                                 subtitle:
@@ -113,7 +118,7 @@ class _HomePageState extends State<HomePage> {
                                 color: AppTheme.accentBlue,
                                 borderColor: AppTheme.accentBlue,
                                 onTap: () {},
-                              ),
+                              ).staggeredEntry(index: 1),
                               DashboardCard(
                                 title: 'Logros',
                                 subtitle:
@@ -124,7 +129,7 @@ class _HomePageState extends State<HomePage> {
                                 onTap: () {
                                   Navigator.pushNamed(context, '/achievements');
                                 },
-                              ),
+                              ).staggeredEntry(index: 2),
                               DashboardCard(
                                 title: 'Misiones',
                                 subtitle:
@@ -135,14 +140,14 @@ class _HomePageState extends State<HomePage> {
                                 onTap: () {
                                   Navigator.pushNamed(context, '/missions');
                                 },
-                              ),
+                              ).staggeredEntry(index: 3),
                             ],
                           ),
                         ),
                         ProgressCircle(
                           progress: _progress?.generalProgress ?? 0.0,
                           monthlyProgress: _progress?.monthlyProgress ?? {},
-                        ),
+                        ).scaleIn(delay: const Duration(milliseconds: 500)),
                         const SizedBox(height: 80),
                       ],
                     ),
