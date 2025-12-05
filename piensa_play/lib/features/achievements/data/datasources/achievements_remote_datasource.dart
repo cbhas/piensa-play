@@ -54,52 +54,78 @@ class AchievementsRemoteDatasource {
     }
   }
 
-  // Guardar Badges en Firestore
+  // Guardar Badges desbloqueados en Firestore (solo IDs)
   Future<void> saveBadges(String userId, List<Badge> badges) async {
     try {
+      print('🔵 BADGES: Saving unlocked badges for user $userId');
+
       final batch = firestore.batch();
-      final badgesRef = firestore
+      final unlockedBadgesRef = firestore
           .collection('users')
           .doc(userId)
-          .collection('badges');
+          .collection('unlockedBadges');
 
-      for (var badge in badges) {
-        batch.set(badgesRef.doc(badge.id), {
-          'title': badge.title,
-          'iconName': badge.iconName,
-          'isUnlocked': badge.isUnlocked,
-          'lastUpdated': FieldValue.serverTimestamp(),
+      // Solo guardar los badges que están desbloqueados
+      final unlockedBadges = badges.where((badge) => badge.isUnlocked).toList();
+
+      print('🟡 BADGES: Saving ${unlockedBadges.length} unlocked badges');
+
+      for (var badge in unlockedBadges) {
+        batch.set(unlockedBadgesRef.doc(badge.id), {
+          'unlockedAt': FieldValue.serverTimestamp(),
         });
       }
+
       await batch.commit();
-      print('✅ Badges guardados en Firestore');
+      print('✅ Badges desbloqueados guardados en Firestore');
     } catch (e) {
       print('❌ Error guardando Badges: $e');
       rethrow;
     }
   }
 
-  // Obtener Badges desde Firestore
+  // Obtener Badges desde Firestore (nueva estructura)
   Future<List<Badge>?> getBadges(String userId) async {
     try {
-      final snapshot = await firestore
-          .collection('users')
-          .doc(userId)
+      print('🔵 BADGES: Loading from global collection...');
+
+      // 1. Cargar todos los badges desde la colección global
+      final badgesSnapshot = await firestore
           .collection('badges')
+          .orderBy('order')
           .get();
 
-      if (snapshot.docs.isNotEmpty) {
-        return snapshot.docs.map((doc) {
-          final data = doc.data();
-          return Badge(
-            id: doc.id,
-            title: data['title'] ?? '',
-            iconName: data['iconName'] ?? '',
-            isUnlocked: data['isUnlocked'] ?? false,
-          );
-        }).toList();
+      if (badgesSnapshot.docs.isEmpty) {
+        print('⚠️ BADGES: No badges found in global collection');
+        return null;
       }
-      return null;
+
+      // 2. Cargar badges desbloqueados del usuario
+      final unlockedSnapshot = await firestore
+          .collection('users')
+          .doc(userId)
+          .collection('unlockedBadges')
+          .get();
+
+      final unlockedIds = unlockedSnapshot.docs.map((doc) => doc.id).toSet();
+      print('🟡 BADGES: User has ${unlockedIds.length} unlocked badges');
+
+      // 3. Combinar: marcar como desbloqueados los que tiene el usuario
+      final badges = badgesSnapshot.docs.map((doc) {
+        final data = doc.data();
+        final isUnlocked = unlockedIds.contains(doc.id);
+
+        return Badge(
+          id: doc.id,
+          title: data['title'] ?? '',
+          description: data['description'],
+          iconName: data['iconName'] ?? '',
+          isUnlocked: isUnlocked,
+        );
+      }).toList();
+
+      print('🟢 BADGES: Loaded ${badges.length} badges total');
+      return badges;
     } catch (e) {
       print('❌ Error obteniendo Badges: $e');
       return null;

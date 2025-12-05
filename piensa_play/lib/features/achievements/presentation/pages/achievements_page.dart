@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/app_animations.dart';
+import '../../../../core/services/user_id_provider.dart';
 import '../../domain/entities/achievement.dart';
 import '../../domain/entities/badge.dart' as entities;
 import '../../domain/entities/recent_activity.dart';
@@ -24,7 +25,8 @@ class _AchievementsPageState extends State<AchievementsPage> {
   final GetBadges _getBadges = GetBadges();
   final GetRecentActivities _getRecentActivities = GetRecentActivities();
 
-  final String userId = 'user123';
+  // Use Firebase Anonymous Auth UID instead of hardcoded ID
+  String get userId => UserIdProvider.currentUserId;
 
   Achievement? _achievement;
   List<entities.Badge> _badges = [];

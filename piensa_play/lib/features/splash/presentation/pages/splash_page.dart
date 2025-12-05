@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:piensa_play/core/routes/app_routes.dart';
 import 'package:piensa_play/core/theme/app_theme.dart';
 import 'package:piensa_play/features/splash/domain/usecases/get_splash_config.dart';
 import 'package:piensa_play/features/splash/domain/entities/splash_config.dart';
-
 
 class SplashPage extends StatefulWidget {
   const SplashPage({Key? key}) : super(key: key);
@@ -12,7 +12,8 @@ class SplashPage extends StatefulWidget {
   State<SplashPage> createState() => _SplashPageState();
 }
 
-class _SplashPageState extends State<SplashPage> with SingleTickerProviderStateMixin {
+class _SplashPageState extends State<SplashPage>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
@@ -25,7 +26,7 @@ class _SplashPageState extends State<SplashPage> with SingleTickerProviderStateM
     _getSplashConfig = GetSplashConfig();
     _config = _getSplashConfig.execute();
     _initializeAnimations();
-    _navigateToWelcome();
+    _navigateToNextPage();
   }
 
   void _initializeAnimations() {
@@ -34,23 +35,40 @@ class _SplashPageState extends State<SplashPage> with SingleTickerProviderStateM
       vsync: this,
     );
 
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeIn),
-    );
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeIn));
 
-    _scaleAnimation = Tween<double>(begin: 0.5, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.elasticOut),
-    );
+    _scaleAnimation = Tween<double>(
+      begin: 0.5,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.elasticOut));
 
     _controller.forward();
   }
 
-  void _navigateToWelcome() {
-    Future.delayed(Duration(seconds: _config.durationSeconds), () {
-      if (mounted) {
-        Navigator.of(context).pushReplacementNamed(AppRoutes.welcome);
-      }
-    });
+  Future<void> _navigateToNextPage() async {
+    // Wait for splash duration
+    await Future.delayed(Duration(seconds: _config.durationSeconds));
+
+    if (!mounted) return;
+
+    // Check if user has completed onboarding
+    final prefs = await SharedPreferences.getInstance();
+    final hasProfile = prefs.containsKey('user_profile');
+
+    print('🔵 SPLASH: Checking profile... hasProfile: $hasProfile');
+
+    if (hasProfile) {
+      // User has completed onboarding, go directly to home
+      print('🟢 SPLASH: Profile found, navigating to home');
+      Navigator.of(context).pushReplacementNamed(AppRoutes.home);
+    } else {
+      // New user, show welcome/onboarding
+      print('🟡 SPLASH: No profile, navigating to welcome');
+      Navigator.of(context).pushReplacementNamed(AppRoutes.welcome);
+    }
   }
 
   @override
@@ -107,47 +125,47 @@ class _SplashPageState extends State<SplashPage> with SingleTickerProviderStateM
   // }
 
   Widget _buildMascotContainer() {
-  return SizedBox(
-    width: 180,
-    height: 220, 
-    child: Stack(
-      clipBehavior: Clip.none,
-      children: [
-        Positioned(
-          bottom: 0,
-          left: 0,
-          child: Container(
-            width: 180,
-            height: 180,
-            decoration: BoxDecoration(
-              color: AppTheme.mascotBackground,
-              shape: BoxShape.circle,
-              boxShadow: AppTheme.defaultShadow,
-            ),
-          ),
-        ),
-        Positioned(
-          bottom: 0,
-          left: 0,
-          child: SizedBox(
-            width: 180,
-            height: 220,
-            child: Transform.scale(
-              scale: 1.3,
-              alignment: Alignment.bottomCenter,
-              child: Image.asset(
-                _config.mascot,
-                width: 180,
-                height: 180,
-                fit: BoxFit.contain,
+    return SizedBox(
+      width: 180,
+      height: 220,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Positioned(
+            bottom: 0,
+            left: 0,
+            child: Container(
+              width: 180,
+              height: 180,
+              decoration: BoxDecoration(
+                color: AppTheme.mascotBackground,
+                shape: BoxShape.circle,
+                boxShadow: AppTheme.defaultShadow,
               ),
             ),
           ),
-        ),
-      ],
-    ),
-  );
-}
+          Positioned(
+            bottom: 0,
+            left: 0,
+            child: SizedBox(
+              width: 180,
+              height: 220,
+              child: Transform.scale(
+                scale: 1.3,
+                alignment: Alignment.bottomCenter,
+                child: Image.asset(
+                  _config.mascot,
+                  width: 180,
+                  height: 180,
+                  fit: BoxFit.contain,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   Widget _buildAppName() {
     return Text(

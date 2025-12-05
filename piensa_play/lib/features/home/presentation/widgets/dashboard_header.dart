@@ -5,8 +5,9 @@ import '../../../../core/theme/app_theme.dart';
 
 class DashboardHeader extends StatelessWidget {
   final String avatarPath;
+  final String? userName;
 
-  const DashboardHeader({super.key, required this.avatarPath});
+  const DashboardHeader({super.key, required this.avatarPath, this.userName});
 
   @override
   Widget build(BuildContext context) {
@@ -41,9 +42,9 @@ class DashboardHeader extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 16),
-            const Text(
-              '¡Hola!',
-              style: TextStyle(
+            Text(
+              userName != null ? '¡Hola, $userName!' : '¡Hola!',
+              style: const TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,

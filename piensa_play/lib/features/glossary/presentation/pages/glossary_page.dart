@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/app_animations.dart';
+import '../../../../core/services/user_id_provider.dart';
 import '../../domain/entities/glossary_term.dart';
 import '../../domain/usecases/get_glossary_terms.dart';
 import '../widgets/glossary_term_card.dart';
@@ -20,7 +21,8 @@ class _GlossaryPageState extends State<GlossaryPage> {
   final GetGlossaryTerms _getGlossaryTerms = GetGlossaryTerms();
   final TextEditingController _searchController = TextEditingController();
 
-  final String userId = 'user123';
+  // Use Firebase Anonymous Auth UID instead of hardcoded ID
+  String get userId => UserIdProvider.currentUserId;
 
   List<GlossaryTerm> _allTerms = [];
   List<GlossaryTerm> _filteredTerms = [];
