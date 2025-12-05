@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/app_animations.dart';
+import '../../../../core/services/user_id_provider.dart';
 import '../../domain/entities/dashboard_stats.dart';
 import '../../domain/entities/user_progress.dart';
 import '../../domain/usecases/get_dashboard_stats.dart';
@@ -26,11 +27,13 @@ class _HomePageState extends State<HomePage> {
   final GetUserProgress _getUserProgress = GetUserProgress();
   final GetUserProfile _getUserProfile = GetUserProfile();
 
-  final String userId = 'user123';
+  // Use Firebase Anonymous Auth UID instead of hardcoded ID
+  String get userId => UserIdProvider.currentUserId;
 
   DashboardStats? _stats;
   UserProgress? _progress;
   String? _avatarId;
+  String? _userName;
   int _currentNavIndex = 0;
   bool _isLoading = true;
 
@@ -45,15 +48,26 @@ class _HomePageState extends State<HomePage> {
     try {
       print('🔵 HOME: Iniciando carga de datos...');
 
-      // Carga los tres datos EN SECUENCIA (no en paralelo) para evitar racing conditions
+      // Carga los tres datos EN SECUENCIA
       final profile = await _getUserProfile.execute();
+      final stats = await _getDashboardStats.execute(userId);
+      final progress = await _getUserProgress.execute(userId);
 
       print('🟡 HOME: Perfil recuperado: $profile');
       print('🟡 HOME: AvatarId: ${profile?.avatarId}');
 
+      // Actualiza el estado con los datos cargados
+      setState(() {
+        _userName = profile?.name;
+        _avatarId = profile?.avatarId;
+        _stats = stats;
+        _progress = progress;
+        _isLoading = false;
+      });
+
       // Guarda en Firestore DESPUÉS de renderizar
-      await _getDashboardStats.save(userId, _stats!);
-      await _getUserProgress.save(userId, _progress!);
+      await _getDashboardStats.save(userId, stats);
+      await _getUserProgress.save(userId, progress);
 
       print('🟢 HOME: Avatar cargado: $_avatarId');
       print('🟢 HOME: Datos guardados en Firestore');
@@ -88,6 +102,7 @@ class _HomePageState extends State<HomePage> {
               children: [
                 DashboardHeader(
                   avatarPath: _getAvatarPath(_avatarId),
+                  userName: _userName,
                 ).slideFromTop(duration: const Duration(milliseconds: 400)),
                 Expanded(
                   child: SingleChildScrollView(

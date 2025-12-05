@@ -4,12 +4,16 @@ import 'package:provider/provider.dart';
 import 'firebase_options.dart'; // generado por flutterfire configure
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_provider.dart';
+import 'core/services/auth_service.dart';
 import 'core/routes/app_routes.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  final authService = AuthService();
+  await authService.ensureSignedIn();
 
   runApp(const PiensaPlayApp());
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/services/user_id_provider.dart';
 import '../../domain/entities/mission_category.dart';
 import '../../domain/usecases/get_mission_categories.dart';
 import '../widgets/missions_header.dart';
@@ -14,7 +15,8 @@ class MissionsPage extends StatefulWidget {
 
 class _MissionsPageState extends State<MissionsPage> {
   final GetMissionCategories _getMissionCategories = GetMissionCategories();
-  final String userId = 'user123';
+  // Use Firebase Anonymous Auth UID instead of hardcoded ID
+  String get userId => UserIdProvider.currentUserId;
 
   List<MissionCategory> _categories = [];
   bool _isLoading = true;
