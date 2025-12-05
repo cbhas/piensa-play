@@ -32,14 +32,84 @@ class AppTheme {
     0xFFCFE89C,
   ); // Light green (mascot)
 
+  // ========== Dark Mode Colors ==========
+  static const Color backgroundDark = Color(0xFF1A1A1A); // Dark background
+  static const Color surfaceDark = Color(0xFF2D2D2D); // Dark surface
+  static const Color cardDark = Color(0xFF3A3A3A); // Dark cards
+  static const Color textPrimaryDark = Color(0xFFFFFFFF); // White text
+  static const Color textSecondaryDark = Color(0xFFB0B0B0); // Gray text
+
+  // ========== Light Theme ==========
   static ThemeData get lightTheme {
     return ThemeData(
-      primarySwatch: Colors.blue,
+      useMaterial3: true,
+      brightness: Brightness.light,
+      primaryColor: primaryDark,
+      scaffoldBackgroundColor: backgroundLight,
       fontFamily: 'Roboto',
-      scaffoldBackgroundColor: Colors.white,
+
       colorScheme: const ColorScheme.light(
         primary: primaryDark,
         secondary: accentYellow,
+        surface: Colors.white,
+        background: backgroundLight,
+      ),
+
+      appBarTheme: const AppBarTheme(
+        backgroundColor: tertiaryDark,
+        foregroundColor: Colors.white,
+        elevation: 0,
+      ),
+
+      cardTheme: CardThemeData(
+        color: Colors.white,
+        elevation: 2,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      ),
+
+      textTheme: const TextTheme(
+        bodyLarge: TextStyle(color: primaryDark),
+        bodyMedium: TextStyle(color: primaryDark),
+        titleLarge: TextStyle(color: primaryDark, fontWeight: FontWeight.bold),
+      ),
+    );
+  }
+
+  // ========== Dark Theme ==========
+  static ThemeData get darkTheme {
+    return ThemeData(
+      useMaterial3: true,
+      brightness: Brightness.dark,
+      primaryColor: accentGreen,
+      scaffoldBackgroundColor: backgroundDark,
+      fontFamily: 'Roboto',
+
+      colorScheme: const ColorScheme.dark(
+        primary: accentGreen,
+        secondary: accentYellow,
+        surface: surfaceDark,
+        background: backgroundDark,
+      ),
+
+      appBarTheme: const AppBarTheme(
+        backgroundColor: surfaceDark,
+        foregroundColor: textPrimaryDark,
+        elevation: 0,
+      ),
+
+      cardTheme: CardThemeData(
+        color: cardDark,
+        elevation: 2,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      ),
+
+      textTheme: const TextTheme(
+        bodyLarge: TextStyle(color: textPrimaryDark),
+        bodyMedium: TextStyle(color: textSecondaryDark),
+        titleLarge: TextStyle(
+          color: textPrimaryDark,
+          fontWeight: FontWeight.bold,
+        ),
       ),
     );
   }

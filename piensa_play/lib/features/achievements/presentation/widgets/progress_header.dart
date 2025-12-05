@@ -6,9 +6,13 @@ class ProgressHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       width: double.infinity,
-      decoration: const BoxDecoration(color: AppTheme.tertiaryDark),
+      decoration: BoxDecoration(
+        color: isDark ? AppTheme.surfaceDark : AppTheme.tertiaryDark,
+      ),
       padding: const EdgeInsets.only(top: 50, bottom: 20, left: 16, right: 16),
       child: Row(
         children: [

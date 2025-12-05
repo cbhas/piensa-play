@@ -15,10 +15,12 @@ class CustomBottomNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       height: 75,
       decoration: BoxDecoration(
-        color: AppTheme.tertiaryDark, // CORRECTO: tertiaryDark
+        color: isDark ? AppTheme.surfaceDark : AppTheme.tertiaryDark,
         borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(30),
           topRight: Radius.circular(30),
@@ -82,7 +84,8 @@ class _NavBarItem extends StatelessWidget {
             icon,
             size: 28,
             color: isSelected
-                ? AppTheme.accentYellow // CORRECTO
+                ? AppTheme
+                      .accentYellow // CORRECTO
                 : Colors.white.withOpacity(0.6),
           ),
           const SizedBox(height: 4),
@@ -92,7 +95,8 @@ class _NavBarItem extends StatelessWidget {
               fontSize: 12,
               fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
               color: isSelected
-                  ? AppTheme.accentYellow // CORRECTO
+                  ? AppTheme
+                        .accentYellow // CORRECTO
                   : Colors.white.withOpacity(0.6),
             ),
           ),

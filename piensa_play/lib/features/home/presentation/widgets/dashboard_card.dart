@@ -23,11 +23,13 @@ class DashboardCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: isDark ? AppTheme.cardDark : Colors.white,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: borderColor, width: 2.5),
           boxShadow: [
@@ -59,10 +61,12 @@ class DashboardCard extends StatelessWidget {
               Flexible(
                 child: Text(
                   title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.bold,
-                    color: AppTheme.primaryDark,
+                    color: isDark
+                        ? AppTheme.textPrimaryDark
+                        : AppTheme.primaryDark,
                     height: 1.2,
                   ),
                   textAlign: TextAlign.center,
@@ -77,7 +81,9 @@ class DashboardCard extends StatelessWidget {
                   subtitle,
                   style: TextStyle(
                     fontSize: 12,
-                    color: Colors.grey.shade600,
+                    color: isDark
+                        ? AppTheme.textSecondaryDark
+                        : Colors.grey.shade600,
                     fontWeight: FontWeight.w500,
                   ),
                   textAlign: TextAlign.center,

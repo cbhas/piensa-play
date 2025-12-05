@@ -49,8 +49,12 @@ class _MissionsPageState extends State<MissionsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: AppTheme.backgroundLight,
+      backgroundColor: isDark
+          ? AppTheme.backgroundDark
+          : AppTheme.backgroundLight,
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : Column(

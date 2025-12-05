@@ -19,12 +19,12 @@ class OnboardingPage extends StatefulWidget {
 class _OnboardingPageState extends State<OnboardingPage> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
-  final _ageController = TextEditingController();
 
   final GetAvatars _getAvatars = GetAvatars();
   final SaveUserProfile _saveUserProfile = SaveUserProfile();
 
   String? _selectedAvatarId;
+  int? _selectedAge;
   List<Avatar> _avatars = [];
 
   @override
@@ -36,7 +36,6 @@ class _OnboardingPageState extends State<OnboardingPage> {
   @override
   void dispose() {
     _nameController.dispose();
-    _ageController.dispose();
     super.dispose();
   }
 
@@ -48,10 +47,10 @@ class _OnboardingPageState extends State<OnboardingPage> {
 
   Future<void> _handleSubmit() async {
     if (_formKey.currentState!.validate()) {
-      if (_selectedAvatarId == null) {
+      if (_selectedAge == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('Por favor selecciona un avatar'),
+            content: const Text('Por favor selecciona tu edad'),
             backgroundColor: AppTheme.primaryDark,
             behavior: SnackBarBehavior.floating,
           ),
@@ -61,11 +60,13 @@ class _OnboardingPageState extends State<OnboardingPage> {
 
       final profile = UserProfile(
         name: _nameController.text,
-        age: int.parse(_ageController.text),
+        age: _selectedAge!,
         avatarId: _selectedAvatarId!,
       );
 
-      print('🔵 Guardando perfil: nombre=${profile.name}, edad=${profile.age}, avatarId=${profile.avatarId}');
+      print(
+        '🔵 Guardando perfil: nombre=${profile.name}, edad=${profile.age}, avatarId=${profile.avatarId}',
+      );
 
       await _saveUserProfile.execute(profile);
 
@@ -79,8 +80,10 @@ class _OnboardingPageState extends State<OnboardingPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? AppTheme.backgroundDark : Colors.white,
       body: Stack(
         children: [
           // Burbujas decorativas animadas
@@ -102,13 +105,13 @@ class _OnboardingPageState extends State<OnboardingPage> {
                         child: Center(
                           child: ClipOval(
                             child: Container(
-                              width: 130,
-                              height: 130,
+                              width: 100,
+                              height: 100,
                               child: Center(
                                 child: Image.asset(
                                   'assets/images/p.png',
-                                  width: 130,
-                                  height: 130,
+                                  width: 100,
+                                  height: 100,
                                   colorBlendMode: BlendMode.srcIn,
                                 ),
                               ),
@@ -117,19 +120,19 @@ class _OnboardingPageState extends State<OnboardingPage> {
                         ),
                       ),
 
-                      const SizedBox(height: 28),
+                      const SizedBox(height: 20),
 
                       // Título
                       Text(
                         '¡Cuéntanos sobre ti!',
                         style: TextStyle(
-                          fontSize: 28,
+                          fontSize: 24,
                           fontWeight: FontWeight.bold,
                           color: AppTheme.primaryDark,
                         ),
                       ),
 
-                      const SizedBox(height: 32),
+                      const SizedBox(height: 20),
 
                       // Contenedor del formulario con borde dorado
                       Container(
@@ -184,7 +187,9 @@ class _OnboardingPageState extends State<OnboardingPage> {
                                 focusedBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(30),
                                   borderSide: BorderSide(
-                                    color: AppTheme.primaryDark.withOpacity(0.5),
+                                    color: AppTheme.primaryDark.withOpacity(
+                                      0.5,
+                                    ),
                                     width: 2,
                                   ),
                                 ),
@@ -208,15 +213,11 @@ class _OnboardingPageState extends State<OnboardingPage> {
                               },
                             ),
 
-                            const SizedBox(height: 14),
+                            const SizedBox(height: 12),
 
-                            // Campo de edad
-                            TextFormField(
-                              controller: _ageController,
-                              style: TextStyle(
-                                color: AppTheme.primaryDark,
-                                fontSize: 16,
-                              ),
+                            // Selector de edad (dropdown)
+                            DropdownButtonFormField<int>(
+                              value: _selectedAge,
                               decoration: InputDecoration(
                                 hintText: '¿Cuántos años tienes?',
                                 hintStyle: TextStyle(
@@ -239,15 +240,10 @@ class _OnboardingPageState extends State<OnboardingPage> {
                                 focusedBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(30),
                                   borderSide: BorderSide(
-                                    color: AppTheme.primaryDark.withOpacity(0.5),
+                                    color: AppTheme.primaryDark.withOpacity(
+                                      0.5,
+                                    ),
                                     width: 2,
-                                  ),
-                                ),
-                                errorBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(30),
-                                  borderSide: const BorderSide(
-                                    color: Colors.red,
-                                    width: 1.5,
                                   ),
                                 ),
                                 contentPadding: const EdgeInsets.symmetric(
@@ -255,14 +251,27 @@ class _OnboardingPageState extends State<OnboardingPage> {
                                   vertical: 18,
                                 ),
                               ),
-                              keyboardType: TextInputType.number,
+                              items: List.generate(9, (index) {
+                                final age = index + 4;
+                                return DropdownMenuItem<int>(
+                                  value: age,
+                                  child: Text(
+                                    'Tengo $age años',
+                                    style: TextStyle(
+                                      color: AppTheme.primaryDark,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                );
+                              }),
+                              onChanged: (value) {
+                                setState(() {
+                                  _selectedAge = value;
+                                });
+                              },
                               validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Por favor ingresa tu edad';
-                                }
-                                final age = int.tryParse(value);
-                                if (age == null || age < 8 || age > 12) {
-                                  return 'La edad debe estar entre 8 y 12 años';
+                                if (value == null) {
+                                  return 'Por favor selecciona tu edad';
                                 }
                                 return null;
                               },
@@ -271,7 +280,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
                         ),
                       ),
 
-                      const SizedBox(height: 32),
+                      const SizedBox(height: 20),
 
                       // Título selector de avatar
                       Text(
@@ -283,7 +292,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
                         ),
                       ),
 
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 12),
 
                       // Grid de avatares
                       AvatarSelector(
@@ -292,12 +301,12 @@ class _OnboardingPageState extends State<OnboardingPage> {
                         onAvatarSelected: _handleAvatarSelection,
                       ),
 
-                      const SizedBox(height: 32),
+                      const SizedBox(height: 20),
 
                       // Botón "¡A Jugar!"
                       SizedBox(
                         width: double.infinity,
-                        height: 60,
+                        height: 54,
                         child: ElevatedButton(
                           onPressed: _handleSubmit,
                           style: ElevatedButton.styleFrom(
@@ -311,7 +320,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
                           child: Text(
                             '¡A Jugar!',
                             style: TextStyle(
-                              fontSize: 22,
+                              fontSize: 20,
                               fontWeight: FontWeight.bold,
                               color: AppTheme.tertiaryDark,
                               letterSpacing: 0.5,
@@ -320,7 +329,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
                         ),
                       ),
 
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 12),
 
                       // Texto informativo
                       Text(
@@ -333,7 +342,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
                         ),
                       ),
 
-                      const SizedBox(height: 32),
+                      const SizedBox(height: 20),
                     ],
                   ),
                 ),
@@ -350,13 +359,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
     return Stack(
       children: [
         // Burbuja superior izquierda
-        AnimatedBubble(
-          size: 200,
-          top: -80,
-          left: -80,
-          duration: 4,
-          offset: 20,
-        ),
+        AnimatedBubble(size: 200, top: -80, left: -80, duration: 4, offset: 20),
 
         // Burbuja inferior derecha
         AnimatedBubble(

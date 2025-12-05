@@ -76,8 +76,12 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: AppTheme.backgroundLight,
+      backgroundColor: isDark
+          ? AppTheme.backgroundDark
+          : AppTheme.backgroundLight,
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : Column(
@@ -117,7 +121,9 @@ class _HomePageState extends State<HomePage> {
                                 icon: Icons.book,
                                 color: AppTheme.accentBlue,
                                 borderColor: AppTheme.accentBlue,
-                                onTap: () {},
+                                onTap: () {
+                                  Navigator.pushNamed(context, '/glossary');
+                                },
                               ).staggeredEntry(index: 1),
                               DashboardCard(
                                 title: 'Logros',
@@ -156,8 +162,15 @@ class _HomePageState extends State<HomePage> {
               ],
             ),
       bottomNavigationBar: CustomBottomNavBar(
-        currentIndex: _currentNavIndex,
-        onTap: (i) => setState(() => _currentNavIndex = i),
+        currentIndex: 0,
+        onTap: (index) {
+          if (index == 1) {
+            Navigator.pushReplacementNamed(context, '/glossary');
+          } else if (index == 2) {
+            Navigator.pushReplacementNamed(context, '/settings');
+          }
+          // index == 0 is already on home
+        },
       ),
     );
   }
