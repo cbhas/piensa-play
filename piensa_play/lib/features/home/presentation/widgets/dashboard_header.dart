@@ -6,17 +6,16 @@ import '../../../../core/theme/app_theme.dart';
 class DashboardHeader extends StatelessWidget {
   final String avatarPath;
 
-  const DashboardHeader({
-    super.key,
-    required this.avatarPath,
-  });
+  const DashboardHeader({super.key, required this.avatarPath});
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       padding: const EdgeInsets.all(20),
-      decoration: const BoxDecoration(
-        color: AppTheme.tertiaryDark, // CAMBIADO: Más oscuro
+      decoration: BoxDecoration(
+        color: isDark ? AppTheme.surfaceDark : AppTheme.tertiaryDark,
       ),
       child: SafeArea(
         child: Row(
@@ -27,10 +26,7 @@ class DashboardHeader extends StatelessWidget {
               decoration: BoxDecoration(
                 color: Colors.white,
                 shape: BoxShape.circle,
-                border: Border.all(
-                  color: AppTheme.accentYellow,
-                  width: 3,
-                ),
+                border: Border.all(color: AppTheme.accentYellow, width: 3),
               ),
               child: ClipOval(
                 child: Image.asset(

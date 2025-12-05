@@ -1,7 +1,7 @@
 // lib/features/onboarding/presentation/widgets/avatar_selector.dart
 
 import 'package:flutter/material.dart';
-import '../../../../core/theme/app_theme.dart';
+import '../../../../core/theme/app_animations.dart';
 import '../../domain/entities/avatar.dart';
 
 class AvatarSelector extends StatelessWidget {
@@ -23,9 +23,9 @@ class AvatarSelector extends StatelessWidget {
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
-        crossAxisSpacing: 16,
-        mainAxisSpacing: 16,
-        childAspectRatio: 1,
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 12,
+        childAspectRatio: 1.1,
       ),
       itemCount: avatars.length,
       itemBuilder: (context, index) {
@@ -51,8 +51,8 @@ class AvatarSelector extends StatelessWidget {
               children: [
                 // Círculo con la imagen del avatar
                 Container(
-                  width: 100,
-                  height: 100,
+                  width: 90,
+                  height: 90,
                   decoration: const BoxDecoration(
                     color: Colors.white,
                     shape: BoxShape.circle,
@@ -71,11 +71,13 @@ class AvatarSelector extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(height: 8),
-
+                const SizedBox(height: 4),
               ],
             ),
           ),
+        ).staggeredEntry(
+          index: index,
+          staggerDelay: const Duration(milliseconds: 80),
         );
       },
     );
