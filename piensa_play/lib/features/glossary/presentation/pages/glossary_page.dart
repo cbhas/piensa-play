@@ -273,6 +273,7 @@ class _GlossaryPageState extends State<GlossaryPage> {
                       return GlossaryTermCard(
                         term: term.term,
                         icon: term.icon,
+                        index: index,
                         onTap: () => GlossaryTermDialog.show(context, term),
                       ).staggeredEntry(
                         index: index,
