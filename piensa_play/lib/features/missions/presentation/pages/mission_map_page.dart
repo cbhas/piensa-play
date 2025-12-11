@@ -3,6 +3,8 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../widgets/map_header.dart';
 import '../widgets/mission_banner.dart';
 import '../widgets/mission_node.dart';
+import 'veracidadville/quiz_intro_page.dart';
+import 'veracidadville/true_false_intro_page.dart';
 
 class MissionMapPage extends StatefulWidget {
   final String categoryTitle;
@@ -27,16 +29,16 @@ class _MissionMapPageState extends State<MissionMapPage> {
 
   final Map<String, Map<String, String>> missionData = {
     '1': {
-      'title': 'El Muro de los Mensajes',
-      'description': 'Identifica noticias falsas',
+      'title': 'Veracidadville',
+      'description': 'Aprende a detectar noticias falsas',
     },
     '2': {
-      'title': 'La Fuente de la Verdad',
-      'description': 'Aprende a verificar fuentes',
+      'title': 'Detector de Verdades',
+      'description': 'Decide si las noticias son verdaderas o falsas',
     },
-    'chest1': {
-      'title': 'Cofre del Tesoro',
-      'description': 'Recompensa especial',
+    '3': {
+      'title': 'Próximamente',
+      'description': 'Nueva misión disponible pronto',
     },
   };
 
@@ -48,6 +50,21 @@ class _MissionMapPageState extends State<MissionMapPage> {
         selectedMissionDescription = missionData[missionId]!['description']!;
       }
     });
+
+    // Navigate to quiz if mission 1 is selected
+    if (missionId == '1') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const QuizIntroPage()),
+      );
+    }
+    // Navigate to true/false quiz if mission 2 is selected
+    else if (missionId == '2') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const TrueFalseIntroPage()),
+      );
+    }
   }
 
   @override
@@ -68,7 +85,7 @@ class _MissionMapPageState extends State<MissionMapPage> {
               physics: const BouncingScrollPhysics(),
               child: Container(
                 width: screenWidth,
-                height: 1600,
+                height: 800, // Reduced height for 3 nodes
                 decoration: const BoxDecoration(
                   image: DecorationImage(
                     image: AssetImage('assets/images/map_background.png'),
@@ -81,7 +98,7 @@ class _MissionMapPageState extends State<MissionMapPage> {
                   children: [
                     // Path
                     CustomPaint(
-                      size: Size(screenWidth, 1600),
+                      size: Size(screenWidth, 800),
                       painter: MapPathPainter(
                         points: _getMissionPositions(
                           screenWidth,
@@ -93,7 +110,7 @@ class _MissionMapPageState extends State<MissionMapPage> {
                     // Mascot from assets
                     Positioned(
                       right: 50,
-                      top: 650,
+                      top: 350,
                       child:
                           Image.asset(
                                 'assets/images/mascot.png',
@@ -141,42 +158,12 @@ class _MissionMapPageState extends State<MissionMapPage> {
       ),
       MapMissionData(
         id: '2',
-        position: Offset(centerX - 60, 350),
+        position: Offset(centerX - 60, 400),
         type: MissionNodeType.unlocked,
       ),
       MapMissionData(
-        id: 'chest1',
-        position: Offset(centerX + 50, 500),
-        type: MissionNodeType.chest,
-      ),
-      MapMissionData(
         id: '3',
-        position: Offset(centerX - 40, 650),
-        type: MissionNodeType.locked,
-      ),
-      MapMissionData(
-        id: '4',
-        position: Offset(centerX + 60, 800),
-        type: MissionNodeType.locked,
-      ),
-      MapMissionData(
-        id: '5',
-        position: Offset(centerX - 50, 950),
-        type: MissionNodeType.locked,
-      ),
-      MapMissionData(
-        id: '6',
-        position: Offset(centerX + 40, 1100),
-        type: MissionNodeType.locked,
-      ),
-      MapMissionData(
-        id: 'chest2',
-        position: Offset(centerX - 30, 1250),
-        type: MissionNodeType.chest,
-      ),
-      MapMissionData(
-        id: '7',
-        position: Offset(centerX + 50, 1400),
+        position: Offset(centerX + 50, 600),
         type: MissionNodeType.locked,
       ),
     ];
