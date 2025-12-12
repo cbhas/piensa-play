@@ -1,5 +1,6 @@
 import '../../domain/entities/mission.dart';
 import '../../domain/entities/mission_category.dart';
+import '../datasources/ciberseguridad/ciberseguridad_quiz_data.dart'; // Import CiberseguridadQuizData
 
 class MissionsLocalDatasource {
   Future<List<MissionCategory>> getMissionCategories(String userId) async {
@@ -17,16 +18,20 @@ class MissionsLocalDatasource {
           Mission(
             id: 'fake_news',
             title: 'Cazadores de Fake News',
+            subtitle: 'Veracidadville', // Added subtitle
             description: 'Aprende a identificar noticias engañosas',
             isCompleted: true,
             iconName: 'check',
+            questions: [], // Added questions
           ),
           Mission(
             id: 'titular',
             title: 'El Enigma del Titular',
+            subtitle: 'Veracidadville', // Added subtitle
             description: 'Desentraña titulares para encontrar la verdad.',
             isCompleted: false,
             iconName: 'warning',
+            questions: [], // Added questions
           ),
         ],
       ),
@@ -40,9 +45,11 @@ class MissionsLocalDatasource {
           Mission(
             id: 'mensaje_escondido',
             title: 'El Mensaje Escondido',
+            subtitle: 'Zona Cero Odio', // Added subtitle
             description: 'Identifica palabras y frases que promueven el odio.',
             isCompleted: false,
             iconName: 'lock',
+            questions: [], // Added questions
           ),
         ],
       ),
@@ -56,9 +63,47 @@ class MissionsLocalDatasource {
           Mission(
             id: 'navegacion_segura',
             title: 'Navegación Segura',
+            subtitle: 'Fortaleza Privacidad', // Added subtitle
             description: 'Aprende a proteger tus datos al navegar.',
             isCompleted: false,
             iconName: 'diamond',
+            questions: [], // Added questions
+          ),
+        ],
+      ),
+      MissionCategory(
+        id: 'ciberseguridad', // ID de la categoría actualizado
+        title: 'Misión Ciberseguridad', // Título actualizado
+        description: 'Defiende el ciberespacio de amenazas y ataques.',
+        iconName: 'security',
+        colorHex: '0xFFFF6B6B', // accentRed
+        missions: [
+          Mission(
+            id: 'q1_phishing', // ID de la pregunta 1
+            title: 'El Ataque Phishing',
+            subtitle: 'Ciberseguridad', // Added subtitle
+            description: 'Detecta correos y mensajes fraudulentos.',
+            isCompleted: false,
+            iconName: 'flag',
+            questions: [CiberseguridadQuizData.getQuestionById('q1_phishing')!],
+          ),
+          Mission(
+            id: 'q2_malware', // ID de la pregunta 2
+            title: 'La Amenaza Oculta',
+            subtitle: 'Ciberseguridad', // Added subtitle
+            description: 'Identifica software malicioso y protégete.',
+            isCompleted: false,
+            iconName: 'flag',
+            questions: [CiberseguridadQuizData.getQuestionById('q2_malware')!],
+          ),
+          Mission(
+            id: 'q3_passwords', // ID de la pregunta 3
+            title: 'Fortaleza de Contraseñas',
+            subtitle: 'Ciberseguridad', // Added subtitle
+            description: 'Crea contraseñas seguras y robustas.',
+            isCompleted: false,
+            iconName: 'flag',
+            questions: [CiberseguridadQuizData.getQuestionById('q3_passwords')!],
           ),
         ],
       ),
