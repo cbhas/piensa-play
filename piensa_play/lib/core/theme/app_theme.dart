@@ -15,6 +15,7 @@ class AppTheme {
   ); // Light blue (Glosario, Progress)
   static const Color accentYellow = Color(0xFFF4D03F); // Bright yellow (Logros)
   static const Color accentPink = Color(0xFFE91E63); // Pink/Magenta (Misiones)
+  static const Color accentRed = Color(0xFFFF6B6B); // Red for Ciberseguridad
 
   // ========== Secondary Accent Colors ==========
   static const Color accentYellowAlt = Color(

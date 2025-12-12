@@ -29,6 +29,10 @@ class _MissionCategoryCardState extends State<MissionCategoryCard> {
         return Icons.error_outline;
       case 'diamond':
         return Icons.diamond;
+      case 'security':
+        return Icons.security;
+      case 'flag':
+        return Icons.flag;
       default:
         return Icons.star;
     }
@@ -128,8 +132,9 @@ class _MissionCategoryCardState extends State<MissionCategoryCard> {
             Container(
               padding: const EdgeInsets.fromLTRB(18, 0, 18, 18),
               child: Column(
-                children: widget.category.missions.map((mission) {
+                children: widget.category.missions.map<Widget>((mission) { // Especifica el tipo <Widget>
                   return MissionItem(
+                    id: mission.id,
                     title: mission.title,
                     description: mission.description,
                     isCompleted: mission.isCompleted,
