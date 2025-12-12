@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../pages/mission_map_page.dart';
+import '../pages/zona_cero/zona_cero_map_page.dart';
 
 class MissionItem extends StatelessWidget {
   final String title;
@@ -87,7 +88,7 @@ class MissionItem extends StatelessWidget {
           // Play button
           GestureDetector(
             onTap: () {
-              // Navigate to mission map for Veracidadville
+              // Navigate to mission map for the selected category
               if (categoryId == 'veracidadville') {
                 Navigator.push(
                   context,
@@ -95,6 +96,16 @@ class MissionItem extends StatelessWidget {
                     builder: (context) => MissionMapPage(
                       categoryTitle: categoryTitle,
                       categoryId: categoryId,
+                      categoryColor: categoryColor,
+                    ),
+                  ),
+                );
+              } else if (categoryId == 'zona_cero_odio') {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ZonaCeroMapPage(
+                      categoryTitle: categoryTitle,
                       categoryColor: categoryColor,
                     ),
                   ),
