@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../pages/mission_map_page.dart';
-
-// No necesitamos importar OperacionCiberseguridadIntroPage aquí directamente,
-// ya que la navegación pasará por MissionMapPage.
-// import '../pages/operacion_ciberseguridad/operacion_ciberseguridad_intro_page.dart';
+import '../pages/zona_cero/zona_cero_map_page.dart';
 
 class MissionItem extends StatelessWidget {
-  final String id; // Añadido missionId
+  final String missionId;
   final String title;
   final String description;
   final bool isCompleted;
@@ -18,7 +15,7 @@ class MissionItem extends StatelessWidget {
 
   const MissionItem({
     super.key,
-    required this.id, // Requerir missionId
+    required this.missionId,
     required this.title,
     required this.description,
     required this.isCompleted,
@@ -27,6 +24,74 @@ class MissionItem extends StatelessWidget {
     required this.categoryTitle,
     required this.categoryColor,
   });
+
+  void _openMission(BuildContext context) {
+    debugPrint('MISSION ID: $missionId | CATEGORY ID: $categoryId');
+
+    // =========================
+    // 1) RUTEO POR CATEGORÍA (principal)
+    // =========================
+
+    // Veracidadville -> MissionMapPage
+    if (categoryId == 'veracidadville') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => MissionMapPage(
+            categoryTitle: categoryTitle,
+            categoryId: categoryId,
+            categoryColor: categoryColor,
+          ),
+        ),
+      );
+      return;
+    }
+
+    // Zona Cero Odio -> ZonaCeroMapPage
+    // (Tu data a veces llega como 'zona_cero_odio' y otras como 'ciberseguridad',
+    // así que cubrimos ambos para que NO se rompa)
+    if (categoryId == 'zona_cero_odio' || categoryId == 'ciberseguridad') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => ZonaCeroMapPage(
+            categoryTitle: categoryTitle,
+            categoryColor: categoryColor,
+          ),
+        ),
+      );
+      return;
+    }
+
+    // =========================
+    // 2) RUTEO POR MISIÓN (backup)
+    // =========================
+    // Si un día cambias categoryId, igual abre lo correcto.
+    if (missionId == 'q1_phishing' ||
+        missionId == 'q2_malware' ||
+        missionId == 'q3_passwords') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => ZonaCeroMapPage(
+            categoryTitle: categoryTitle,
+            categoryColor: categoryColor,
+          ),
+        ),
+      );
+      return;
+    }
+
+    // =========================
+    // 3) FALLBACK
+    // =========================
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Próximamente...'),
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -63,6 +128,7 @@ class MissionItem extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 12),
+
           // Title and description
           Expanded(
             child: Column(
@@ -89,23 +155,12 @@ class MissionItem extends StatelessWidget {
               ],
             ),
           ),
+
           const SizedBox(width: 8),
+
           // Play button
           GestureDetector(
-            onTap: () {
-              // Navegar siempre a MissionMapPage, pasando todos los datos necesarios
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => MissionMapPage(
-                    categoryTitle: categoryTitle,
-                    categoryId: categoryId,
-                    categoryColor: categoryColor,
-                    selectedMissionId: id, // ID de la misión seleccionada
-                  ),
-                ),
-              );
-            },
+            onTap: () => _openMission(context),
             child: Container(
               width: 36,
               height: 36,

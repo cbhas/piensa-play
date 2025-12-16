@@ -39,7 +39,17 @@ class _MissionCategoryCardState extends State<MissionCategoryCard> {
   }
 
   Color _getColorFromHex(String hex) {
-    return Color(int.parse(hex));
+    String v = hex.trim();
+
+    // Soporta: "#RRGGBB", "#AARRGGBB"
+    if (v.startsWith('#')) {
+      v = v.substring(1);
+      if (v.length == 6) v = 'FF$v'; // alpha por defecto
+      v = '0x$v';
+    }
+
+    // Soporta: "0xFFRRGGBB"
+    return Color(int.parse(v));
   }
 
   @override
@@ -62,19 +72,13 @@ class _MissionCategoryCardState extends State<MissionCategoryCard> {
       ),
       child: Column(
         children: [
-          // Category header
           InkWell(
-            onTap: () {
-              setState(() {
-                _isExpanded = !_isExpanded;
-              });
-            },
+            onTap: () => setState(() => _isExpanded = !_isExpanded),
             borderRadius: BorderRadius.circular(24),
             child: Padding(
               padding: const EdgeInsets.all(18),
               child: Row(
                 children: [
-                  // Category icon
                   Container(
                     width: 56,
                     height: 56,
@@ -89,7 +93,6 @@ class _MissionCategoryCardState extends State<MissionCategoryCard> {
                     ),
                   ),
                   const SizedBox(width: 14),
-                  // Title and description
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -115,7 +118,6 @@ class _MissionCategoryCardState extends State<MissionCategoryCard> {
                     ),
                   ),
                   const SizedBox(width: 8),
-                  // Expand/collapse icon
                   Icon(
                     _isExpanded
                         ? Icons.keyboard_arrow_up
@@ -127,14 +129,14 @@ class _MissionCategoryCardState extends State<MissionCategoryCard> {
               ),
             ),
           ),
-          // Missions list (when expanded)
+
           if (_isExpanded)
             Container(
               padding: const EdgeInsets.fromLTRB(18, 0, 18, 18),
               child: Column(
-                children: widget.category.missions.map<Widget>((mission) { // Especifica el tipo <Widget>
+                children: widget.category.missions.map<Widget>((mission) {
                   return MissionItem(
-                    id: mission.id,
+                    missionId: mission.id,
                     title: mission.title,
                     description: mission.description,
                     isCompleted: mission.isCompleted,
