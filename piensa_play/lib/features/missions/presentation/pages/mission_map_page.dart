@@ -5,17 +5,22 @@ import '../widgets/mission_banner.dart';
 import '../widgets/mission_node.dart';
 import 'veracidadville/quiz_intro_page.dart';
 import 'veracidadville/true_false_intro_page.dart';
+import 'ciberseguridad/ciberseguridad_intro_page.dart'; // Importar la nueva página de introducción
+import '../../domain/entities/mission.dart'; // Import Mission entity
+import '../../domain/entities/veracidadville/quiz_question.dart';
 
 class MissionMapPage extends StatefulWidget {
   final String categoryTitle;
   final String categoryId;
   final Color categoryColor;
+  final String? selectedMissionId; // Añadir el parámetro selectedMissionId
 
   const MissionMapPage({
     super.key,
     required this.categoryTitle,
     required this.categoryId,
     required this.categoryColor,
+    this.selectedMissionId, // Hacerlo opcional o requerido según la lógica
   });
 
   @override
@@ -27,18 +32,43 @@ class _MissionMapPageState extends State<MissionMapPage> {
   String selectedMissionTitle = 'Selecciona una misión';
   String selectedMissionDescription = 'Toca una misión para comenzar';
 
+  @override
+  void initState() {
+    super.initState();
+    selectedMissionId = widget.selectedMissionId;
+    // Aquí podrías inicializar selectedMissionTitle y selectedMissionDescription
+    // basándote en widget.selectedMissionId si es necesario.
+    // Por ahora, lo dejaremos como está para no complicar la lógica de los nodos del mapa.
+    _initializeMissionDetails();
+  }
+
+  void _initializeMissionDetails() {
+    if (widget.selectedMissionId != null && missionData.containsKey(widget.selectedMissionId!)) {
+      selectedMissionTitle = missionData[widget.selectedMissionId!]!['title']!;
+      selectedMissionDescription = missionData[widget.selectedMissionId!]!['description']!;
+    }
+  }
+
   final Map<String, Map<String, String>> missionData = {
-    '1': {
-      'title': 'Veracidadville',
-      'description': 'Aprende a detectar noticias falsas',
+    'fake_news': {
+      'title': 'Cazadores de Fake News',
+      'description': 'Aprende a identificar noticias engañosas',
     },
-    '2': {
-      'title': 'Detector de Verdades',
-      'description': 'Decide si las noticias son verdaderas o falsas',
+    'titular': {
+      'title': 'El Enigma del Titular',
+      'description': 'Desentraña titulares para encontrar la verdad.',
     },
-    '3': {
-      'title': 'Próximamente',
-      'description': 'Nueva misión disponible pronto',
+    'q1_phishing': {
+      'title': 'El Ataque Phishing',
+      'description': 'Detecta correos y mensajes fraudulentos.',
+    },
+    'q2_malware': {
+      'title': 'La Amenaza Oculta',
+      'description': 'Identifica software malicioso y protégete.',
+    },
+    'q3_passwords': {
+      'title': 'Fortaleza de Contraseñas',
+      'description': 'Crea contraseñas seguras y robustas.',
     },
   };
 
@@ -51,18 +81,39 @@ class _MissionMapPageState extends State<MissionMapPage> {
       }
     });
 
-    // Navigate to quiz if mission 1 is selected
-    if (missionId == '1') {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const QuizIntroPage()),
+    if (widget.categoryId == 'veracidadville') {
+      if (missionId == 'fake_news') { // Usar IDs de misión reales
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const QuizIntroPage()),
+        );
+      } else if (missionId == 'titular') { // Usar IDs de misión reales
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const TrueFalseIntroPage()),
+        );
+      }
+    } else if (widget.categoryId == 'ciberseguridad') { // Usar el ID de categoría actualizado
+      // Aquí puedes decidir si cada misión de ciberseguridad tiene su propia intro
+      // o si todas van a la misma intro general de ciberseguridad.
+      // Por ahora, asumiremos que todas las misiones de ciberseguridad van a la misma intro.
+      final mission = Mission(
+        id: missionId,
+        title: selectedMissionTitle,
+        subtitle: 'Ciberseguridad',
+        description: selectedMissionDescription,
+        isCompleted: false,
+        iconName: 'shield',
+        questions: [],
       );
-    }
-    // Navigate to true/false quiz if mission 2 is selected
-    else if (missionId == '2') {
+
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => const TrueFalseIntroPage()),
+        MaterialPageRoute(
+          builder: (context) => CiberseguridadIntroPage(
+            currentMission: mission,
+          ),
+        ),
       );
     }
   }
@@ -78,7 +129,7 @@ class _MissionMapPageState extends State<MissionMapPage> {
           MissionBanner(
             missionTitle: selectedMissionTitle,
             missionDescription: selectedMissionDescription,
-            backgroundColor: const Color(0xFFA4D65E),
+            backgroundColor: widget.categoryColor, // Usar el color de la categoría
           ),
           Expanded(
             child: SingleChildScrollView(
@@ -150,23 +201,48 @@ class _MissionMapPageState extends State<MissionMapPage> {
   List<MapMissionData> _getMissionPositions(double screenWidth) {
     final centerX = screenWidth / 2;
 
-    return [
-      MapMissionData(
-        id: '1',
-        position: Offset(centerX, 200),
-        type: MissionNodeType.unlocked,
-      ),
-      MapMissionData(
-        id: '2',
-        position: Offset(centerX - 60, 400),
-        type: MissionNodeType.unlocked,
-      ),
-      MapMissionData(
-        id: '3',
-        position: Offset(centerX + 50, 600),
-        type: MissionNodeType.locked,
-      ),
-    ];
+    // Las posiciones de las misiones deberían ser dinámicas o configurables
+    // para cada categoría. Por ahora, mantendremos 3 nodos de ejemplo.
+    // Si necesitas más nodos o posiciones específicas para Operación Ciberseguridad,
+    // deberíamos crear una lógica para ello.
+    if (widget.categoryId == 'ciberseguridad') {
+      return [
+        MapMissionData(
+          id: 'q1_phishing', // Usar IDs de misión reales
+          position: Offset(centerX, 200),
+          type: MissionNodeType.unlocked,
+        ),
+        MapMissionData(
+          id: 'q2_malware', // Usar IDs de misión reales
+          position: Offset(centerX - 60, 400),
+          type: MissionNodeType.unlocked,
+        ),
+        MapMissionData(
+          id: 'q3_passwords', // Usar IDs de misión reales
+          position: Offset(centerX + 50, 600),
+          type: MissionNodeType.locked, // Puedes cambiar esto a unlocked si quieres que todas estén disponibles
+        ),
+      ];
+    } else if (widget.categoryId == 'veracidadville') {
+      return [
+        MapMissionData(
+          id: 'fake_news',
+          position: Offset(centerX, 200),
+          type: MissionNodeType.unlocked,
+        ),
+        MapMissionData(
+          id: 'titular',
+          position: Offset(centerX - 60, 400),
+          type: MissionNodeType.unlocked,
+        ),
+        MapMissionData(
+          id: '3', // Este ID no corresponde a una misión real en veracidadville_quiz_data.dart
+          position: Offset(centerX + 50, 600),
+          type: MissionNodeType.locked,
+        ),
+      ];
+    }
+    return []; // Retornar una lista vacía por defecto
   }
 
   List<Widget> _buildMissionNodes(BuildContext context, double screenWidth) {

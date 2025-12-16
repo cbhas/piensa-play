@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../pages/mission_map_page.dart';
-import '../pages/zona_cero/zona_cero_map_page.dart';
+
+// No necesitamos importar OperacionCiberseguridadIntroPage aquí directamente,
+// ya que la navegación pasará por MissionMapPage.
+// import '../pages/operacion_ciberseguridad/operacion_ciberseguridad_intro_page.dart';
 
 class MissionItem extends StatelessWidget {
+  final String id; // Añadido missionId
   final String title;
   final String description;
   final bool isCompleted;
@@ -14,6 +18,7 @@ class MissionItem extends StatelessWidget {
 
   const MissionItem({
     super.key,
+    required this.id, // Requerir missionId
     required this.title,
     required this.description,
     required this.isCompleted,
@@ -88,36 +93,18 @@ class MissionItem extends StatelessWidget {
           // Play button
           GestureDetector(
             onTap: () {
-              // Navigate to mission map for the selected category
-              if (categoryId == 'veracidadville') {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => MissionMapPage(
-                      categoryTitle: categoryTitle,
-                      categoryId: categoryId,
-                      categoryColor: categoryColor,
-                    ),
+              // Navegar siempre a MissionMapPage, pasando todos los datos necesarios
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => MissionMapPage(
+                    categoryTitle: categoryTitle,
+                    categoryId: categoryId,
+                    categoryColor: categoryColor,
+                    selectedMissionId: id, // ID de la misión seleccionada
                   ),
-                );
-              } else if (categoryId == 'zona_cero_odio') {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => ZonaCeroMapPage(
-                      categoryTitle: categoryTitle,
-                      categoryColor: categoryColor,
-                    ),
-                  ),
-                );
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Próximamente...'),
-                    duration: Duration(seconds: 2),
-                  ),
-                );
-              }
+                ),
+              );
             },
             child: Container(
               width: 36,
