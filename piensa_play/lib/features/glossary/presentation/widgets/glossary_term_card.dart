@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../../core/theme/app_theme.dart';
+import 'glossary_mascots.dart';
 
 class GlossaryTermCard extends StatefulWidget {
   final String term;
@@ -219,6 +220,51 @@ class _GlossaryTermCardState extends State<GlossaryTermCard>
                       ],
                     ),
                   ),
+
+                  // Two Mascot characters 🎭🎭
+                  ...GlossaryMascots.getMascotsForCard(widget.index).map((
+                    mascotConfig,
+                  ) {
+                    final mascotPath = mascotConfig['path'] as String;
+                    final position =
+                        mascotConfig['position'] as Map<String, dynamic>;
+
+                    return Positioned(
+                      top: position['top'],
+                      bottom: position['bottom'],
+                      left: position['left'],
+                      right: position['right'],
+                      child: AnimatedBuilder(
+                        animation:
+                            _bounceController ??
+                            AnimationController(
+                              vsync: this,
+                              duration: Duration.zero,
+                            ),
+                        builder: (context, child) {
+                          final bounceValue = _bounceController?.value ?? 0.0;
+                          return Transform.rotate(
+                            angle:
+                                (position['rotation'] as double) +
+                                (0.05 * bounceValue),
+                            child: Transform.translate(
+                              offset: Offset(2 * bounceValue, -3 * bounceValue),
+                              child: Image.asset(
+                                mascotPath,
+                                width: 65,
+                                height: 65,
+                                fit: BoxFit.contain,
+                                errorBuilder: (context, error, stackTrace) {
+                                  // Fallback if image doesn't load
+                                  return const SizedBox.shrink();
+                                },
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    );
+                  }).toList(),
 
                   // Shine effect overlay
                   Positioned.fill(

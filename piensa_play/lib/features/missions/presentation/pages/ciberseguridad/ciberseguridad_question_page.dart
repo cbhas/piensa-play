@@ -21,10 +21,12 @@ class CiberseguridadQuestionPage extends StatefulWidget {
   });
 
   @override
-  State<CiberseguridadQuestionPage> createState() => _CiberseguridadQuestionPageState();
+  State<CiberseguridadQuestionPage> createState() =>
+      _CiberseguridadQuestionPageState();
 }
 
-class _CiberseguridadQuestionPageState extends State<CiberseguridadQuestionPage> {
+class _CiberseguridadQuestionPageState
+    extends State<CiberseguridadQuestionPage> {
   late QuizQuestion question;
   final Set<String> selectedElements = {};
 
@@ -47,26 +49,40 @@ class _CiberseguridadQuestionPageState extends State<CiberseguridadQuestionPage>
   @override
   void didUpdateWidget(covariant CiberseguridadQuestionPage oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.questionIndex != widget.questionIndex || oldWidget.currentMission.id != widget.currentMission.id) {
+    if (oldWidget.questionIndex != widget.questionIndex ||
+        oldWidget.currentMission.id != widget.currentMission.id) {
       _loadQuestion();
     }
   }
 
   void _loadQuestion() {
-    final List<QuizQuestion> missionQuestions = widget.currentMission.questions;
+    final List<QuizQuestion> missionQuestions =
+        widget.currentMission.questions ?? [];
+
+    // Debug logging
+    print('🔍 Ciberseguridad Debug:');
+    print('  Mission ID: ${widget.currentMission.id}');
+    print('  Total questions: ${missionQuestions.length}');
+    print('  Current questionIndex: ${widget.questionIndex}');
+    print('  Questions list: ${missionQuestions.map((q) => q.id).toList()}');
 
     if (widget.questionIndex < missionQuestions.length) {
       question = missionQuestions[widget.questionIndex];
       selectedElements.clear();
+      print('  ✅ Loading question: ${question.id}');
     } else {
+      print('  ❌ No more questions, going to feedback');
       WidgetsBinding.instance.addPostFrameCallback((_) {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
             builder: (context) => CiberseguridadFeedbackPage(
               currentMission: widget.currentMission,
-              questionIndex: widget.questionIndex - 1, // Pass the last question index for results context
-              selectedElements: selectedElements, // Pass the selected elements for the last question
+              questionIndex:
+                  widget.questionIndex -
+                  1, // Pass the last question index for results context
+              selectedElements:
+                  selectedElements, // Pass the selected elements for the last question
               isCorrect: false, // This will be recalculated in results page
               totalCorrectAnswers: widget.totalCorrectAnswers,
               totalIncorrectAnswers: widget.totalIncorrectAnswers,
@@ -107,7 +123,8 @@ class _CiberseguridadQuestionPageState extends State<CiberseguridadQuestionPage>
           selectedElements: selectedElements,
           isCorrect: isCorrect,
           totalCorrectAnswers: widget.totalCorrectAnswers + (isCorrect ? 1 : 0),
-          totalIncorrectAnswers: widget.totalIncorrectAnswers + (isCorrect ? 0 : 1),
+          totalIncorrectAnswers:
+              widget.totalIncorrectAnswers + (isCorrect ? 0 : 1),
         ),
       ),
     );
@@ -115,14 +132,11 @@ class _CiberseguridadQuestionPageState extends State<CiberseguridadQuestionPage>
 
   @override
   Widget build(BuildContext context) {
-    final List<QuizQuestion> missionQuestions = widget.currentMission.questions;
+    final List<QuizQuestion> missionQuestions =
+        widget.currentMission.questions ?? [];
 
     if (widget.questionIndex >= missionQuestions.length) {
-      return const Scaffold(
-        body: Center(
-          child: CircularProgressIndicator(),
-        ),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     final progress = (widget.questionIndex + 1) / missionQuestions.length;
@@ -168,7 +182,8 @@ class _CiberseguridadQuestionPageState extends State<CiberseguridadQuestionPage>
   }
 
   Widget _buildHeader(double progress) {
-    final List<QuizQuestion> missionQuestions = widget.currentMission.questions;
+    final List<QuizQuestion> missionQuestions =
+        widget.currentMission.questions ?? [];
     return Container(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -368,10 +383,7 @@ class _CiberseguridadQuestionPageState extends State<CiberseguridadQuestionPage>
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [
-                AppTheme.accentRed,
-                AppTheme.accentRed.withOpacity(0.8),
-              ],
+              colors: [AppTheme.accentRed, AppTheme.accentRed.withOpacity(0.8)],
             ),
             borderRadius: BorderRadius.circular(16),
           ),
@@ -405,7 +417,9 @@ class _CiberseguridadQuestionPageState extends State<CiberseguridadQuestionPage>
             final element = entry.value;
             return _buildElementCard(
               element: element,
-              color: _elementColors[index % _elementColors.length], // Cycle through predefined colors
+              color:
+                  _elementColors[index %
+                      _elementColors.length], // Cycle through predefined colors
               index: index,
             );
           }).toList(),
@@ -489,17 +503,17 @@ class _CiberseguridadQuestionPageState extends State<CiberseguridadQuestionPage>
             ),
             if (isSelected)
               Positioned(
-                top: 8,
-                right: 8,
-                child: Container(
-                  padding: const EdgeInsets.all(6),
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(Icons.check, color: color, size: 20),
-                ),
-              )
+                    top: 8,
+                    right: 8,
+                    child: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(Icons.check, color: color, size: 20),
+                    ),
+                  )
                   .animate(onPlay: (controller) => controller.forward())
                   .scale(duration: 200.ms, curve: Curves.easeOutBack),
           ],

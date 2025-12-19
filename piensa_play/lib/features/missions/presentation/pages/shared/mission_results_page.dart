@@ -1,27 +1,71 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../../../core/theme/app_theme.dart';
-import '../../../../../core/routes/app_routes.dart';
+import '../../../../../core/services/mission_progress_service.dart';
 
-class CiberseguridadResultsPage extends StatelessWidget {
+/// Unified results page for all missions
+/// Replaces: QuizResultsPage, CiberseguridadResultsPage, ZonaCeroResultPage
+class MissionResultsPage extends StatefulWidget {
+  // Results data
   final int correctAnswers;
   final int incorrectAnswers;
   final int totalQuestions;
 
-  const CiberseguridadResultsPage({
+  // Mission configuration
+  final String missionId; // Mission ID for progress tracking
+  final String missionName;
+  final Color primaryColor;
+  final Color secondaryColor;
+  final String perfectMessage;
+  final String goodMessage;
+  final String tryAgainMessage;
+  final List<String> learningPoints;
+
+  // Optional customization
+  final String? backgroundImage;
+  final bool showNextButton;
+  final String nextButtonLabel;
+  final VoidCallback? onNext;
+
+  const MissionResultsPage({
     super.key,
-    this.correctAnswers = 1, // Ejemplo
-    this.incorrectAnswers = 0, // Ejemplo
-    this.totalQuestions = 1, // Ejemplo
+    required this.correctAnswers,
+    required this.incorrectAnswers,
+    required this.totalQuestions,
+    required this.missionId, // Required for tracking
+    required this.missionName,
+    required this.primaryColor,
+    required this.secondaryColor,
+    required this.perfectMessage,
+    required this.goodMessage,
+    required this.tryAgainMessage,
+    required this.learningPoints,
+    this.backgroundImage,
+    this.showNextButton = false,
+    this.nextButtonLabel = 'Siguiente Misión',
+    this.onNext,
   });
 
-  double get scorePercentage {
-    if (totalQuestions == 0) {
-      return 0.0;
-    }
-    return (correctAnswers / totalQuestions) * 100;
+  @override
+  State<MissionResultsPage> createState() => _MissionResultsPageState();
+}
+
+class _MissionResultsPageState extends State<MissionResultsPage> {
+  final _progressService = MissionProgressService();
+
+  @override
+  void initState() {
+    super.initState();
+    // Mark mission as completed when arriving at results page
+    _progressService.completeMission(widget.missionId);
   }
-  bool get isPerfect => correctAnswers == totalQuestions;
+
+  double get scorePercentage {
+    if (widget.totalQuestions == 0) return 0.0;
+    return (widget.correctAnswers / widget.totalQuestions) * 100;
+  }
+
+  bool get isPerfect => widget.correctAnswers == widget.totalQuestions;
   bool get isGood => scorePercentage >= 70;
 
   @override
@@ -32,23 +76,7 @@ class CiberseguridadResultsPage extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: isPerfect
-                ? [
-                    const Color(0xFFFF6B6B), // Color principal sugerido
-                    const Color(0xFFFFD93D), // Color secundario sugerido
-                    const Color(0xFFC62828),
-                  ]
-                : isGood
-                ? [
-                    AppTheme.accentGreen,
-                    AppTheme.accentGreen.withOpacity(0.8),
-                    AppTheme.accentGreen.withOpacity(0.6),
-                  ]
-                : [
-                    AppTheme.accentBlue,
-                    AppTheme.accentBlue.withOpacity(0.8),
-                    AppTheme.accentBlue.withOpacity(0.6),
-                  ],
+            colors: _getGradientColors(),
           ),
         ),
         child: SafeArea(
@@ -74,6 +102,28 @@ class CiberseguridadResultsPage extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  List<Color> _getGradientColors() {
+    if (isPerfect) {
+      return [
+        widget.primaryColor,
+        widget.primaryColor.withOpacity(0.8),
+        widget.secondaryColor.withOpacity(0.6),
+      ];
+    } else if (isGood) {
+      return [
+        AppTheme.accentGreen,
+        AppTheme.accentGreen.withOpacity(0.8),
+        AppTheme.accentGreen.withOpacity(0.6),
+      ];
+    } else {
+      return [
+        AppTheme.accentBlue,
+        AppTheme.accentBlue.withOpacity(0.8),
+        AppTheme.accentBlue.withOpacity(0.6),
+      ];
+    }
   }
 
   Widget _buildCelebrationSection() {
@@ -117,15 +167,16 @@ class CiberseguridadResultsPage extends StatelessWidget {
           ),
           child: Text(
             isPerfect
-                ? '¡Eres un guardián del ciberespacio!'
+                ? widget.perfectMessage
                 : isGood
-                ? 'Has defendido tus datos con éxito'
-                : '¡Sigue practicando!',
+                ? widget.goodMessage
+                : widget.tryAgainMessage,
             style: const TextStyle(
               fontSize: 16,
               color: Colors.white,
               fontWeight: FontWeight.w600,
             ),
+            textAlign: TextAlign.center,
           ),
         ).animate().fadeIn(delay: 400.ms),
       ],
@@ -160,7 +211,7 @@ class CiberseguridadResultsPage extends StatelessWidget {
                   backgroundColor: Colors.grey[200],
                   valueColor: AlwaysStoppedAnimation<Color>(
                     isPerfect
-                        ? AppTheme.accentRed // Color principal sugerido
+                        ? widget.primaryColor
                         : isGood
                         ? AppTheme.accentGreen
                         : AppTheme.accentBlue,
@@ -179,7 +230,7 @@ class CiberseguridadResultsPage extends StatelessWidget {
                       fontSize: 48,
                       fontWeight: FontWeight.bold,
                       color: isPerfect
-                          ? AppTheme.accentRed // Color principal sugerido
+                          ? widget.primaryColor
                           : isGood
                           ? AppTheme.accentGreen
                           : AppTheme.accentBlue,
@@ -212,7 +263,7 @@ class CiberseguridadResultsPage extends StatelessWidget {
         Expanded(
           child: _buildStatCard(
             icon: Icons.check_circle,
-            value: correctAnswers.toString(),
+            value: widget.correctAnswers.toString(),
             label: 'Correctas',
             color: Colors.green,
             delay: 1000,
@@ -222,7 +273,7 @@ class CiberseguridadResultsPage extends StatelessWidget {
         Expanded(
           child: _buildStatCard(
             icon: Icons.cancel,
-            value: incorrectAnswers.toString(),
+            value: widget.incorrectAnswers.toString(),
             label: 'Incorrectas',
             color: Colors.red,
             delay: 1100,
@@ -312,8 +363,8 @@ class CiberseguridadResultsPage extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [AppTheme.accentRed, Color(0xFFC62828)], // Color principal sugerido
+                  gradient: LinearGradient(
+                    colors: [widget.primaryColor, widget.secondaryColor],
                   ),
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -331,9 +382,9 @@ class CiberseguridadResultsPage extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 20),
-          _buildLearningPoint('No confíes en remitentes desconocidos'),
-          _buildLearningPoint('Revisa los enlaces antes de hacer clic'),
-          _buildLearningPoint('Cuidado con las solicitudes urgentes'),
+          ...widget.learningPoints
+              .map((point) => _buildLearningPoint(point))
+              .toList(),
         ],
       ),
     ).animate().slideX(delay: 1200.ms, begin: 0.3, duration: 400.ms);
@@ -377,18 +428,39 @@ class CiberseguridadResultsPage extends StatelessWidget {
   Widget _buildActionButtons(BuildContext context) {
     return Column(
       children: [
+        if (widget.showNextButton && widget.onNext != null)
+          _buildActionButton(
+                context: context,
+                label: widget.nextButtonLabel,
+                icon: Icons.arrow_forward,
+                gradient: LinearGradient(
+                  colors: [widget.primaryColor, widget.secondaryColor],
+                ),
+                textColor: Colors.white,
+                onTap: widget.onNext!,
+              )
+              .animate()
+              .fadeIn(delay: 1300.ms)
+              .slideY(begin: 0.3, duration: 300.ms),
+        if (widget.showNextButton && widget.onNext != null)
+          const SizedBox(height: 12),
         _buildActionButton(
           context: context,
           label: 'Repetir Actividad',
           icon: Icons.refresh,
-          gradient: const LinearGradient(
-            colors: [AppTheme.accentRed, Color(0xFFC62828)], // Color principal sugerido
+          gradient: LinearGradient(
+            colors: [widget.primaryColor, widget.secondaryColor],
           ),
           textColor: Colors.white,
           onTap: () {
-            Navigator.of(context).pop();
-            Navigator.of(context).pop();
-            Navigator.of(context).pop();
+            // Pop all pages until we're back at the intro/start of the mission
+            // This is more robust than counting pops
+            Navigator.of(context).popUntil((route) {
+              // Keep popping until we find a route that's either:
+              // 1. The first route (mission map/home)
+              // 2. Or we've popped 3 times (safety limit)
+              return route.isFirst || !Navigator.of(context).canPop();
+            });
           },
         ).animate().fadeIn(delay: 1400.ms).slideY(begin: 0.3, duration: 300.ms),
         const SizedBox(height: 12),
@@ -401,10 +473,14 @@ class CiberseguridadResultsPage extends StatelessWidget {
           ),
           textColor: Colors.white,
           onTap: () {
-            Navigator.of(context).pushNamedAndRemoveUntil(
-              AppRoutes.missions,
-              (route) => route.settings.name == AppRoutes.home,
-            );
+            // Pop until we reach the mission map or home screen
+            // More robust than counting - works regardless of navigation stack depth
+            int popCount = 0;
+            Navigator.of(context).popUntil((route) {
+              popCount++;
+              // Safety: stop after 5 pops or when we hit the first route
+              return popCount >= 5 || route.isFirst;
+            });
           },
         ).animate().fadeIn(delay: 1500.ms).slideY(begin: 0.3, duration: 300.ms),
       ],

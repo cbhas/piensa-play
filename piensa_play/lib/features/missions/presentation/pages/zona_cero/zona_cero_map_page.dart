@@ -97,7 +97,10 @@ class _ZonaCeroMapPageState extends State<ZonaCeroMapPage> {
     return Scaffold(
       body: Column(
         children: [
-          MapHeader(categoryTitle: widget.categoryTitle),
+          MapHeader(
+            categoryTitle: widget.categoryTitle,
+            audioFileName: 'zona_cero_odio.mp3',
+          ),
           MissionBanner(
             missionTitle: selectedMissionTitle,
             missionDescription: selectedMissionDescription,
@@ -115,9 +118,7 @@ class _ZonaCeroMapPageState extends State<ZonaCeroMapPage> {
                     ),
                   ),
                 ),
-                Container(
-                  color: Colors.white.withOpacity(0.1),
-                ),
+                Container(color: Colors.white.withOpacity(0.1)),
                 SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
                   child: SizedBox(
@@ -135,11 +136,7 @@ class _ZonaCeroMapPageState extends State<ZonaCeroMapPage> {
                           ),
                         ),
                         ..._buildMissionNodes(context, screenWidth),
-                        Positioned(
-                          left: 26,
-                          top: 520,
-                          child: _buildMascot(),
-                        ),
+                        Positioned(left: 26, top: 520, child: _buildMascot()),
                       ],
                     ),
                   ),
@@ -186,13 +183,18 @@ class _ZonaCeroMapPageState extends State<ZonaCeroMapPage> {
         ),
         const SizedBox(height: 12),
         Image.asset(
-          'assets/images/mascot.png',
-          width: 130,
-          height: 130,
-          fit: BoxFit.contain,
-        )
+              'assets/images/mascot.png',
+              width: 130,
+              height: 130,
+              fit: BoxFit.contain,
+            )
             .animate(onPlay: (controller) => controller.repeat(reverse: true))
-            .moveY(begin: 0, end: -10, duration: 2000.ms, curve: Curves.easeInOut)
+            .moveY(
+              begin: 0,
+              end: -10,
+              duration: 2000.ms,
+              curve: Curves.easeInOut,
+            )
             .animate()
             .fadeIn(duration: 600.ms, delay: 400.ms)
             .scale(
@@ -222,8 +224,8 @@ class _ZonaCeroMapPageState extends State<ZonaCeroMapPage> {
         position: Offset(centerX + 40, 420),
         type: wordTrailCompleted
             ? (stereotypeCompleted
-                ? MissionNodeType.completed
-                : MissionNodeType.unlocked)
+                  ? MissionNodeType.completed
+                  : MissionNodeType.unlocked)
             : MissionNodeType.locked,
         progress: stereotypeCompleted ? 1.0 : 0.0,
       ),

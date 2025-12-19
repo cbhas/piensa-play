@@ -4,7 +4,7 @@ import '../../../../../core/theme/app_theme.dart';
 import '../../../domain/entities/veracidadville/quiz_question.dart';
 import '../../../domain/entities/veracidadville/quiz_element.dart';
 import 'ciberseguridad_question_page.dart';
-import 'ciberseguridad_results_page.dart';
+import '../shared/mission_results_page.dart';
 import '../../../domain/entities/mission.dart'; // Import Mission entity
 
 class CiberseguridadFeedbackPage extends StatelessWidget {
@@ -37,16 +37,28 @@ class CiberseguridadFeedbackPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final questions = currentMission.questions;
+    final questions = currentMission.questions ?? [];
     if (questionIndex >= questions.length || questionIndex < 0) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => CiberseguridadResultsPage(
+            builder: (context) => MissionResultsPage(
               correctAnswers: totalCorrectAnswers,
               incorrectAnswers: totalIncorrectAnswers,
               totalQuestions: questions.length,
+              missionId: currentMission.id, // Use actual mission ID
+              missionName: 'Ciberseguridad',
+              primaryColor: AppTheme.accentRed,
+              secondaryColor: const Color(0xFFFFD93D),
+              perfectMessage: '¡Eres un guardián del ciberespacio!',
+              goodMessage: 'Has defendido tus datos con éxito',
+              tryAgainMessage: '¡Sigue practicando!',
+              learningPoints: [
+                'No confíes en remitentes desconocidos',
+                'Revisa los enlaces antes de hacer clic',
+                'Cuidado con las solicitudes urgentes',
+              ],
             ),
           ),
         );
@@ -92,7 +104,11 @@ class CiberseguridadFeedbackPage extends StatelessWidget {
                       const SizedBox(height: 24),
                       _buildElementsGrid(question),
                       const SizedBox(height: 30),
-                      _buildContinueButton(context, isLastQuestion, questions.length),
+                      _buildContinueButton(
+                        context,
+                        isLastQuestion,
+                        questions.length,
+                      ),
                     ],
                   ),
                 ),
@@ -355,151 +371,167 @@ class CiberseguridadFeedbackPage extends StatelessWidget {
     }
 
     return Container(
-      decoration: BoxDecoration(
-        color: cardColor,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: borderColor, width: 3),
-        boxShadow: [
-          BoxShadow(
-            color: borderColor.withOpacity(0.3),
-            blurRadius: 12,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      child: Stack(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  width: 60,
-                  height: 60,
-                  decoration: BoxDecoration(
-                    color: color.withOpacity(0.2),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Center(
-                    child: Text(
-                      element.icon,
-                      style: const TextStyle(fontSize: 32),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  element.text,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: borderColor.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    statusText,
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: borderColor,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Positioned(
-            top: 8,
-            right: 8,
-            child: Text(statusEmoji, style: const TextStyle(fontSize: 24)),
-          ),
-        ],
-      ),
-    )
-        .animate(delay: (600 + index * 100).ms)
-        .scale(
-      begin: const Offset(0.8, 0.8),
-      duration: 400.ms,
-      curve: Curves.easeOutBack,
-    );
-  }
-
-  Widget _buildContinueButton(BuildContext context, bool isLastQuestion, int totalQuestions) {
-    return Container(
-      width: double.infinity,
-      height: 60,
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [AppTheme.accentRed, Color(0xFFC62828)],
-        ),
-        borderRadius: BorderRadius.circular(30),
-        boxShadow: [
-          BoxShadow(
-            color: AppTheme.accentRed.withOpacity(0.5),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () {
-            if (isLastQuestion) {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => CiberseguridadResultsPage(
-                    correctAnswers: totalCorrectAnswers,
-                    incorrectAnswers: totalIncorrectAnswers,
-                    totalQuestions: totalQuestions,
-                  ),
-                ),
-              );
-            } else {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => CiberseguridadQuestionPage(
-                    currentMission: currentMission,
-                    questionIndex: questionIndex + 1,
-                    totalCorrectAnswers: totalCorrectAnswers,
-                    totalIncorrectAnswers: totalIncorrectAnswers,
-                  ),
-                ),
-              );
-            }
-          },
-          borderRadius: BorderRadius.circular(30),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                isLastQuestion ? 'Ver Resultados' : 'Siguiente Amenaza',
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
+          decoration: BoxDecoration(
+            color: cardColor,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: borderColor, width: 3),
+            boxShadow: [
+              BoxShadow(
+                color: borderColor.withOpacity(0.3),
+                blurRadius: 12,
+                offset: const Offset(0, 6),
               ),
-              const SizedBox(width: 12),
-              const Icon(Icons.arrow_forward, color: Colors.white),
             ],
           ),
-        ),
-      ),
-    )
+          child: Stack(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      width: 60,
+                      height: 60,
+                      decoration: BoxDecoration(
+                        color: color.withOpacity(0.2),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Center(
+                        child: Text(
+                          element.icon,
+                          style: const TextStyle(fontSize: 32),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      element.text,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: borderColor.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        statusText,
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: borderColor,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Positioned(
+                top: 8,
+                right: 8,
+                child: Text(statusEmoji, style: const TextStyle(fontSize: 24)),
+              ),
+            ],
+          ),
+        )
+        .animate(delay: (600 + index * 100).ms)
+        .scale(
+          begin: const Offset(0.8, 0.8),
+          duration: 400.ms,
+          curve: Curves.easeOutBack,
+        );
+  }
+
+  Widget _buildContinueButton(
+    BuildContext context,
+    bool isLastQuestion,
+    int totalQuestions,
+  ) {
+    return Container(
+          width: double.infinity,
+          height: 60,
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [AppTheme.accentRed, Color(0xFFC62828)],
+            ),
+            borderRadius: BorderRadius.circular(30),
+            boxShadow: [
+              BoxShadow(
+                color: AppTheme.accentRed.withOpacity(0.5),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
+              ),
+            ],
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () {
+                if (isLastQuestion) {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => MissionResultsPage(
+                        correctAnswers: totalCorrectAnswers,
+                        incorrectAnswers: totalIncorrectAnswers,
+                        totalQuestions: totalQuestions,
+                        missionId: currentMission.id,
+                        missionName: 'Ciberseguridad',
+                        primaryColor: AppTheme.accentRed,
+                        secondaryColor: const Color(0xFFFFD93D),
+                        perfectMessage: '¡Eres un guardián del ciberespacio!',
+                        goodMessage: 'Has defendido tus datos con éxito',
+                        tryAgainMessage: '¡Sigue practicando!',
+                        learningPoints: [
+                          'No confíes en remitentes desconocidos',
+                          'Revisa los enlaces antes de hacer clic',
+                          'Cuidado con las solicitudes urgentes',
+                        ],
+                      ),
+                    ),
+                  );
+                } else {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => CiberseguridadQuestionPage(
+                        currentMission: currentMission,
+                        questionIndex: questionIndex + 1,
+                        totalCorrectAnswers: totalCorrectAnswers,
+                        totalIncorrectAnswers: totalIncorrectAnswers,
+                      ),
+                    ),
+                  );
+                }
+              },
+              borderRadius: BorderRadius.circular(30),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    isLastQuestion ? 'Ver Resultados' : 'Siguiente Amenaza',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  const Icon(Icons.arrow_forward, color: Colors.white),
+                ],
+              ),
+            ),
+          ),
+        )
         .animate(delay: 1000.ms)
         .scale(duration: 400.ms, curve: Curves.easeOutBack)
         .then()

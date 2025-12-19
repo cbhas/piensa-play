@@ -1,87 +1,109 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:provider/provider.dart';
 import '../../../../../core/theme/app_theme.dart';
-import '../../../data/datasources/veracidadville/true_false_quiz_data.dart';
-import '../../../domain/entities/veracidadville/true_false_question.dart';
+import '../../../domain/entities/veracidadville/quiz_question.dart';
+import '../../providers/quiz_provider.dart';
 import 'true_false_feedback_page.dart';
 
 class TrueFalseQuestionPage extends StatefulWidget {
-  final int questionIndex;
-
-  const TrueFalseQuestionPage({super.key, required this.questionIndex});
+  const TrueFalseQuestionPage({super.key});
 
   @override
   State<TrueFalseQuestionPage> createState() => _TrueFalseQuestionPageState();
 }
 
 class _TrueFalseQuestionPageState extends State<TrueFalseQuestionPage> {
-  late TrueFalseQuestion question;
-  final List<TrueFalseQuestion> allQuestions = TrueFalseQuizData.getQuestions();
-
   @override
   void initState() {
     super.initState();
-    question = allQuestions[widget.questionIndex];
+    // Validate provider is available
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      try {
+        final provider = Provider.of<QuizProvider>(context, listen: false);
+        if (!provider.isValidQuestionIndex(provider.currentQuestionIndex)) {
+          _showErrorAndGoBack('Error: Índice de pregunta inválido');
+        }
+      } catch (e) {
+        _showErrorAndGoBack('Error: Provider no disponible');
+      }
+    });
+  }
+
+  void _showErrorAndGoBack(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: Colors.red),
+    );
+    Navigator.of(context).pop();
   }
 
   void _answer(bool userAnswer) {
-    final isCorrect = userAnswer == question.isTrue;
+    final provider = Provider.of<QuizProvider>(context, listen: false);
+    final question = provider.currentQuestion;
+    final isCorrect = userAnswer == question.correctAnswer;
+
+    // Register the answer in the provider
+    provider.answerQuestion(isCorrect);
 
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => TrueFalseFeedbackPage(
-          questionIndex: widget.questionIndex,
-          userAnswer: userAnswer,
-          isCorrect: isCorrect,
-        ),
+        builder: (context) =>
+            TrueFalseFeedbackPage(userAnswer: userAnswer, isCorrect: isCorrect),
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final progress = (widget.questionIndex + 1) / allQuestions.length;
+    return Consumer<QuizProvider>(
+      builder: (context, provider, child) {
+        final question = provider.currentQuestion;
+        final progress =
+            (provider.currentQuestionIndex + 1) / provider.totalQuestions;
 
-    return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              AppTheme.primaryDark,
-              AppTheme.primaryDark.withOpacity(0.9),
-              Colors.white,
-            ],
-            stops: const [0.0, 0.25, 0.25],
-          ),
-        ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              _buildHeader(progress),
-              Expanded(
-                child: SingleChildScrollView(
-                  physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    children: [
-                      _buildWelcomeCard(),
-                      const SizedBox(height: 20),
-                      _buildNewsCard(),
-                      const SizedBox(height: 24),
-                      _buildCluesCard(),
-                      const SizedBox(height: 30),
-                      _buildAnswerButtons(),
-                    ],
-                  ),
-                ),
+        return Scaffold(
+          body: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  AppTheme.primaryDark,
+                  AppTheme.primaryDark.withOpacity(0.9),
+                  Colors.white,
+                ],
+                stops: const [0.0, 0.25, 0.25],
               ),
-            ],
+            ),
+            child: SafeArea(
+              child: Column(
+                children: [
+                  _buildHeader(progress),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        children: [
+                          _buildWelcomeCard(),
+                          const SizedBox(height: 20),
+                          _buildNewsCard(question),
+                          const SizedBox(height: 24),
+                          _buildCluesCard(question),
+                          const SizedBox(height: 30),
+                          _buildAnswerButtons(),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
@@ -189,7 +211,7 @@ class _TrueFalseQuestionPageState extends State<TrueFalseQuestionPage> {
     ).animate().slideY(delay: 200.ms, begin: 0.2, duration: 400.ms);
   }
 
-  Widget _buildNewsCard() {
+  Widget _buildNewsCard(QuizQuestion question) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -209,9 +231,9 @@ class _TrueFalseQuestionPageState extends State<TrueFalseQuestionPage> {
           // Header with emoji badge
           Container(
             padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: const Color(0xFFFDD835),
-              borderRadius: const BorderRadius.only(
+            decoration: const BoxDecoration(
+              color: Color(0xFFFDD835),
+              borderRadius: BorderRadius.only(
                 topLeft: Radius.circular(13),
                 topRight: Radius.circular(13),
               ),
@@ -330,7 +352,7 @@ class _TrueFalseQuestionPageState extends State<TrueFalseQuestionPage> {
     ).animate().scale(delay: 300.ms, duration: 400.ms, curve: Curves.easeOut);
   }
 
-  Widget _buildCluesCard() {
+  Widget _buildCluesCard(QuizQuestion question) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -366,7 +388,7 @@ class _TrueFalseQuestionPageState extends State<TrueFalseQuestionPage> {
             ],
           ),
           const SizedBox(height: 16),
-          ...question.clues.asMap().entries.map((entry) {
+          ...?question.clues?.asMap().entries.map((entry) {
             final index = entry.key;
             final clue = entry.value;
             return _buildClueItem(clue, index);

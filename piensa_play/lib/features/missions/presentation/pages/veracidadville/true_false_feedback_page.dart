@@ -1,71 +1,77 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:provider/provider.dart';
 import '../../../../../core/theme/app_theme.dart';
-import '../../../data/datasources/veracidadville/true_false_quiz_data.dart';
-import '../../../domain/entities/veracidadville/true_false_question.dart';
+import '../../../domain/entities/veracidadville/quiz_question.dart';
+import '../../providers/quiz_provider.dart';
 import 'true_false_question_page.dart';
-import 'quiz_results_page.dart';
+import '../shared/mission_results_page.dart';
 
 class TrueFalseFeedbackPage extends StatelessWidget {
-  final int questionIndex;
   final bool userAnswer;
   final bool isCorrect;
 
   const TrueFalseFeedbackPage({
     super.key,
-    required this.questionIndex,
     required this.userAnswer,
     required this.isCorrect,
   });
 
   @override
   Widget build(BuildContext context) {
-    final questions = TrueFalseQuizData.getQuestions();
-    final question = questions[questionIndex];
-    final isLastQuestion = questionIndex >= questions.length - 1;
+    return Consumer<QuizProvider>(
+      builder: (context, provider, child) {
+        final question = provider.currentQuestion;
+        final isLastQuestion = provider.isLastQuestion;
 
-    return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: isCorrect
-                ? [
-                    const Color(0xFF66BB6A),
-                    const Color(0xFF4CAF50),
-                    const Color(0xFF388E3C),
-                  ]
-                : [
-                    const Color(0xFFEF5350),
-                    const Color(0xFFF44336),
-                    const Color(0xFFD32F2F),
-                  ],
-          ),
-        ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              _buildHeader(),
-              Expanded(
-                child: SingleChildScrollView(
-                  physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    children: [
-                      _buildResultCard(),
-                      const SizedBox(height: 24),
-                      _buildExplanationCard(question),
-                      const SizedBox(height: 30),
-                      _buildContinueButton(context, isLastQuestion),
-                    ],
-                  ),
-                ),
+        return Scaffold(
+          body: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: isCorrect
+                    ? [
+                        const Color(0xFF66BB6A),
+                        const Color(0xFF4CAF50),
+                        const Color(0xFF388E3C),
+                      ]
+                    : [
+                        const Color(0xFFEF5350),
+                        const Color(0xFFF44336),
+                        const Color(0xFFD32F2F),
+                      ],
               ),
-            ],
+            ),
+            child: SafeArea(
+              child: Column(
+                children: [
+                  _buildHeader(),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        children: [
+                          _buildResultCard(),
+                          const SizedBox(height: 24),
+                          _buildExplanationCard(question),
+                          const SizedBox(height: 30),
+                          _buildContinueButton(
+                            context,
+                            isLastQuestion,
+                            provider,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
@@ -148,7 +154,7 @@ class TrueFalseFeedbackPage extends StatelessWidget {
     );
   }
 
-  Widget _buildExplanationCard(TrueFalseQuestion question) {
+  Widget _buildExplanationCard(QuizQuestion question) {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -194,30 +200,38 @@ class TrueFalseFeedbackPage extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: question.isTrue
+              color: (question.correctAnswer ?? false)
                   ? Colors.green.withOpacity(0.1)
                   : Colors.red.withOpacity(0.1),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: question.isTrue ? Colors.green : Colors.red,
+                color: (question.correctAnswer ?? false)
+                    ? Colors.green
+                    : Colors.red,
                 width: 2,
               ),
             ),
             child: Row(
               children: [
                 Icon(
-                  question.isTrue ? Icons.check_circle : Icons.cancel,
-                  color: question.isTrue ? Colors.green : Colors.red,
+                  (question.correctAnswer ?? false)
+                      ? Icons.check_circle
+                      : Icons.cancel,
+                  color: (question.correctAnswer ?? false)
+                      ? Colors.green
+                      : Colors.red,
                   size: 32,
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    'Esta noticia es ${question.isTrue ? "VERDADERA" : "FALSA"}',
+                    'Esta noticia es ${(question.correctAnswer ?? false) ? "VERDADERA" : "FALSA"}',
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: question.isTrue ? Colors.green : Colors.red,
+                      color: (question.correctAnswer ?? false)
+                          ? Colors.green
+                          : Colors.red,
                     ),
                   ),
                 ),
@@ -234,7 +248,7 @@ class TrueFalseFeedbackPage extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          ...question.clues.asMap().entries.map((entry) {
+          ...?question.clues?.asMap().entries.map((entry) {
             final index = entry.key;
             final clue = entry.value;
             return Padding(
@@ -278,7 +292,11 @@ class TrueFalseFeedbackPage extends StatelessWidget {
     ).animate().slideY(delay: 400.ms, begin: 0.2, duration: 400.ms);
   }
 
-  Widget _buildContinueButton(BuildContext context, bool isLastQuestion) {
+  Widget _buildContinueButton(
+    BuildContext context,
+    bool isLastQuestion,
+    QuizProvider provider,
+  ) {
     return Container(
           width: double.infinity,
           height: 60,
@@ -303,16 +321,32 @@ class TrueFalseFeedbackPage extends StatelessWidget {
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const QuizResultsPage(),
+                      builder: (context) => MissionResultsPage(
+                        correctAnswers: provider.correctAnswers,
+                        incorrectAnswers: provider.incorrectAnswers,
+                        totalQuestions: provider.totalQuestions,
+                        missionId: 'titular',
+                        missionName: 'Veracidadville',
+                        primaryColor: const Color(0xFFFDD835),
+                        secondaryColor: AppTheme.accentGreen,
+                        perfectMessage: '¡Eres un maestro detective!',
+                        goodMessage: 'Has protegido Veracidadville',
+                        tryAgainMessage: '¡Sigue practicando!',
+                        learningPoints: [
+                          'Verifica siempre la fuente de información',
+                          'Desconfía de lenguaje muy emocional',
+                          'Las promesas mágicas suelen ser falsas',
+                        ],
+                      ),
                     ),
                   );
                 } else {
+                  // Move to next question
+                  provider.nextQuestion();
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => TrueFalseQuestionPage(
-                        questionIndex: questionIndex + 1,
-                      ),
+                      builder: (context) => const TrueFalseQuestionPage(),
                     ),
                   );
                 }

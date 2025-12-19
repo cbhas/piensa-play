@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:provider/provider.dart';
 import '../../../../../core/theme/app_theme.dart';
+import '../../../data/datasources/veracidadville/true_false_quiz_data.dart';
+import '../../providers/quiz_provider.dart';
 import 'true_false_question_page.dart';
 
 class TrueFalseIntroPage extends StatelessWidget {
@@ -11,6 +14,18 @@ class TrueFalseIntroPage extends StatelessWidget {
     final size = MediaQuery.of(context).size;
 
     return Scaffold(
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: const Text(
+          'Misión: Titular Engañoso',
+          style: TextStyle(color: Colors.white),
+        ),
+        backgroundColor: AppTheme.primaryDark,
+        elevation: 0,
+      ),
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -330,11 +345,26 @@ class TrueFalseIntroPage extends StatelessWidget {
             color: Colors.transparent,
             child: InkWell(
               onTap: () {
+                final questions = TrueFalseQuizData.getQuestions();
+
+                // Validate questions before starting
+                if (questions.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Error: No hay preguntas disponibles'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                  return;
+                }
+
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) =>
-                        const TrueFalseQuestionPage(questionIndex: 0),
+                    builder: (context) => ChangeNotifierProvider(
+                      create: (_) => QuizProvider(questions: questions),
+                      child: const TrueFalseQuestionPage(),
+                    ),
                   ),
                 );
               },

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/app_animations.dart';
 import '../../../../core/services/user_id_provider.dart';
+import '../../../../core/widgets/mascot_audio_button.dart';
 import '../../domain/entities/glossary_term.dart';
 import '../../domain/usecases/get_glossary_terms.dart';
 import '../widgets/glossary_term_card.dart';
@@ -133,7 +134,11 @@ class _GlossaryPageState extends State<GlossaryPage> {
                     ),
                   ),
                 ),
-                const SizedBox(width: 48), // Balance back button
+                // Mascot audio button
+                const MascotAudioButton(
+                  audioFileName: 'glosario.mp3',
+                  size: 48,
+                ),
               ],
             ),
           ).slideFromTop(),

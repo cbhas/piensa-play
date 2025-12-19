@@ -2,6 +2,8 @@
 
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/widgets/mascot_audio_button.dart';
+import '../../../../core/services/audio_service.dart';
 import '../../domain/entities/avatar.dart';
 import '../../domain/entities/user_profile.dart';
 import '../../domain/usecases/get_avatars.dart';
@@ -31,6 +33,17 @@ class _OnboardingPageState extends State<OnboardingPage> {
   void initState() {
     super.initState();
     _avatars = _getAvatars.execute();
+
+    // Auto-play profile audio
+    _playProfileAudio();
+  }
+
+  Future<void> _playProfileAudio() async {
+    try {
+      await AudioService().playMascotAudio('perfil.mp3');
+    } catch (e) {
+      print('Error playing profile audio: $e');
+    }
   }
 
   @override
@@ -122,14 +135,24 @@ class _OnboardingPageState extends State<OnboardingPage> {
 
                       const SizedBox(height: 20),
 
-                      // Título
-                      Text(
-                        '¡Cuéntanos sobre ti!',
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.primaryDark,
-                        ),
+                      // Título y botón de audio
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            '¡Cuéntanos sobre ti!',
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: AppTheme.primaryDark,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          const MascotAudioButton(
+                            audioFileName: 'perfil.mp3',
+                            size: 45,
+                          ),
+                        ],
                       ),
 
                       const SizedBox(height: 20),

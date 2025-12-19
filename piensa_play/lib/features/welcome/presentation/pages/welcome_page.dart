@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:piensa_play/core/constants/app_constants.dart';
 import 'package:piensa_play/core/theme/app_theme.dart';
+import 'package:piensa_play/core/services/audio_service.dart';
 import 'package:piensa_play/features/welcome/domain/usecases/get_welcome_config.dart';
 import 'package:piensa_play/features/welcome/domain/usecases/show_tutorial.dart';
 import 'package:piensa_play/features/welcome/domain/usecases/start_adventure.dart';
@@ -27,14 +28,25 @@ class _WelcomePageState extends State<WelcomePage> {
     _startAdventure = StartAdventure();
     _showTutorial = ShowTutorial();
     _config = _getWelcomeConfig.execute();
+
+    // Auto-play welcome audio
+    _playWelcomeAudio();
+  }
+
+  Future<void> _playWelcomeAudio() async {
+    try {
+      await AudioService().playMascotAudio('bienvenida.mp3');
+    } catch (e) {
+      print('Error playing welcome audio: $e');
+    }
   }
 
   Future<void> _onStartPressed() async {
     await _startAdventure.execute();
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('¡Comenzando aventura!')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('¡Comenzando aventura!')));
       Navigator.of(context).pushReplacementNamed(AppRoutes.onboarding);
     }
   }
@@ -42,9 +54,9 @@ class _WelcomePageState extends State<WelcomePage> {
   Future<void> _onTutorialPressed() async {
     await _showTutorial.execute();
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Mostrando tutorial')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Mostrando tutorial')));
     }
   }
 
@@ -80,48 +92,48 @@ class _WelcomePageState extends State<WelcomePage> {
     );
   }
 
-Widget _buildMascotContainer() {
-  return SizedBox(
-    width: 180,
-    height: 220, 
-    child: Stack(
-      clipBehavior: Clip.none,
-      children: [
-        Positioned(
-          bottom: 0,
-          left: 0,
-          child: Container(
-            width: 180,
-            height: 180,
-            decoration: BoxDecoration(
-              color: AppTheme.mascotBackground,
-              shape: BoxShape.circle,
-              boxShadow: AppTheme.defaultShadow,
-            ),
-          ),
-        ),
-        Positioned(
-          bottom: 0, 
-          left: 0,
-          child: SizedBox(
-            width: 180,
-            height: 220,
-            child: Transform.scale(
-              scale: 1.3,
-              alignment: Alignment.bottomCenter, 
-              child: Image.asset(
-                AppConstants.mascotEmoji,
-                width: 180,
-                height: 180,
-                fit: BoxFit.contain,
+  Widget _buildMascotContainer() {
+    return SizedBox(
+      width: 180,
+      height: 220,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Positioned(
+            bottom: 0,
+            left: 0,
+            child: Container(
+              width: 180,
+              height: 180,
+              decoration: BoxDecoration(
+                color: AppTheme.mascotBackground,
+                shape: BoxShape.circle,
+                boxShadow: AppTheme.defaultShadow,
               ),
             ),
           ),
-        ),
-      ],
-    ),
-  );
-}
+          Positioned(
+            bottom: 0,
+            left: 0,
+            child: SizedBox(
+              width: 180,
+              height: 220,
+              child: Transform.scale(
+                scale: 1.3,
+                alignment: Alignment.bottomCenter,
+                child: Image.asset(
+                  AppConstants.mascotEmoji,
+                  width: 180,
+                  height: 180,
+                  fit: BoxFit.contain,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   Widget _buildTitle() {
     return Text(
@@ -140,11 +152,7 @@ Widget _buildMascotContainer() {
     return Text(
       _config.subtitle,
       textAlign: TextAlign.center,
-      style: const TextStyle(
-        fontSize: 18,
-        color: Colors.white,
-        height: 1.5,
-      ),
+      style: const TextStyle(fontSize: 18, color: Colors.white, height: 1.5),
     );
   }
 
@@ -220,7 +228,11 @@ Widget _buildMascotContainer() {
             shape: BoxShape.circle,
           ),
           child: const Center(
-            child: Icon(Icons.language, size: 16, color: AppTheme.secondaryDark),
+            child: Icon(
+              Icons.language,
+              size: 16,
+              color: AppTheme.secondaryDark,
+            ),
           ),
         ),
         const SizedBox(width: 8),

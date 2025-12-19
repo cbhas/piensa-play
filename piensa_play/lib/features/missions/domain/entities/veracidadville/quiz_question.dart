@@ -1,4 +1,5 @@
 import 'quiz_element.dart';
+import 'question_type.dart';
 
 class QuizQuestion {
   final String id;
@@ -12,6 +13,11 @@ class QuizQuestion {
   final List<QuizElement> elements;
   final String explanation;
 
+  // NEW: Optional fields for unified model
+  final QuestionType type; // Type of question
+  final bool? correctAnswer; // For trueFalse type
+  final List<String>? clues; // For trueFalse type (hints)
+
   const QuizQuestion({
     required this.id,
     required this.newsTitle,
@@ -23,6 +29,9 @@ class QuizQuestion {
     this.newsImage,
     required this.elements,
     required this.explanation,
+    this.type = QuestionType.quiz, // Default to quiz type
+    this.correctAnswer,
+    this.clues,
   });
 
   int get correctAnswersCount => elements.where((e) => e.isCorrect).length;
@@ -38,6 +47,9 @@ class QuizQuestion {
     'newsImage': newsImage,
     'elements': elements.map((e) => e.toJson()).toList(),
     'explanation': explanation,
+    'type': type.toJson(),
+    'correctAnswer': correctAnswer,
+    'clues': clues,
   };
 
   factory QuizQuestion.fromJson(Map<String, dynamic> json) => QuizQuestion(
@@ -55,5 +67,10 @@ class QuizQuestion {
             .toList() ??
         [],
     explanation: json['explanation'] ?? '',
+    type: json['type'] != null
+        ? QuestionTypeExtension.fromJson(json['type'] as String)
+        : QuestionType.quiz,
+    correctAnswer: json['correctAnswer'] as bool?,
+    clues: (json['clues'] as List<dynamic>?)?.cast<String>(),
   );
 }

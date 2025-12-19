@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../pages/mission_map_page.dart';
-import '../pages/zona_cero/zona_cero_map_page.dart';
 
 class MissionItem extends StatelessWidget {
   final String missionId;
@@ -41,22 +40,43 @@ class MissionItem extends StatelessWidget {
             categoryTitle: categoryTitle,
             categoryId: categoryId,
             categoryColor: categoryColor,
+            backgroundImage: 'assets/images/map_background.png',
+            bannerColor: const Color(0xFFBDD87B), // Verde claro
           ),
         ),
       );
       return;
     }
 
-    // Zona Cero Odio -> ZonaCeroMapPage
-    // (Tu data a veces llega como 'zona_cero_odio' y otras como 'ciberseguridad',
-    // así que cubrimos ambos para que NO se rompa)
-    if (categoryId == 'zona_cero_odio' || categoryId == 'ciberseguridad') {
+    // Ciberseguridad -> MissionMapPage
+    if (categoryId == 'ciberseguridad') {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (_) => ZonaCeroMapPage(
+          builder: (_) => MissionMapPage(
             categoryTitle: categoryTitle,
+            categoryId: categoryId,
             categoryColor: categoryColor,
+            selectedMissionId: missionId,
+            backgroundImage: 'assets/images/map_background_ciberseguridad.png',
+            bannerColor: const Color(0xFF91E0FF), // Azul claro
+          ),
+        ),
+      );
+      return;
+    }
+
+    // Zona Cero Odio -> MissionMapPage (ahora también usa el mapa unificado)
+    if (categoryId == 'zona_cero_odio') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => MissionMapPage(
+            categoryTitle: categoryTitle,
+            categoryId: categoryId,
+            categoryColor: categoryColor,
+            backgroundImage: 'assets/images/map_background_zona_cero_odio.png',
+            bannerColor: const Color(0xFFFFEF93), // Amarillo claro
           ),
         ),
       );
@@ -73,9 +93,11 @@ class MissionItem extends StatelessWidget {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (_) => ZonaCeroMapPage(
+          builder: (_) => MissionMapPage(
             categoryTitle: categoryTitle,
+            categoryId: 'ciberseguridad',
             categoryColor: categoryColor,
+            selectedMissionId: missionId,
           ),
         ),
       );

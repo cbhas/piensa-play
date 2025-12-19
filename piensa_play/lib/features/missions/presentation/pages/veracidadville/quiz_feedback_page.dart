@@ -4,7 +4,7 @@ import '../../../../../core/theme/app_theme.dart';
 import '../../../data/datasources/veracidadville/veracidadville_quiz_data.dart';
 import '../../../domain/entities/veracidadville/quiz_question.dart';
 import 'quiz_question_page.dart';
-import 'quiz_results_page.dart';
+import '../shared/mission_results_page.dart';
 
 class QuizFeedbackPage extends StatelessWidget {
   final int questionIndex;
@@ -460,7 +460,23 @@ class QuizFeedbackPage extends StatelessWidget {
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const QuizResultsPage(),
+                      builder: (context) => const MissionResultsPage(
+                        correctAnswers: 3,
+                        incorrectAnswers: 0,
+                        totalQuestions: 3,
+                        missionId: 'fake_news',
+                        missionName: 'Veracidadville',
+                        primaryColor: Color(0xFFFDD835),
+                        secondaryColor: AppTheme.accentGreen,
+                        perfectMessage: '¡Eres un maestro detective!',
+                        goodMessage: 'Has protegido Veracidadville',
+                        tryAgainMessage: '¡Sigue practicando!',
+                        learningPoints: [
+                          'Verifica siempre la fuente de información',
+                          'Desconfía de lenguaje muy emocional',
+                          'Las promesas mágicas suelen ser falsas',
+                        ],
+                      ),
                     ),
                   );
                 } else {

@@ -85,7 +85,7 @@ class MissionsLocalDatasource {
             description: 'Detecta correos y mensajes fraudulentos.',
             isCompleted: false,
             iconName: 'flag',
-            questions: [CiberseguridadQuizData.getQuestionById('q1_phishing')!],
+            questions: CiberseguridadQuizData.getQuestions(),
           ),
           Mission(
             id: 'q2_malware', // ID de la pregunta 2
@@ -94,7 +94,7 @@ class MissionsLocalDatasource {
             description: 'Identifica software malicioso y protégete.',
             isCompleted: false,
             iconName: 'flag',
-            questions: [CiberseguridadQuizData.getQuestionById('q2_malware')!],
+            questions: CiberseguridadQuizData.getQuestions(),
           ),
           Mission(
             id: 'q3_passwords', // ID de la pregunta 3
@@ -103,7 +103,7 @@ class MissionsLocalDatasource {
             description: 'Crea contraseñas seguras y robustas.',
             isCompleted: false,
             iconName: 'flag',
-            questions: [CiberseguridadQuizData.getQuestionById('q3_passwords')!],
+            questions: CiberseguridadQuizData.getQuestions(),
           ),
         ],
       ),

@@ -7,15 +7,15 @@ class Mission {
   final String description;
   final bool isCompleted;
   final String iconName;
-  final List<QuizQuestion> questions; // Added questions
+  final List<QuizQuestion>? questions; // Optional questions
 
   Mission({
     required this.id,
     required this.title,
-    required this.subtitle, // Required subtitle
+    required this.subtitle,
     required this.description,
     required this.isCompleted,
     required this.iconName,
-    required this.questions, // Required questions
+    this.questions, // Optional
   });
 }

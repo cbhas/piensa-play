@@ -10,6 +10,7 @@ class MissionNodeWidget extends StatelessWidget {
   final double progress;
   final VoidCallback? onTap;
   final int index;
+  final Color? nodeColor; // Configurable node color
 
   const MissionNodeWidget({
     super.key,
@@ -18,6 +19,7 @@ class MissionNodeWidget extends StatelessWidget {
     this.progress = 0.0,
     this.onTap,
     this.index = 0,
+    this.nodeColor, // Optional, defaults to green
   });
 
   @override
@@ -237,6 +239,8 @@ class MissionNodeWidget extends StatelessWidget {
   }
 
   LinearGradient _getNodeGradient() {
+    final baseColor = nodeColor ?? const Color(0xFFA4D65E); // Default green
+
     switch (type) {
       case MissionNodeType.locked:
         return const LinearGradient(
@@ -247,18 +251,26 @@ class MissionNodeWidget extends StatelessWidget {
         );
       case MissionNodeType.unlocked:
       case MissionNodeType.inProgress:
-        return const LinearGradient(
+        return LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFFC0ED8F), Color(0xFFA4D65E), Color(0xFF7FA891)],
-          stops: [0.0, 0.5, 1.0],
+          colors: [
+            baseColor.withOpacity(0.8),
+            baseColor,
+            baseColor.withOpacity(0.7),
+          ],
+          stops: const [0.0, 0.5, 1.0],
         );
       case MissionNodeType.completed:
-        return const LinearGradient(
+        return LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFFB8E986), Color(0xFF7FA891), Color(0xFF6B8E7D)],
-          stops: [0.0, 0.5, 1.0],
+          colors: [
+            baseColor.withOpacity(0.6),
+            baseColor.withOpacity(0.8),
+            baseColor.withOpacity(0.9),
+          ],
+          stops: const [0.0, 0.5, 1.0],
         );
       case MissionNodeType.chest:
         return const LinearGradient(colors: [Colors.grey, Colors.grey]);
@@ -266,13 +278,16 @@ class MissionNodeWidget extends StatelessWidget {
   }
 
   Color _getNodeColor() {
+    final baseColor =
+        nodeColor ?? const Color(0xFF7FA891); // Default green shade
+
     switch (type) {
       case MissionNodeType.locked:
         return const Color(0xFFBDBDBD);
       case MissionNodeType.unlocked:
       case MissionNodeType.inProgress:
       case MissionNodeType.completed:
-        return const Color(0xFF7FA891);
+        return baseColor;
       case MissionNodeType.chest:
         return Colors.grey;
     }

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../../../core/theme/app_theme.dart';
-import '../../../data/datasources/zona_cero/zona_cero_data.dart';
-import 'zona_cero_result_page.dart';
+import '../../../data/datasources/zona_cero/zona_cero_quiz_data.dart';
+import '../shared/mission_results_page.dart';
 
 class WordTrailPage extends StatefulWidget {
   const WordTrailPage({super.key});
@@ -12,14 +12,15 @@ class WordTrailPage extends StatefulWidget {
 }
 
 class _WordTrailPageState extends State<WordTrailPage> {
-  final phrases = ZonaCeroData.wordTrailPhrases();
+  final questions = ZonaCeroQuizData.wordTrailQuestions;
   int currentIndex = 0;
   int correct = 0;
   int incorrect = 0;
 
   void _handleAnswer(bool selectsHarmful) {
-    final currentPhrase = phrases[currentIndex];
-    final isCorrect = currentPhrase.isHarmful == selectsHarmful;
+    final currentQuestion = questions[currentIndex];
+    final isCorrect =
+        (currentQuestion.correctAnswer ?? false) == selectsHarmful;
 
     setState(() {
       if (isCorrect) {
@@ -29,7 +30,7 @@ class _WordTrailPageState extends State<WordTrailPage> {
       }
     });
 
-    _showFeedback(isCorrect, currentPhrase.tip);
+    _showFeedback(isCorrect, currentQuestion.explanation);
   }
 
   void _showFeedback(bool isCorrect, String tip) {
@@ -38,8 +39,9 @@ class _WordTrailPageState extends State<WordTrailPage> {
       barrierDismissible: false,
       builder: (context) {
         return Dialog(
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+          ),
           child: Padding(
             padding: const EdgeInsets.all(20),
             child: Column(
@@ -67,25 +69,24 @@ class _WordTrailPageState extends State<WordTrailPage> {
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color:
-                        isCorrect ? AppTheme.primaryDark : Colors.red.shade700,
+                    color: isCorrect
+                        ? AppTheme.primaryDark
+                        : Colors.red.shade700,
                   ),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 8),
                 Text(
                   tip,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey.shade700,
-                  ),
+                  style: TextStyle(fontSize: 14, color: Colors.grey.shade700),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 16),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor:
-                        isCorrect ? AppTheme.accentGreen : AppTheme.accentYellow,
+                    backgroundColor: isCorrect
+                        ? AppTheme.accentGreen
+                        : AppTheme.accentYellow,
                     foregroundColor: Colors.black87,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
@@ -115,7 +116,7 @@ class _WordTrailPageState extends State<WordTrailPage> {
   }
 
   void _goNext() {
-    if (currentIndex < phrases.length - 1) {
+    if (currentIndex < questions.length - 1) {
       setState(() {
         currentIndex++;
       });
@@ -128,17 +129,26 @@ class _WordTrailPageState extends State<WordTrailPage> {
     final result = await Navigator.push<String>(
       context,
       MaterialPageRoute(
-        builder: (_) => ZonaCeroResultPage(
-          title: '¡Actividad Completada!',
-          description:
-              'Ayudaste al bosque detectando palabras que hieren o construyen.',
-          correct: correct,
-          incorrect: incorrect,
-          lesson:
-              'Las palabras pueden herir o ayudar. Elegir frases amables hace que todos se sientan tranquilos.',
-          showNextButton: true,
-          nextLabel: 'Siguiente misión',
-          accentColor: AppTheme.accentGreen,
+        builder: (_) => MissionResultsPage(
+          correctAnswers: correct,
+          incorrectAnswers: incorrect,
+          totalQuestions: correct + incorrect,
+          missionId: 'words',
+          missionName: 'Zona Cero Odio',
+          primaryColor: AppTheme.accentGreen,
+          secondaryColor: AppTheme.accentGreen,
+          perfectMessage: '¡Bosque restaurado!',
+          goodMessage: 'Has limpiado el bosque digital',
+          tryAgainMessage: '¡Sigue practicando!',
+          learningPoints: [
+            'Las palabras pueden herir o ayudar',
+            'Elegir frases amables hace que todos se sientan tranquilos',
+            'El respeto construye comunidades fuertes',
+          ],
+          showNextButton: false, // Hide next mission button
+          onNext: () {
+            Navigator.pop(context, 'next');
+          },
         ),
       ),
     );
@@ -159,8 +169,8 @@ class _WordTrailPageState extends State<WordTrailPage> {
 
   @override
   Widget build(BuildContext context) {
-    final progress = (currentIndex + 1) / phrases.length;
-    final currentPhrase = phrases[currentIndex];
+    final progress = (currentIndex + 1) / questions.length;
+    final currentQuestion = questions[currentIndex];
 
     return Scaffold(
       body: SafeArea(
@@ -192,7 +202,7 @@ class _WordTrailPageState extends State<WordTrailPage> {
                       const SizedBox(height: 14),
                       _buildMissionCard(),
                       const SizedBox(height: 18),
-                      _buildPhraseCard(currentPhrase.phrase),
+                      _buildPhraseCard(currentQuestion.newsContent),
                       const SizedBox(height: 18),
                       _buildActions(),
                       const SizedBox(height: 14),
@@ -237,10 +247,7 @@ class _WordTrailPageState extends State<WordTrailPage> {
               SizedBox(height: 2),
               Text(
                 'El sendero de las palabras',
-                style: TextStyle(
-                  color: Colors.white70,
-                  fontSize: 13,
-                ),
+                style: TextStyle(color: Colors.white70, fontSize: 13),
               ),
             ],
           ),
@@ -279,7 +286,7 @@ class _WordTrailPageState extends State<WordTrailPage> {
                 ),
               ),
               Text(
-                '${currentIndex + 1}/${phrases.length}',
+                '${currentIndex + 1}/${questions.length}',
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   color: AppTheme.primaryDark,
@@ -294,8 +301,9 @@ class _WordTrailPageState extends State<WordTrailPage> {
               value: progress,
               minHeight: 12,
               backgroundColor: Colors.grey.shade200,
-              valueColor:
-                  const AlwaysStoppedAnimation<Color>(AppTheme.accentGreen),
+              valueColor: const AlwaysStoppedAnimation<Color>(
+                AppTheme.accentGreen,
+              ),
             ),
           ),
         ],
@@ -341,10 +349,7 @@ class _WordTrailPageState extends State<WordTrailPage> {
           Expanded(
             child: Text(
               'Ayuda al bosque eligiendo si la frase hiere o construye.',
-              style: TextStyle(
-                color: AppTheme.primaryDark,
-                fontSize: 14,
-              ),
+              style: TextStyle(color: AppTheme.primaryDark, fontSize: 14),
             ),
           ),
         ],
@@ -437,10 +442,7 @@ class _WordTrailPageState extends State<WordTrailPage> {
         onPressed: onTap,
         child: Text(
           label,
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
       ),
     );

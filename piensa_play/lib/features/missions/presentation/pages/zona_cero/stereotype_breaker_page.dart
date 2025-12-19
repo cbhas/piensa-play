@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../../../core/theme/app_theme.dart';
 import '../../../data/datasources/zona_cero/zona_cero_data.dart';
-import 'zona_cero_result_page.dart';
+import '../shared/mission_results_page.dart';
 
 class StereotypeBreakerPage extends StatefulWidget {
   const StereotypeBreakerPage({super.key});
@@ -69,7 +69,11 @@ class _StereotypeBreakerPageState extends State<StereotypeBreakerPage> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.check_circle, color: AppTheme.accentGreen, size: 48),
+              const Icon(
+                Icons.check_circle,
+                color: AppTheme.accentGreen,
+                size: 48,
+              ),
               const SizedBox(height: 10),
               const Text(
                 '¡Escena lista!',
@@ -128,16 +132,22 @@ class _StereotypeBreakerPageState extends State<StereotypeBreakerPage> {
     Navigator.push<String>(
       context,
       MaterialPageRoute(
-        builder: (_) => ZonaCeroResultPage(
-          title: '¡Misión completada!',
-          description:
-              'Cambiaste frases que dejaban fuera a otros por mensajes que incluyen.',
-          correct: correctFixes,
-          incorrect: incorrect,
-          lesson:
-              'Los estereotipos lastiman. Cuando usamos palabras que invitan a todos, el juego se vuelve justo y amable.',
-          showNextButton: false,
-          accentColor: const Color(0xFFFFC857),
+        builder: (_) => MissionResultsPage(
+          correctAnswers: correctFixes,
+          incorrectAnswers: incorrect,
+          totalQuestions: correctFixes + incorrect,
+          missionId: 'stereotypes',
+          missionName: 'Zona Cero Odio',
+          primaryColor: const Color(0xFFFFC857),
+          secondaryColor: AppTheme.accentGreen,
+          perfectMessage: '¡Bosque restaurado!',
+          goodMessage: 'Has eliminado los estereotipos',
+          tryAgainMessage: '¡Sigue practicando!',
+          learningPoints: [
+            'Los estereotipos lastiman a las personas',
+            'Usar palabras que invitan a todos hace el juego justo',
+            'El respeto y la inclusión construyen comunidades fuertes',
+          ],
         ),
       ),
     ).then((result) {
@@ -159,8 +169,9 @@ class _StereotypeBreakerPageState extends State<StereotypeBreakerPage> {
   Widget build(BuildContext context) {
     final scene = scenes[sceneIndex];
     final progress = (sceneIndex + 1) / scenes.length;
-    final score =
-        totalHarmful == 0 ? 0 : ((correctFixes / totalHarmful) * 100).round();
+    final score = totalHarmful == 0
+        ? 0
+        : ((correctFixes / totalHarmful) * 100).round();
 
     return Scaffold(
       body: SafeArea(
@@ -234,10 +245,7 @@ class _StereotypeBreakerPageState extends State<StereotypeBreakerPage> {
                   SizedBox(height: 2),
                   Text(
                     'Rompe estereotipos',
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: 13,
-                    ),
+                    style: TextStyle(color: Colors.white70, fontSize: 13),
                   ),
                 ],
               ),
@@ -295,10 +303,7 @@ class _StereotypeBreakerPageState extends State<StereotypeBreakerPage> {
           Expanded(
             child: Text(
               'Toca los mensajes que dejan fuera a alguien y cámbialos por opciones que incluyan a todos.',
-              style: TextStyle(
-                color: AppTheme.primaryDark,
-                fontSize: 14,
-              ),
+              style: TextStyle(color: AppTheme.primaryDark, fontSize: 14),
             ),
           ),
         ],
@@ -336,9 +341,7 @@ class _StereotypeBreakerPageState extends State<StereotypeBreakerPage> {
           const SizedBox(height: 6),
           Text(
             scene.description,
-            style: TextStyle(
-              color: AppTheme.primaryDark.withOpacity(0.8),
-            ),
+            style: TextStyle(color: AppTheme.primaryDark.withOpacity(0.8)),
           ),
           const SizedBox(height: 16),
           ...scene.statements.asMap().entries.map((entry) {
@@ -488,10 +491,7 @@ class _StereotypeBreakerPageState extends State<StereotypeBreakerPage> {
               SizedBox(height: 4),
               Text(
                 '¡Sigue así!',
-                style: TextStyle(
-                  color: AppTheme.primaryDark,
-                  fontSize: 13,
-                ),
+                style: TextStyle(color: AppTheme.primaryDark, fontSize: 13),
               ),
             ],
           ),
@@ -510,8 +510,10 @@ class _StereotypeBreakerPageState extends State<StereotypeBreakerPage> {
                     ),
                   ],
                 ),
-                child: const Icon(Icons.emoji_events,
-                    color: AppTheme.primaryDark),
+                child: const Icon(
+                  Icons.emoji_events,
+                  color: AppTheme.primaryDark,
+                ),
               ),
               const SizedBox(width: 10),
               Text(

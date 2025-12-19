@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/widgets/mascot_audio_button.dart';
 
 class DashboardHeader extends StatelessWidget {
   final String avatarPath;
@@ -42,14 +43,18 @@ class DashboardHeader extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 16),
-            Text(
-              userName != null ? '¡Hola, $userName!' : '¡Hola!',
-              style: const TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
+            Expanded(
+              child: Text(
+                userName != null ? '¡Hola, $userName!' : '¡Hola!',
+                style: const TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
               ),
             ),
+            // Mascot audio button for menu
+            const MascotAudioButton(audioFileName: 'menu.mp3', size: 50),
           ],
         ),
       ),

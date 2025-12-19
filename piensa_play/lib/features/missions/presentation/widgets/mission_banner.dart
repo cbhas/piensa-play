@@ -5,12 +5,14 @@ class MissionBanner extends StatelessWidget {
   final String missionTitle;
   final String missionDescription;
   final Color backgroundColor;
+  final Color? textColor; // Color for text and button
 
   const MissionBanner({
     super.key,
     required this.missionTitle,
     required this.missionDescription,
     required this.backgroundColor,
+    this.textColor, // Optional, defaults to white
   });
 
   @override
@@ -77,8 +79,8 @@ class MissionBanner extends StatelessWidget {
                     children: [
                       Text(
                         missionTitle,
-                        style: const TextStyle(
-                          color: Colors.white,
+                        style: TextStyle(
+                          color: textColor ?? Colors.white,
                           fontSize: 17,
                           fontWeight: FontWeight.bold,
                           height: 1.2,
@@ -90,7 +92,7 @@ class MissionBanner extends StatelessWidget {
                       Text(
                         missionDescription,
                         style: TextStyle(
-                          color: Colors.white.withOpacity(0.92),
+                          color: (textColor ?? Colors.white).withOpacity(0.92),
                           fontSize: 13,
                           height: 1.2,
                         ),

@@ -1,5 +1,6 @@
 import 'package:piensa_play/features/missions/domain/entities/veracidadville/quiz_question.dart';
 import 'package:piensa_play/features/missions/domain/entities/veracidadville/quiz_element.dart';
+import 'package:piensa_play/features/missions/domain/entities/veracidadville/question_type.dart';
 
 class VeracidadvilleQuizData {
   static List<QuizQuestion> getQuestions() {
@@ -44,6 +45,7 @@ class VeracidadvilleQuizData {
         ],
         explanation:
             '¡Correcto! Esta noticia es falsa. El autor "Dr. Inventado" no es real, la fuente no es confiable, y los datos son exagerados. Las zanahorias ayudan a la salud visual pero no dan visión nocturna.',
+        type: QuestionType.quiz, // Quiz type
       ),
 
       // Question 2: Vacunas y Superpoderes
@@ -86,6 +88,7 @@ class VeracidadvilleQuizData {
         ],
         explanation:
             '¡Correcto! Esta es una noticia falsa peligrosa. El autor es anónimo (no confiable), la fuente no es verificada, y la afirmación de "superpoderes" es completamente falsa. Las vacunas salvan vidas, no dan superpoderes.',
+        type: QuestionType.quiz,
       ),
 
       // Question 3: Agua de Mar
@@ -128,6 +131,7 @@ class VeracidadvilleQuizData {
         ],
         explanation:
             '¡Correcto! Esta noticia es falsa y peligrosa. "Naturista123" no es un médico, la fuente es un blog no verificado, y afirmar que algo "cura todo" es una señal clara de información falsa. Beber agua de mar es peligroso.',
+        type: QuestionType.quiz,
       ),
     ];
   }
