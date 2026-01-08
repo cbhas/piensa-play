@@ -1,6 +1,6 @@
 import '../../domain/entities/mission.dart';
 import '../../domain/entities/mission_category.dart';
-import '../datasources/ciberseguridad/ciberseguridad_quiz_data.dart'; // Import CiberseguridadQuizData
+import '../datasources/ciberseguridad/ciberseguridad_quiz_data.dart';
 
 class MissionsLocalDatasource {
   Future<List<MissionCategory>> getMissionCategories(String userId) async {
@@ -13,25 +13,27 @@ class MissionsLocalDatasource {
         title: 'Veracidadville',
         description: 'Detecta la desinformación y defiende la verdad.',
         iconName: 'shield',
-        colorHex: '0xFF6EC6FF', // accentBlue
+        colorHex: '0xFF6EC6FF',
         missions: [
           Mission(
             id: 'fake_news',
             title: 'Cazadores de Fake News',
-            subtitle: 'Veracidadville', // Added subtitle
+            subtitle: 'Veracidadville',
             description: 'Aprende a identificar noticias engañosas',
             isCompleted: true,
             iconName: 'check',
-            questions: [], // Added questions
+            type: MissionType.quiz,
+            questions: [],
           ),
           Mission(
             id: 'titular',
             title: 'El Enigma del Titular',
-            subtitle: 'Veracidadville', // Added subtitle
+            subtitle: 'Veracidadville',
             description: 'Desentraña titulares para encontrar la verdad.',
             isCompleted: false,
             iconName: 'warning',
-            questions: [], // Added questions
+            type: MissionType.trueFalse,
+            questions: [],
           ),
         ],
       ),
@@ -40,16 +42,27 @@ class MissionsLocalDatasource {
         title: 'Zona Cero Odio',
         description: 'Reconoce y contrarresta el discurso de odio en línea.',
         iconName: 'message',
-        colorHex: '0xFFA4D65E', // accentGreen
+        colorHex: '0xFFA4D65E',
         missions: [
           Mission(
-            id: 'mensaje_escondido',
-            title: 'El Mensaje Escondido',
-            subtitle: 'Zona Cero Odio', // Added subtitle
+            id: 'words',
+            title: 'El Sendero de las Palabras',
+            subtitle: 'Zona Cero Odio',
             description: 'Identifica palabras y frases que promueven el odio.',
             isCompleted: false,
             iconName: 'lock',
-            questions: [], // Added questions
+            type: MissionType.wordSelection,
+            questions: [],
+          ),
+          Mission(
+            id: 'stereotypes',
+            title: 'Rompe Estereotipos',
+            subtitle: 'Zona Cero Odio',
+            description: 'Cambia ideas injustas por mensajes amables.',
+            isCompleted: false,
+            iconName: 'lock',
+            type: MissionType.stereotype,
+            questions: [],
           ),
         ],
       ),
@@ -58,51 +71,55 @@ class MissionsLocalDatasource {
         title: 'Fortaleza Privacidad',
         description: 'Protege tu identidad digital y navega seguro.',
         iconName: 'lock',
-        colorHex: '0xFFF4D03F', // accentYellow
+        colorHex: '0xFFF4D03F',
         missions: [
           Mission(
             id: 'navegacion_segura',
             title: 'Navegación Segura',
-            subtitle: 'Fortaleza Privacidad', // Added subtitle
+            subtitle: 'Fortaleza Privacidad',
             description: 'Aprende a proteger tus datos al navegar.',
             isCompleted: false,
             iconName: 'diamond',
-            questions: [], // Added questions
+            type: MissionType.quiz,
+            questions: [],
           ),
         ],
       ),
       MissionCategory(
-        id: 'ciberseguridad', // ID de la categoría actualizado
-        title: 'Misión Ciberseguridad', // Título actualizado
+        id: 'ciberseguridad',
+        title: 'Misión Ciberseguridad',
         description: 'Defiende el ciberespacio de amenazas y ataques.',
         iconName: 'security',
-        colorHex: '0xFFFF6B6B', // accentRed
+        colorHex: '0xFFFF6B6B',
         missions: [
           Mission(
-            id: 'q1_phishing', // ID de la pregunta 1
+            id: 'q1_phishing',
             title: 'El Ataque Phishing',
-            subtitle: 'Ciberseguridad', // Added subtitle
+            subtitle: 'Ciberseguridad',
             description: 'Detecta correos y mensajes fraudulentos.',
             isCompleted: false,
             iconName: 'flag',
+            type: MissionType.quiz,
             questions: CiberseguridadQuizData.getQuestions(),
           ),
           Mission(
-            id: 'q2_malware', // ID de la pregunta 2
+            id: 'q2_malware',
             title: 'La Amenaza Oculta',
-            subtitle: 'Ciberseguridad', // Added subtitle
+            subtitle: 'Ciberseguridad',
             description: 'Identifica software malicioso y protégete.',
             isCompleted: false,
             iconName: 'flag',
+            type: MissionType.quiz,
             questions: CiberseguridadQuizData.getQuestions(),
           ),
           Mission(
-            id: 'q3_passwords', // ID de la pregunta 3
+            id: 'q3_passwords',
             title: 'Fortaleza de Contraseñas',
-            subtitle: 'Ciberseguridad', // Added subtitle
+            subtitle: 'Ciberseguridad',
             description: 'Crea contraseñas seguras y robustas.',
             isCompleted: false,
             iconName: 'flag',
+            type: MissionType.quiz,
             questions: CiberseguridadQuizData.getQuestions(),
           ),
         ],

@@ -1,0 +1,13 @@
+{
+    "name": "piensa-play-seed",
+    "version": "1.0.0",
+    "description": "Firebase seed script for PiensaPlay",
+    "type": "module",
+    "scripts": {
+        "seed": "node seed-firebase.js",
+        "seed:dry": "node seed-firebase.js --dry-run"
+    },
+    "dependencies": {
+        "firebase-admin": "^12.0.0"
+    }
+}

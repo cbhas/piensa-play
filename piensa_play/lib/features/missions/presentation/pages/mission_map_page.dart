@@ -10,22 +10,17 @@ import 'zona_cero/word_trail_page.dart';
 import 'zona_cero/stereotype_breaker_page.dart';
 import '../../domain/entities/mission.dart';
 import '../../domain/entities/mission_category.dart';
-import '../../data/datasources/missions_local_datasource.dart';
 import '../../../../core/services/mission_progress_service.dart';
 
 class MissionMapPage extends StatefulWidget {
-  final String categoryTitle;
-  final String categoryId;
-  final Color categoryColor;
+  final MissionCategory category; // Ahora recibe la categoría completa
   final String? selectedMissionId;
-  final String? backgroundImage; // Configurable background
-  final Color? bannerColor; // Configurable banner color
+  final String? backgroundImage;
+  final Color? bannerColor;
 
   const MissionMapPage({
     super.key,
-    required this.categoryTitle,
-    required this.categoryId,
-    required this.categoryColor,
+    required this.category,
     this.selectedMissionId,
     this.backgroundImage,
     this.bannerColor,
@@ -40,34 +35,34 @@ class _MissionMapPageState extends State<MissionMapPage> {
   String selectedMissionTitle = 'Selecciona una misión';
   String selectedMissionDescription = 'Toca una misión para comenzar';
 
-  // Sequential unlock system
   Map<String, bool> missionCompletionStatus = {};
   final _progressService = MissionProgressService();
-  final _datasource = MissionsLocalDatasource();
-  List<Mission> _categoryMissions = [];
+
+  // Get missions directly from category
+  List<Mission> get _categoryMissions => widget.category.missions;
 
   // Get node color based on category
   Color get nodeColor {
-    if (widget.categoryId == 'veracidadville') {
-      return const Color(0xFFBDD87B); // Verde claro
-    } else if (widget.categoryId == 'ciberseguridad') {
-      return const Color(0xFF91E0FF); // Azul claro
-    } else if (widget.categoryId == 'zona_cero_odio') {
-      return const Color(0xFFFFEF93); // Amarillo claro
+    if (widget.category.id == 'veracidadville') {
+      return const Color(0xFFBDD87B);
+    } else if (widget.category.id == 'ciberseguridad') {
+      return const Color(0xFF91E0FF);
+    } else if (widget.category.id == 'zona_cero_odio') {
+      return const Color(0xFFFFEF93);
     }
-    return const Color(0xFFBDD87B); // Default verde
+    return const Color(0xFFBDD87B);
   }
 
-  // Get text color based on category (for banner text and PLAY button)
+  // Get text color based on category
   Color get textColor {
-    if (widget.categoryId == 'veracidadville') {
-      return const Color(0xFF58CC02); // Verde oscuro
-    } else if (widget.categoryId == 'ciberseguridad') {
-      return const Color(0xFF132757); // Azul oscuro
-    } else if (widget.categoryId == 'zona_cero_odio') {
-      return const Color(0xFFFFAE00); // Amarillo oscuro
+    if (widget.category.id == 'veracidadville') {
+      return const Color(0xFF58CC02);
+    } else if (widget.category.id == 'ciberseguridad') {
+      return const Color(0xFF132757);
+    } else if (widget.category.id == 'zona_cero_odio') {
+      return const Color(0xFFFFAE00);
     }
-    return const Color(0xFF58CC02); // Default verde oscuro
+    return const Color(0xFF58CC02);
   }
 
   @override
@@ -75,19 +70,13 @@ class _MissionMapPageState extends State<MissionMapPage> {
     super.initState();
     selectedMissionId = widget.selectedMissionId;
     _initializeMissionDetails();
-    // Defer loading progress until after first frame to avoid MediaQuery error
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadProgress();
-      _loadMissions(); // Load missions from data source
     });
   }
 
   Future<void> _loadProgress() async {
-    // Get all mission IDs for this category
-    final missions = _getMissionPositions(MediaQuery.of(context).size.width);
-    final missionIds = missions.map((m) => m.id).toList();
-
-    // Load progress from storage
+    final missionIds = _categoryMissions.map((m) => m.id).toList();
     final progress = await _progressService.getCategoryProgress(missionIds);
 
     if (mounted) {
@@ -97,132 +86,74 @@ class _MissionMapPageState extends State<MissionMapPage> {
     }
   }
 
-  Future<void> _loadMissions() async {
-    try {
-      final categories = await _datasource.getMissionCategories('user_id');
-      final category = categories.firstWhere(
-        (cat) => cat.id == widget.categoryId,
-        orElse: () => categories.first,
-      );
-      if (mounted) {
-        setState(() {
-          _categoryMissions = category.missions;
-        });
-      }
-    } catch (e) {
-      print('Error loading missions: $e');
-    }
-  }
-
   void _initializeMissionDetails() {
-    if (widget.selectedMissionId != null &&
-        missionData.containsKey(widget.selectedMissionId!)) {
-      selectedMissionTitle = missionData[widget.selectedMissionId!]!['title']!;
-      selectedMissionDescription =
-          missionData[widget.selectedMissionId!]!['description']!;
+    if (widget.selectedMissionId != null) {
+      final mission = _categoryMissions.firstWhere(
+        (m) => m.id == widget.selectedMissionId,
+        orElse: () => _categoryMissions.first,
+      );
+      selectedMissionTitle = mission.title;
+      selectedMissionDescription = mission.description;
     }
   }
 
-  final Map<String, Map<String, String>> missionData = {
-    'fake_news': {
-      'title': 'Cazadores de Fake News',
-      'description': 'Aprende a identificar noticias engañosas',
-    },
-    'titular': {
-      'title': 'El Enigma del Titular',
-      'description': 'Desentraña titulares para encontrar la verdad.',
-    },
-    'q1_phishing': {
-      'title': 'El Ataque Phishing',
-      'description': 'Detecta correos y mensajes fraudulentos.',
-    },
-    'q2_malware': {
-      'title': 'La Amenaza Oculta',
-      'description': 'Identifica software malicioso y protégete.',
-    },
-    'q3_passwords': {
-      'title': 'Fortaleza de Contraseñas',
-      'description': 'Crea contraseñas seguras y robustas.',
-    },
-    // Zona Cero Odio missions
-    'words': {
-      'title': 'El sendero de las palabras',
-      'description': 'Elige si las frases hieren o ayudan',
-    },
-    'stereotypes': {
-      'title': 'Rompe estereotipos',
-      'description': 'Cambia ideas injustas por mensajes amables',
-    },
-  };
-
-  void _selectMission(String missionId) {
+  void _selectMission(Mission mission) {
     setState(() {
-      // If already selected, navigate to mission
-      if (selectedMissionId == missionId) {
-        _navigateToMission(missionId);
+      if (selectedMissionId == mission.id) {
+        _navigateToMission(mission);
         return;
       }
 
-      // First click: just update selection and banner
-      selectedMissionId = missionId;
-      if (missionData.containsKey(missionId)) {
-        selectedMissionTitle = missionData[missionId]!['title']!;
-        selectedMissionDescription = missionData[missionId]!['description']!;
-      }
+      selectedMissionId = mission.id;
+      selectedMissionTitle = mission.title;
+      selectedMissionDescription = mission.description;
     });
   }
 
-  void _navigateToMission(String missionId) {
-    if (widget.categoryId == 'veracidadville') {
-      if (missionId == 'fake_news') {
-        // Usar IDs de misión reales
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const QuizIntroPage()),
-        );
-      } else if (missionId == 'titular') {
-        // Usar IDs de misión reales
+  void _navigateToMission(Mission mission) {
+    // Navegación basada en el TIPO de misión, no en IDs hardcodeados
+    switch (mission.type) {
+      case MissionType.quiz:
+        // Para quiz, usamos la página de intro de quiz
+        if (widget.category.id == 'veracidadville' &&
+            mission.id == 'fake_news') {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const QuizIntroPage()),
+          );
+        } else if (widget.category.id == 'ciberseguridad') {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) =>
+                  CiberseguridadIntroPage(currentMission: mission),
+            ),
+          );
+        }
+        break;
+
+      case MissionType.trueFalse:
         Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => const TrueFalseIntroPage()),
         );
-      }
-    } else if (widget.categoryId == 'ciberseguridad') {
-      // Get actual mission from loaded data
-      final mission = _categoryMissions.firstWhere(
-        (m) => m.id == missionId,
-        orElse: () => Mission(
-          id: missionId,
-          title: selectedMissionTitle,
-          subtitle: 'Ciberseguridad',
-          description: selectedMissionDescription,
-          isCompleted: false,
-          iconName: 'shield',
-          questions: [],
-        ),
-      );
+        break;
 
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) =>
-              CiberseguridadIntroPage(currentMission: mission),
-        ),
-      );
-    } else if (widget.categoryId == 'zona_cero_odio') {
-      if (missionId == 'words') {
+      case MissionType.wordSelection:
         Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => const WordTrailPage()),
         );
-      } else if (missionId == 'stereotypes') {
+        break;
+
+      case MissionType.stereotype:
         Navigator.push(
           context,
           MaterialPageRoute(
             builder: (context) => const StereotypeBreakerPage(),
           ),
         );
-      }
+        break;
     }
   }
 
@@ -234,10 +165,10 @@ class _MissionMapPageState extends State<MissionMapPage> {
       body: Column(
         children: [
           MapHeader(
-            categoryTitle: widget.categoryTitle,
-            audioFileName: widget.categoryId == 'veracidadville'
+            categoryTitle: widget.category.title,
+            audioFileName: widget.category.id == 'veracidadville'
                 ? 'veracidadville.mp3'
-                : widget.categoryId == 'zona_cero_odio'
+                : widget.category.id == 'zona_cero_odio'
                 ? 'zona_cero_odio.mp3'
                 : null,
           ),
@@ -245,14 +176,14 @@ class _MissionMapPageState extends State<MissionMapPage> {
             missionTitle: selectedMissionTitle,
             missionDescription: selectedMissionDescription,
             backgroundColor: widget.bannerColor ?? nodeColor,
-            textColor: textColor, // Use category-specific text color
+            textColor: textColor,
           ),
           Expanded(
             child: SingleChildScrollView(
               physics: const BouncingScrollPhysics(),
               child: Container(
                 width: screenWidth,
-                height: 800, // Reduced height for 3 nodes
+                height: _calculateMapHeight(),
                 decoration: BoxDecoration(
                   image: DecorationImage(
                     image: AssetImage(
@@ -268,7 +199,7 @@ class _MissionMapPageState extends State<MissionMapPage> {
                   children: [
                     // Path
                     CustomPaint(
-                      size: Size(screenWidth, 800),
+                      size: Size(screenWidth, _calculateMapHeight()),
                       painter: MapPathPainter(
                         points: _getMissionPositions(
                           screenWidth,
@@ -277,7 +208,7 @@ class _MissionMapPageState extends State<MissionMapPage> {
                     ),
                     // Mission nodes
                     ..._buildMissionNodes(context, screenWidth),
-                    // Mascot from assets
+                    // Mascot
                     Positioned(
                       right: 50,
                       top: 350,
@@ -317,96 +248,49 @@ class _MissionMapPageState extends State<MissionMapPage> {
     );
   }
 
+  // Calcula la altura del mapa dinámicamente basado en el número de misiones
+  double _calculateMapHeight() {
+    final nodeCount = _categoryMissions.length;
+    // 200px base + 200px por cada nodo
+    return 200.0 + (nodeCount * 200.0);
+  }
+
+  // Genera posiciones de nodos dinámicamente basado en las misiones de la categoría
   List<MapMissionData> _getMissionPositions(double screenWidth) {
     final centerX = screenWidth / 2;
+    final missions = <MapMissionData>[];
 
-    // Define base missions for each category
-    List<MapMissionData> baseMissions = [];
+    for (int i = 0; i < _categoryMissions.length; i++) {
+      final mission = _categoryMissions[i];
 
-    if (widget.categoryId == 'ciberseguridad') {
-      baseMissions = [
-        MapMissionData(
-          id: 'q1_phishing',
-          position: Offset(centerX, 200),
-          type: MissionNodeType.unlocked, // Will be updated by unlock logic
-        ),
-        MapMissionData(
-          id: 'q2_malware',
-          position: Offset(centerX - 60, 400),
-          type: MissionNodeType.unlocked,
-        ),
-        MapMissionData(
-          id: 'q3_passwords',
-          position: Offset(centerX + 50, 600),
-          type: MissionNodeType.locked,
-        ),
-      ];
-    } else if (widget.categoryId == 'veracidadville') {
-      baseMissions = [
-        MapMissionData(
-          id: 'fake_news',
-          position: Offset(centerX, 200),
-          type: MissionNodeType.unlocked,
-        ),
-        MapMissionData(
-          id: 'titular',
-          position: Offset(centerX - 60, 400),
-          type: MissionNodeType.unlocked,
-        ),
-        MapMissionData(
-          id: '3',
-          position: Offset(centerX + 50, 600),
-          type: MissionNodeType.locked,
-        ),
-      ];
-    } else if (widget.categoryId == 'zona_cero_odio') {
-      baseMissions = [
-        MapMissionData(
-          id: 'words',
-          position: Offset(centerX, 200),
-          type: MissionNodeType.unlocked,
-        ),
-        MapMissionData(
-          id: 'stereotypes',
-          position: Offset(centerX - 60, 400),
-          type: MissionNodeType.unlocked,
-        ),
-      ];
-    }
+      // Calcular posición X en zigzag
+      final xOffset = (i % 2 == 0) ? 0.0 : (i % 4 == 1 ? -60.0 : 50.0);
+      final position = Offset(centerX + xOffset, 200.0 + (i * 200.0));
 
-    // Apply sequential unlock logic
-    final unlockedMissions = <MapMissionData>[];
-    for (int i = 0; i < baseMissions.length; i++) {
-      final mission = baseMissions[i];
-
+      // Determinar estado de desbloqueo
+      MissionNodeType nodeType;
       if (i == 0) {
-        // First mission is always unlocked
-        unlockedMissions.add(
-          MapMissionData(
-            id: mission.id,
-            position: mission.position,
-            type: MissionNodeType.unlocked,
-          ),
-        );
+        nodeType = MissionNodeType.unlocked;
       } else {
-        // Check if previous mission is completed
-        final previousMission = baseMissions[i - 1];
+        final previousMission = _categoryMissions[i - 1];
         final isPreviousCompleted =
             missionCompletionStatus[previousMission.id] ?? false;
-
-        unlockedMissions.add(
-          MapMissionData(
-            id: mission.id,
-            position: mission.position,
-            type: isPreviousCompleted
-                ? MissionNodeType.unlocked
-                : MissionNodeType.locked,
-          ),
-        );
+        nodeType = isPreviousCompleted
+            ? MissionNodeType.unlocked
+            : MissionNodeType.locked;
       }
+
+      missions.add(
+        MapMissionData(
+          id: mission.id,
+          position: position,
+          type: nodeType,
+          mission: mission,
+        ),
+      );
     }
 
-    return unlockedMissions;
+    return missions;
   }
 
   List<Widget> _buildMissionNodes(BuildContext context, double screenWidth) {
@@ -414,22 +298,22 @@ class _MissionMapPageState extends State<MissionMapPage> {
 
     return missions.asMap().entries.map((entry) {
       final index = entry.key;
-      final mission = entry.value;
-      final isSelected = selectedMissionId == mission.id;
+      final missionData = entry.value;
+      final isSelected = selectedMissionId == missionData.id;
 
       return Positioned(
-        left: mission.position.dx - 50,
-        top: mission.position.dy - 50,
+        left: missionData.position.dx - 50,
+        top: missionData.position.dy - 50,
         child: MissionNodeWidget(
-          key: ValueKey(mission.id),
-          type: mission.type,
+          key: ValueKey(missionData.id),
+          type: missionData.type,
           isSelected: isSelected,
-          progress: mission.progress,
+          progress: missionData.progress,
           index: index,
-          nodeColor: nodeColor, // Pass category-specific color
+          nodeColor: nodeColor,
           onTap: () {
-            if (mission.type != MissionNodeType.locked) {
-              _selectMission(mission.id);
+            if (missionData.type != MissionNodeType.locked) {
+              _selectMission(missionData.mission);
             }
           },
         ),
@@ -443,12 +327,14 @@ class MapMissionData {
   final Offset position;
   final MissionNodeType type;
   final double progress;
+  final Mission mission; // Ahora incluye la misión completa
 
   MapMissionData({
     required this.id,
     required this.position,
     required this.type,
     this.progress = 0.0,
+    required this.mission,
   });
 }
 

@@ -1,0 +1,10 @@
+# Node modules
+node_modules/
+
+# Firebase Service Account Key (NEVER commit this!)
+serviceAccountKey.json
+*.pem
+
+# Logs
+*.log
+npm-debug.log*

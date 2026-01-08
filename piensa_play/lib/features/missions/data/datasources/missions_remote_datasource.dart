@@ -1,9 +1,245 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../domain/entities/mission.dart';
 import '../../domain/entities/mission_category.dart';
+import '../../domain/entities/veracidadville/quiz_question.dart';
+import '../../domain/entities/veracidadville/quiz_element.dart';
+import '../../domain/entities/veracidadville/question_type.dart';
 
 class MissionsRemoteDatasource {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
+  // =========================================================================
+  // READ METHODS (from global collections)
+  // =========================================================================
+
+  /// Fetch all mission categories from Firestore
+  Future<List<MissionCategory>> getMissionCategories() async {
+    print('🔵 MISSIONS REMOTE: Fetching categories from Firestore...');
+
+    try {
+      // 1. Get all categories
+      final categoriesSnapshot = await _firestore
+          .collection('mission_categories')
+          .orderBy('order')
+          .get();
+
+      if (categoriesSnapshot.docs.isEmpty) {
+        print('⚠️ MISSIONS REMOTE: No categories found');
+        return [];
+      }
+
+      // 2. Get all missions
+      final missionsSnapshot = await _firestore
+          .collection('missions')
+          .orderBy('order')
+          .get();
+
+      // 3. Group missions by categoryId
+      final missionsByCategory = <String, List<Mission>>{};
+      for (final doc in missionsSnapshot.docs) {
+        final data = doc.data();
+        final categoryId = data['categoryId'] as String? ?? '';
+
+        final mission = Mission(
+          id: doc.id,
+          title: data['title'] ?? '',
+          subtitle: data['subtitle'] ?? '',
+          description: data['description'] ?? '',
+          isCompleted: false, // Will be updated from user data
+          iconName: data['iconName'] ?? '',
+          type: MissionTypeExtension.fromJson(data['type'] as String?),
+          questions: [], // Will be loaded separately when needed
+        );
+
+        missionsByCategory.putIfAbsent(categoryId, () => []);
+        missionsByCategory[categoryId]!.add(mission);
+      }
+
+      // 4. Build categories with their missions
+      final categories = categoriesSnapshot.docs.map((doc) {
+        final data = doc.data();
+        return MissionCategory(
+          id: doc.id,
+          title: data['title'] ?? '',
+          description: data['description'] ?? '',
+          iconName: data['iconName'] ?? '',
+          colorHex: data['colorHex'] ?? '0xFF6EC6FF',
+          missions: missionsByCategory[doc.id] ?? [],
+        );
+      }).toList();
+
+      print('🟢 MISSIONS REMOTE: Loaded ${categories.length} categories');
+      return categories;
+    } catch (e) {
+      print('❌ MISSIONS REMOTE: Error fetching categories: $e');
+      rethrow;
+    }
+  }
+
+  /// Fetch questions for a specific mission
+  Future<List<QuizQuestion>> getQuestionsByMission(String missionId) async {
+    print('🔵 MISSIONS REMOTE: Fetching questions for mission $missionId...');
+
+    try {
+      final snapshot = await _firestore
+          .collection('questions')
+          .where('missionId', isEqualTo: missionId)
+          .orderBy('order')
+          .get();
+
+      if (snapshot.docs.isEmpty) {
+        print('⚠️ MISSIONS REMOTE: No questions found for mission $missionId');
+        return [];
+      }
+
+      final questions = snapshot.docs.map((doc) {
+        final data = doc.data();
+        return QuizQuestion(
+          id: doc.id,
+          newsTitle: data['newsTitle'] ?? '',
+          newsContent: data['newsContent'] ?? '',
+          newsSource: data['newsSource'] ?? '',
+          newsDate: data['newsDate'] ?? '',
+          newsAuthor: data['newsAuthor'] ?? '',
+          newsShares: data['newsShares'] ?? '',
+          newsImage: data['newsImage'],
+          elements: _parseElements(data['elements']),
+          explanation: data['explanation'] ?? '',
+          type: _parseQuestionType(data['type']),
+          correctAnswer: data['correctAnswer'] as bool?,
+          clues: (data['clues'] as List<dynamic>?)?.cast<String>(),
+        );
+      }).toList();
+
+      print('🟢 MISSIONS REMOTE: Loaded ${questions.length} questions');
+      return questions;
+    } catch (e) {
+      print('❌ MISSIONS REMOTE: Error fetching questions: $e');
+      rethrow;
+    }
+  }
+
+  /// Fetch all questions (for preloading)
+  Future<Map<String, List<QuizQuestion>>> getAllQuestions() async {
+    print('🔵 MISSIONS REMOTE: Fetching all questions...');
+
+    try {
+      final snapshot = await _firestore
+          .collection('questions')
+          .orderBy('order')
+          .get();
+
+      final questionsByMission = <String, List<QuizQuestion>>{};
+
+      for (final doc in snapshot.docs) {
+        final data = doc.data();
+        final missionId = data['missionId'] as String? ?? '';
+
+        final question = QuizQuestion(
+          id: doc.id,
+          newsTitle: data['newsTitle'] ?? '',
+          newsContent: data['newsContent'] ?? '',
+          newsSource: data['newsSource'] ?? '',
+          newsDate: data['newsDate'] ?? '',
+          newsAuthor: data['newsAuthor'] ?? '',
+          newsShares: data['newsShares'] ?? '',
+          newsImage: data['newsImage'],
+          elements: _parseElements(data['elements']),
+          explanation: data['explanation'] ?? '',
+          type: _parseQuestionType(data['type']),
+          correctAnswer: data['correctAnswer'] as bool?,
+          clues: (data['clues'] as List<dynamic>?)?.cast<String>(),
+        );
+
+        questionsByMission.putIfAbsent(missionId, () => []);
+        questionsByMission[missionId]!.add(question);
+      }
+
+      print(
+        '🟢 MISSIONS REMOTE: Loaded questions for ${questionsByMission.keys.length} missions',
+      );
+      return questionsByMission;
+    } catch (e) {
+      print('❌ MISSIONS REMOTE: Error fetching all questions: $e');
+      rethrow;
+    }
+  }
+
+  // =========================================================================
+  // HELPER METHODS
+  // =========================================================================
+
+  List<QuizElement> _parseElements(dynamic elementsData) {
+    if (elementsData == null) return [];
+
+    final elements = elementsData as List<dynamic>;
+    return elements.map((e) {
+      final map = e as Map<String, dynamic>;
+      return QuizElement(
+        id: map['id'] ?? '',
+        text: map['text'] ?? '',
+        icon: map['icon'] ?? '',
+        isCorrect: map['isCorrect'] ?? false,
+      );
+    }).toList();
+  }
+
+  QuestionType _parseQuestionType(dynamic typeData) {
+    if (typeData == null) return QuestionType.quiz;
+    return QuestionTypeExtension.fromJson(typeData as String);
+  }
+
+  // =========================================================================
+  // WRITE METHODS (for user progress - existing functionality)
+  // =========================================================================
+
+  /// Save user's mission progress
+  Future<void> saveUserMissionProgress(
+    String userId,
+    String missionId,
+    bool isCompleted,
+  ) async {
+    try {
+      await _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('mission_progress')
+          .doc(missionId)
+          .set({
+            'isCompleted': isCompleted,
+            'completedAt': isCompleted ? FieldValue.serverTimestamp() : null,
+            'lastUpdated': FieldValue.serverTimestamp(),
+          }, SetOptions(merge: true));
+
+      print('✅ Mission progress saved for $missionId');
+    } catch (e) {
+      print('❌ Error saving mission progress: $e');
+      rethrow;
+    }
+  }
+
+  /// Get user's mission progress (which missions are completed)
+  Future<Map<String, bool>> getUserMissionProgress(String userId) async {
+    try {
+      final snapshot = await _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('mission_progress')
+          .get();
+
+      final progress = <String, bool>{};
+      for (final doc in snapshot.docs) {
+        progress[doc.id] = doc.data()['isCompleted'] ?? false;
+      }
+
+      return progress;
+    } catch (e) {
+      print('❌ Error getting mission progress: $e');
+      return {};
+    }
+  }
+
+  // Legacy method - kept for backwards compatibility
   Future<void> saveMissionCategories(
     String userId,
     List<MissionCategory> categories,

@@ -136,14 +136,8 @@ class _MissionCategoryCardState extends State<MissionCategoryCard> {
               child: Column(
                 children: widget.category.missions.map<Widget>((mission) {
                   return MissionItem(
-                    missionId: mission.id,
-                    title: mission.title,
-                    description: mission.description,
-                    isCompleted: mission.isCompleted,
-                    statusIcon: _getIconFromName(mission.iconName),
-                    categoryId: widget.category.id,
-                    categoryTitle: widget.category.title,
-                    categoryColor: categoryColor,
+                    mission: mission,
+                    category: widget.category,
                   );
                 }).toList(),
               ),

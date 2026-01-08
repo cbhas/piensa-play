@@ -1,116 +1,57 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../domain/entities/mission.dart';
+import '../../domain/entities/mission_category.dart';
 import '../pages/mission_map_page.dart';
 
 class MissionItem extends StatelessWidget {
-  final String missionId;
-  final String title;
-  final String description;
-  final bool isCompleted;
-  final IconData statusIcon;
-  final String categoryId;
-  final String categoryTitle;
-  final Color categoryColor;
+  final Mission mission;
+  final MissionCategory category;
 
-  const MissionItem({
-    super.key,
-    required this.missionId,
-    required this.title,
-    required this.description,
-    required this.isCompleted,
-    required this.statusIcon,
-    required this.categoryId,
-    required this.categoryTitle,
-    required this.categoryColor,
-  });
+  const MissionItem({super.key, required this.mission, required this.category});
+
+  Color _getColorFromHex(String hex) {
+    String v = hex.trim();
+    if (v.startsWith('#')) {
+      v = v.substring(1);
+      if (v.length == 6) v = 'FF$v';
+      v = '0x$v';
+    }
+    return Color(int.parse(v));
+  }
 
   void _openMission(BuildContext context) {
-    debugPrint('MISSION ID: $missionId | CATEGORY ID: $categoryId');
+    final categoryColor = _getColorFromHex(category.colorHex);
 
-    // =========================
-    // 1) RUTEO POR CATEGORÍA (principal)
-    // =========================
+    debugPrint(
+      'MISSION ID: ${mission.id} | CATEGORY ID: ${category.id} | TYPE: ${mission.type}',
+    );
 
-    // Veracidadville -> MissionMapPage
-    if (categoryId == 'veracidadville') {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => MissionMapPage(
-            categoryTitle: categoryTitle,
-            categoryId: categoryId,
-            categoryColor: categoryColor,
-            backgroundImage: 'assets/images/map_background.png',
-            bannerColor: const Color(0xFFBDD87B), // Verde claro
-          ),
-        ),
-      );
-      return;
+    // Configuración de background y banner por categoría
+    String backgroundImage = 'assets/images/map_background.png';
+    Color bannerColor = categoryColor;
+
+    if (category.id == 'veracidadville') {
+      backgroundImage = 'assets/images/map_background.png';
+      bannerColor = const Color(0xFFBDD87B);
+    } else if (category.id == 'ciberseguridad') {
+      backgroundImage = 'assets/images/map_background_ciberseguridad.png';
+      bannerColor = const Color(0xFF91E0FF);
+    } else if (category.id == 'zona_cero_odio') {
+      backgroundImage = 'assets/images/map_background_zona_cero_odio.png';
+      bannerColor = const Color(0xFFFFEF93);
     }
 
-    // Ciberseguridad -> MissionMapPage
-    if (categoryId == 'ciberseguridad') {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => MissionMapPage(
-            categoryTitle: categoryTitle,
-            categoryId: categoryId,
-            categoryColor: categoryColor,
-            selectedMissionId: missionId,
-            backgroundImage: 'assets/images/map_background_ciberseguridad.png',
-            bannerColor: const Color(0xFF91E0FF), // Azul claro
-          ),
+    // Navegación dinámica - pasa la categoría completa
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => MissionMapPage(
+          category: category, // Ahora pasamos la categoría completa
+          selectedMissionId: mission.id,
+          backgroundImage: backgroundImage,
+          bannerColor: bannerColor,
         ),
-      );
-      return;
-    }
-
-    // Zona Cero Odio -> MissionMapPage (ahora también usa el mapa unificado)
-    if (categoryId == 'zona_cero_odio') {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => MissionMapPage(
-            categoryTitle: categoryTitle,
-            categoryId: categoryId,
-            categoryColor: categoryColor,
-            backgroundImage: 'assets/images/map_background_zona_cero_odio.png',
-            bannerColor: const Color(0xFFFFEF93), // Amarillo claro
-          ),
-        ),
-      );
-      return;
-    }
-
-    // =========================
-    // 2) RUTEO POR MISIÓN (backup)
-    // =========================
-    // Si un día cambias categoryId, igual abre lo correcto.
-    if (missionId == 'q1_phishing' ||
-        missionId == 'q2_malware' ||
-        missionId == 'q3_passwords') {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => MissionMapPage(
-            categoryTitle: categoryTitle,
-            categoryId: 'ciberseguridad',
-            categoryColor: categoryColor,
-            selectedMissionId: missionId,
-          ),
-        ),
-      );
-      return;
-    }
-
-    // =========================
-    // 3) FALLBACK
-    // =========================
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Próximamente...'),
-        duration: Duration(seconds: 2),
       ),
     );
   }
@@ -138,14 +79,16 @@ class MissionItem extends StatelessWidget {
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              color: isCompleted
+              color: mission.isCompleted
                   ? AppTheme.accentGreen.withOpacity(0.2)
                   : Colors.red.shade50,
               shape: BoxShape.circle,
             ),
             child: Icon(
-              statusIcon,
-              color: isCompleted ? AppTheme.accentGreen : Colors.red.shade400,
+              mission.isCompleted ? Icons.check_circle : Icons.flag,
+              color: mission.isCompleted
+                  ? AppTheme.accentGreen
+                  : Colors.red.shade400,
               size: 20,
             ),
           ),
@@ -157,7 +100,7 @@ class MissionItem extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  title,
+                  mission.title,
                   style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
@@ -167,7 +110,7 @@ class MissionItem extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  description,
+                  mission.description,
                   style: TextStyle(
                     fontSize: 12,
                     color: Colors.grey.shade600,
