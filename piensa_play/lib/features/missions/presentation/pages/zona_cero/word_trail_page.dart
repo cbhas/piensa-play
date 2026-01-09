@@ -163,9 +163,6 @@ class _WordTrailPageState extends State<WordTrailPage> {
       });
       return;
     }
-
-    // For 'completed' or other results, just stay here - user can press back
-    // This prevents navigation crashes
   }
 
   @override
