@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/widgets/mascot_audio_button.dart';
+import '../../../../core/services/audio_service.dart';
 import '../../domain/entities/glossary_term.dart';
 import 'glossary_mascots.dart';
 
@@ -29,6 +30,12 @@ class _GlossaryTermDialogState extends State<GlossaryTermDialog> {
   final Set<int> _fallenMascots = {};
 
   @override
+  void dispose() {
+    // Stop any playing audio when dialog closes
+    AudioService().stop();
+    super.dispose();
+  }
+
   Widget build(BuildContext context) {
     return Stack(
       children: [

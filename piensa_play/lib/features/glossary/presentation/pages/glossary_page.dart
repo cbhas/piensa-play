@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/app_animations.dart';
 import '../../../../core/services/app_data_service.dart';
+import '../../../../core/services/audio_service.dart';
 import '../../../../core/widgets/mascot_audio_button.dart';
 import '../../domain/entities/glossary_term.dart';
 import '../../domain/usecases/get_glossary_terms.dart';
@@ -37,6 +38,8 @@ class _GlossaryPageState extends State<GlossaryPage> {
 
   @override
   void dispose() {
+    // Stop any playing audio when leaving the page
+    AudioService().stop();
     _searchController.dispose();
     super.dispose();
   }
