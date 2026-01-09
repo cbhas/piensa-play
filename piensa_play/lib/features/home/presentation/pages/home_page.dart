@@ -122,12 +122,14 @@ class _HomePageState extends State<HomePage> {
                             childAspectRatio: 1.1,
                             children: [
                               DashboardCard(
-                                title: 'Juegos Educativos',
+                                title: 'Aprende',
                                 subtitle: '${_stats?.newGames ?? 0} nuevos',
                                 icon: Icons.videogame_asset,
                                 color: AppTheme.accentGreen,
                                 borderColor: AppTheme.accentGreen,
-                                onTap: () {},
+                                onTap: () {
+                                  Navigator.pushNamed(context, '/learn');
+                                },
                               ).staggeredEntry(index: 0),
                               DashboardCard(
                                 title: 'Glosario',

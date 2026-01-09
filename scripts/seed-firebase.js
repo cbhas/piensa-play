@@ -14,6 +14,7 @@
  *   - mission_categories
  *   - missions
  *   - questions
+ *   - learn_content (videos and podcasts)
  */
 
 import { initializeApp, cert } from 'firebase-admin/app';
@@ -638,6 +639,26 @@ const questions = [
 ];
 
 // ============================================================================
+// SEED DATA: LEARN CONTENT (Videos & Podcasts)
+// ============================================================================
+
+const learnContent = [
+  {
+    id: 'video_01',
+    title: 'Alfabetización Mediática',
+    description: 'Aprende sobre los medios de comunicación y cómo interpretarlos correctamente.',
+    type: 'video',
+    category: 'Videos',
+    thumbnailUrl: '',
+    youtubeId: 'ul7siGvqmB8',
+    audioUrl: null,
+    durationSeconds: 60,
+    order: 1,
+  },
+  // Add more videos/podcasts here as needed
+];
+
+// ============================================================================
 // SEED FUNCTIONS
 // ============================================================================
 
@@ -691,6 +712,9 @@ async function main() {
     // Seed questions
     await seedCollection('questions', questions);
 
+    // Seed learn content (videos & podcasts)
+    await seedCollection('learn_content', learnContent);
+
     console.log('\n==================================');
     console.log('🎉 Seed completed successfully!');
     console.log('\nCollections populated:');
@@ -698,6 +722,7 @@ async function main() {
     console.log(`   • mission_categories: ${missionCategories.length} documents`);
     console.log(`   • missions: ${missions.length} documents`);
     console.log(`   • questions: ${questions.length} documents`);
+    console.log(`   • learn_content: ${learnContent.length} documents`);
 
     if (DRY_RUN) {
       console.log('\n⚠️  This was a DRY RUN. Run without --dry-run to apply changes.');
