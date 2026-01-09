@@ -3,7 +3,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/app_animations.dart';
-import '../../../../core/services/user_id_provider.dart';
+import '../../../../core/services/app_data_service.dart';
 import '../../../../core/widgets/mascot_audio_button.dart';
 import '../../domain/entities/glossary_term.dart';
 import '../../domain/usecases/get_glossary_terms.dart';
@@ -22,19 +22,16 @@ class _GlossaryPageState extends State<GlossaryPage> {
   final GetGlossaryTerms _getGlossaryTerms = GetGlossaryTerms();
   final TextEditingController _searchController = TextEditingController();
 
-  // Use Firebase Anonymous Auth UID instead of hardcoded ID
-  String get userId => UserIdProvider.currentUserId;
-
   List<GlossaryTerm> _allTerms = [];
   List<GlossaryTerm> _filteredTerms = [];
   List<String> _categories = ['Todos'];
   String _selectedCategory = 'Todos';
-  bool _isLoading = true;
+  bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
-    _loadTerms();
+    _loadFromCache();
     _searchController.addListener(_onSearchChanged);
   }
 
@@ -44,13 +41,26 @@ class _GlossaryPageState extends State<GlossaryPage> {
     super.dispose();
   }
 
-  Future<void> _loadTerms() async {
+  void _loadFromCache() {
+    // Load from AppDataService cache (data already loaded during splash)
+    final terms = AppDataService.instance.glossaryTerms;
+    final categories = _getGlossaryTerms.getCategories(terms);
+
+    setState(() {
+      _allTerms = terms;
+      _filteredTerms = terms;
+      _categories = categories;
+    });
+    print('🔵 GLOSSARY PAGE: Loaded ${terms.length} terms from cache');
+  }
+
+  Future<void> _refreshData() async {
     setState(() => _isLoading = true);
-
     try {
-      print('🔵 GLOSSARY PAGE: Loading terms...');
+      print('🔄 GLOSSARY: Refreshing data...');
+      await AppDataService.instance.refreshGlossary();
 
-      final terms = await _getGlossaryTerms.execute(userId);
+      final terms = AppDataService.instance.glossaryTerms;
       final categories = _getGlossaryTerms.getCategories(terms);
 
       setState(() {
@@ -60,10 +70,12 @@ class _GlossaryPageState extends State<GlossaryPage> {
         _isLoading = false;
       });
 
-      print('🟢 GLOSSARY PAGE: Loaded ${terms.length} terms');
+      // Reapply filters
+      _applyFilters();
+      print('🟢 GLOSSARY: Data refreshed');
     } catch (e) {
       setState(() => _isLoading = false);
-      print('❌ GLOSSARY PAGE: Error loading terms: $e');
+      print('❌ GLOSSARY: Error refreshing: $e');
     }
   }
 
@@ -237,55 +249,68 @@ class _GlossaryPageState extends State<GlossaryPage> {
 
           const SizedBox(height: 16),
 
-          // Terms grid
+          // Terms grid with pull-to-refresh
           Expanded(
-            child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : _filteredTerms.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
+            child: RefreshIndicator(
+              onRefresh: _refreshData,
+              color: AppTheme.primaryDark,
+              child: _isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : _filteredTerms.isEmpty
+                  ? ListView(
+                      physics: const AlwaysScrollableScrollPhysics(),
                       children: [
-                        Icon(
-                          Icons.search_off,
-                          size: 64,
-                          color: Colors.grey.shade400,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'No se encontraron términos',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.grey.shade600,
+                        SizedBox(
+                          height: MediaQuery.of(context).size.height * 0.4,
+                          child: Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.search_off,
+                                  size: 64,
+                                  color: Colors.grey.shade400,
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  'No se encontraron términos',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.grey.shade600,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ],
-                    ),
-                  )
-                : GridView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          crossAxisSpacing: 16,
-                          mainAxisSpacing: 16,
-                          childAspectRatio: 0.85,
-                        ),
-                    itemCount: _filteredTerms.length,
-                    itemBuilder: (context, index) {
-                      final term = _filteredTerms[index];
+                    )
+                  : GridView.builder(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            crossAxisSpacing: 16,
+                            mainAxisSpacing: 16,
+                            childAspectRatio: 0.85,
+                          ),
+                      itemCount: _filteredTerms.length,
+                      itemBuilder: (context, index) {
+                        final term = _filteredTerms[index];
 
-                      return GlossaryTermCard(
-                        term: term.term,
-                        icon: term.icon,
-                        index: index,
-                        onTap: () => GlossaryTermDialog.show(context, term),
-                      ).staggeredEntry(
-                        index: index,
-                        staggerDelay: const Duration(milliseconds: 60),
-                      );
-                    },
-                  ),
+                        return GlossaryTermCard(
+                          term: term.term,
+                          icon: term.icon,
+                          index: index,
+                          onTap: () => GlossaryTermDialog.show(context, term),
+                        ).staggeredEntry(
+                          index: index,
+                          staggerDelay: const Duration(milliseconds: 60),
+                        );
+                      },
+                    ),
+            ),
           ),
         ],
       ),

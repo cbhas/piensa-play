@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_theme.dart';
-import '../../../../core/services/user_id_provider.dart';
+import '../../../../core/services/app_data_service.dart';
 import '../../domain/entities/mission_category.dart';
-import '../../domain/usecases/get_mission_categories.dart';
 import '../widgets/missions_header.dart';
 import '../widgets/mission_category_card.dart';
 
@@ -14,38 +13,36 @@ class MissionsPage extends StatefulWidget {
 }
 
 class _MissionsPageState extends State<MissionsPage> {
-  final GetMissionCategories _getMissionCategories = GetMissionCategories();
-  // Use Firebase Anonymous Auth UID instead of hardcoded ID
-  String get userId => UserIdProvider.currentUserId;
-
   List<MissionCategory> _categories = [];
-  bool _isLoading = true;
+  bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
-    _loadData();
+    _loadFromCache();
   }
 
-  Future<void> _loadData() async {
+  void _loadFromCache() {
+    // Load from AppDataService cache (data already loaded during splash)
+    setState(() {
+      _categories = AppDataService.instance.missionCategories;
+    });
+    print('🔵 MISSIONS: Loaded ${_categories.length} categories from cache');
+  }
+
+  Future<void> _refreshData() async {
     setState(() => _isLoading = true);
     try {
-      print('🔵 MISSIONS: Iniciando carga de datos...');
-
-      final categories = await _getMissionCategories.execute(userId);
-
+      print('🔄 MISSIONS: Refreshing data...');
+      await AppDataService.instance.refreshMissions();
       setState(() {
-        _categories = categories;
+        _categories = AppDataService.instance.missionCategories;
         _isLoading = false;
       });
-
-      // Guarda en Firestore después de renderizar
-      await _getMissionCategories.save(userId, categories);
-
-      print('🟢 MISSIONS: Datos cargados y guardados');
+      print('🟢 MISSIONS: Data refreshed');
     } catch (e) {
       setState(() => _isLoading = false);
-      print('❌ MISSIONS: Error: $e');
+      print('❌ MISSIONS: Error refreshing: $e');
     }
   }
 
@@ -57,26 +54,31 @@ class _MissionsPageState extends State<MissionsPage> {
       backgroundColor: isDark
           ? AppTheme.backgroundDark
           : AppTheme.backgroundLight,
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : Column(
-              children: [
-                const MissionsHeader(),
-                Expanded(
-                  child: SingleChildScrollView(
-                    child: Column(
-                      children: [
-                        const SizedBox(height: 20),
-                        ..._categories.map((category) {
-                          return MissionCategoryCard(category: category);
-                        }),
-                        const SizedBox(height: 20),
-                      ],
+      body: Column(
+        children: [
+          const MissionsHeader(),
+          Expanded(
+            child: RefreshIndicator(
+              onRefresh: _refreshData,
+              color: AppTheme.primaryDark,
+              child: _isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : SingleChildScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      child: Column(
+                        children: [
+                          const SizedBox(height: 20),
+                          ..._categories.map((category) {
+                            return MissionCategoryCard(category: category);
+                          }),
+                          const SizedBox(height: 20),
+                        ],
+                      ),
                     ),
-                  ),
-                ),
-              ],
             ),
+          ),
+        ],
+      ),
     );
   }
 }

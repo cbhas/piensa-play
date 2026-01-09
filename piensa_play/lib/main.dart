@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
 import 'firebase_options.dart'; // generado por flutterfire configure
 import 'core/theme/app_theme.dart';
@@ -11,6 +12,12 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  // Configure Firestore with offline persistence
+  FirebaseFirestore.instance.settings = const Settings(
+    persistenceEnabled: true, // Enable offline persistence (default on mobile)
+    cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED, // Unlimited cache size
+  );
 
   final authService = AuthService();
   await authService.ensureSignedIn();

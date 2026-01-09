@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:piensa_play/core/routes/app_routes.dart';
 import 'package:piensa_play/core/theme/app_theme.dart';
+import 'package:piensa_play/core/services/app_data_service.dart';
 import 'package:piensa_play/features/splash/domain/usecases/get_splash_config.dart';
 import 'package:piensa_play/features/splash/domain/entities/splash_config.dart';
 
@@ -19,6 +20,7 @@ class _SplashPageState extends State<SplashPage>
   late Animation<double> _scaleAnimation;
   late final GetSplashConfig _getSplashConfig;
   late final SplashConfig _config;
+  String _loadingMessage = 'Cargando...';
 
   @override
   void initState() {
@@ -26,7 +28,7 @@ class _SplashPageState extends State<SplashPage>
     _getSplashConfig = GetSplashConfig();
     _config = _getSplashConfig.execute();
     _initializeAnimations();
-    _navigateToNextPage();
+    _loadDataAndNavigate();
   }
 
   void _initializeAnimations() {
@@ -48,9 +50,15 @@ class _SplashPageState extends State<SplashPage>
     _controller.forward();
   }
 
-  Future<void> _navigateToNextPage() async {
-    // Wait for splash duration
+  Future<void> _loadDataAndNavigate() async {
+    // Start loading data immediately
+    final dataLoadFuture = _loadAppData();
+
+    // Wait for minimum splash duration
     await Future.delayed(Duration(seconds: _config.durationSeconds));
+
+    // Wait for data to finish loading (if not already done)
+    await dataLoadFuture;
 
     if (!mounted) return;
 
@@ -68,6 +76,16 @@ class _SplashPageState extends State<SplashPage>
       // New user, show welcome/onboarding
       print('🟡 SPLASH: No profile, navigating to welcome');
       Navigator.of(context).pushReplacementNamed(AppRoutes.welcome);
+    }
+  }
+
+  Future<void> _loadAppData() async {
+    try {
+      setState(() => _loadingMessage = 'Cargando misiones...');
+      await AppDataService.instance.loadAllData();
+      setState(() => _loadingMessage = '¡Listo!');
+    } catch (e) {
+      print('⚠️ SPLASH: Error loading data: $e');
     }
   }
 
