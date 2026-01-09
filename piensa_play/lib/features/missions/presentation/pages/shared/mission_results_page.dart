@@ -2,6 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../../../core/theme/app_theme.dart';
 import '../../../../../core/services/mission_progress_service.dart';
+import '../../../../../core/services/gamification_service.dart';
+import '../../../../../core/services/user_id_provider.dart';
+import '../../../../achievements/presentation/widgets/badge_unlock_dialog.dart';
+import '../../../domain/entities/mission.dart';
+import '../../../domain/entities/mission_category.dart';
+import '../../../data/repositories/missions_repository.dart';
 
 /// Unified results page for all missions
 /// Replaces: QuizResultsPage, CiberseguridadResultsPage, ZonaCeroResultPage
@@ -27,6 +33,10 @@ class MissionResultsPage extends StatefulWidget {
   final String nextButtonLabel;
   final VoidCallback? onNext;
 
+  // Gamification - optional, si se proporcionan se dará XP/monedas/badges
+  final Mission? mission;
+  final MissionCategory? category;
+
   const MissionResultsPage({
     super.key,
     required this.correctAnswers,
@@ -44,6 +54,8 @@ class MissionResultsPage extends StatefulWidget {
     this.showNextButton = false,
     this.nextButtonLabel = 'Siguiente Misión',
     this.onNext,
+    this.mission,
+    this.category,
   });
 
   @override
@@ -52,12 +64,65 @@ class MissionResultsPage extends StatefulWidget {
 
 class _MissionResultsPageState extends State<MissionResultsPage> {
   final _progressService = MissionProgressService();
+  final _gamificationService = GamificationService();
+  final _missionsRepository = MissionsRepository();
 
   @override
   void initState() {
     super.initState();
-    // Mark mission as completed when arriving at results page
-    _progressService.completeMission(widget.missionId);
+    // Mark mission as completed and process gamification
+    _completeMission();
+  }
+
+  Future<void> _completeMission() async {
+    // Marcar misión como completada
+    await _progressService.completeMission(widget.missionId);
+
+    Mission? mission = widget.mission;
+    MissionCategory? category = widget.category;
+
+    // Si no se proporcionaron, buscar en el repositorio
+    if (mission == null || category == null) {
+      try {
+        final userId = UserIdProvider.currentUserId;
+        final categories = await _missionsRepository.getMissionCategories(
+          userId,
+        );
+        for (final cat in categories) {
+          for (final m in cat.missions) {
+            if (m.id == widget.missionId) {
+              mission = m;
+              category = cat;
+              break;
+            }
+          }
+          if (mission != null) break;
+        }
+      } catch (e) {
+        print('❌ GAMIFICATION: Error loading mission/category: $e');
+      }
+    }
+
+    // Procesar gamificación si tenemos los datos
+    if (mission != null && category != null) {
+      print('🎮 GAMIFICATION: Processing completion for ${mission.id}');
+      final unlockedBadges = await _gamificationService.completeMission(
+        mission: mission,
+        category: category,
+      );
+
+      // Mostrar badges desbloqueados después de un breve delay
+      if (unlockedBadges.isNotEmpty && mounted) {
+        await Future.delayed(const Duration(seconds: 2));
+        if (mounted) {
+          await BadgeUnlockDialog.showMultiple(context, unlockedBadges);
+        }
+      }
+    } else {
+      print(
+        '⚠️ GAMIFICATION: Could not find mission/category for ${widget.missionId}',
+      );
+    }
   }
 
   double get scorePercentage {
@@ -466,21 +531,15 @@ class _MissionResultsPageState extends State<MissionResultsPage> {
         const SizedBox(height: 12),
         _buildActionButton(
           context: context,
-          label: 'Volver al Mapa',
-          icon: Icons.map,
+          label: 'Volver al Inicio',
+          icon: Icons.home,
           gradient: const LinearGradient(
             colors: [AppTheme.primaryDark, Color(0xFF3A4F6F)],
           ),
           textColor: Colors.white,
           onTap: () {
-            // Pop until we reach the mission map or home screen
-            // More robust than counting - works regardless of navigation stack depth
-            int popCount = 0;
-            Navigator.of(context).popUntil((route) {
-              popCount++;
-              // Safety: stop after 5 pops or when we hit the first route
-              return popCount >= 5 || route.isFirst;
-            });
+            // Simple pop back - user can continue pressing back to reach home
+            Navigator.of(context).pop('completed');
           },
         ).animate().fadeIn(delay: 1500.ms).slideY(begin: 0.3, duration: 300.ms),
       ],

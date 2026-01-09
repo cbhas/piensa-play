@@ -40,6 +40,9 @@ class MissionsRemoteDatasource {
         final data = doc.data();
         final categoryId = data['categoryId'] as String? ?? '';
 
+        // DEBUG: Ver qué type viene de Firebase
+        print('🔍 FIREBASE: Mission ${doc.id}, type field: "${data['type']}"');
+
         final mission = Mission(
           id: doc.id,
           title: data['title'] ?? '',

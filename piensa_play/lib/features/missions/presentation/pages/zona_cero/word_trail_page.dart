@@ -133,7 +133,7 @@ class _WordTrailPageState extends State<WordTrailPage> {
           correctAnswers: correct,
           incorrectAnswers: incorrect,
           totalQuestions: correct + incorrect,
-          missionId: 'words',
+          missionId: 'mensaje_escondido',
           missionName: 'Zona Cero Odio',
           primaryColor: AppTheme.accentGreen,
           secondaryColor: AppTheme.accentGreen,
@@ -164,7 +164,8 @@ class _WordTrailPageState extends State<WordTrailPage> {
       return;
     }
 
-    Navigator.pop(context, result ?? 'completed');
+    // For 'completed' or other results, just stay here - user can press back
+    // This prevents navigation crashes
   }
 
   @override

@@ -4,14 +4,11 @@ import '../../../../core/theme/app_animations.dart';
 import '../../../../core/services/user_id_provider.dart';
 import '../../domain/entities/achievement.dart';
 import '../../domain/entities/badge.dart' as entities;
-import '../../domain/entities/recent_activity.dart';
 import '../../domain/usecases/get_achievements.dart';
 import '../../domain/usecases/get_badges.dart';
-import '../../domain/usecases/get_recent_activities.dart';
 import '../widgets/progress_header.dart';
 import '../widgets/overall_progress_card.dart';
 import '../widgets/badge_grid.dart';
-import '../widgets/recent_activities_list.dart';
 
 class AchievementsPage extends StatefulWidget {
   const AchievementsPage({super.key});
@@ -23,14 +20,11 @@ class AchievementsPage extends StatefulWidget {
 class _AchievementsPageState extends State<AchievementsPage> {
   final GetAchievements _getAchievements = GetAchievements();
   final GetBadges _getBadges = GetBadges();
-  final GetRecentActivities _getRecentActivities = GetRecentActivities();
 
-  // Use Firebase Anonymous Auth UID instead of hardcoded ID
   String get userId => UserIdProvider.currentUserId;
 
   Achievement? _achievement;
   List<entities.Badge> _badges = [];
-  List<RecentActivity> _activities = [];
   bool _isLoading = true;
 
   @override
@@ -44,22 +38,17 @@ class _AchievementsPageState extends State<AchievementsPage> {
     try {
       print('🔵 ACHIEVEMENTS: Iniciando carga de datos...');
 
-      // Carga los datos en secuencia
       final achievement = await _getAchievements.execute(userId);
       final badges = await _getBadges.execute(userId);
-      final activities = await _getRecentActivities.execute(userId);
 
       setState(() {
         _achievement = achievement;
         _badges = badges;
-        _activities = activities;
         _isLoading = false;
       });
 
-      // Guarda en Firestore después de renderizar
       await _getAchievements.save(userId, achievement);
       await _getBadges.save(userId, badges);
-      await _getRecentActivities.save(userId, activities);
 
       print('🟢 ACHIEVEMENTS: Datos cargados y guardados');
     } catch (e) {
@@ -83,10 +72,7 @@ class _AchievementsPageState extends State<AchievementsPage> {
                       children: [
                         if (_achievement != null)
                           OverallProgressCard(
-                            progress: _achievement!.generalProgress,
-                            level: _achievement!.currentLevel,
-                            totalXP: _achievement!.totalXP,
-                            coins: _achievement!.coins,
+                            achievement: _achievement!,
                           ).fadeInSlide(
                             delay: const Duration(milliseconds: 200),
                           ),
@@ -94,10 +80,6 @@ class _AchievementsPageState extends State<AchievementsPage> {
                         BadgeGrid(
                           badges: _badges,
                         ).fadeInSlide(delay: const Duration(milliseconds: 300)),
-                        const SizedBox(height: 16),
-                        RecentActivitiesList(
-                          activities: _activities,
-                        ).fadeInSlide(delay: const Duration(milliseconds: 400)),
                         const SizedBox(height: 20),
                       ],
                     ),

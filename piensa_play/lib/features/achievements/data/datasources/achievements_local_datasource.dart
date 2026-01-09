@@ -18,13 +18,8 @@ class AchievementsLocalDatasource {
     if (jsonString != null) {
       return Achievement.fromJson(jsonDecode(jsonString));
     }
-    // Valores por defecto (mock data basado en la imagen)
-    final defaultAchievement = const Achievement(
-      generalProgress: 0.75, // 75%
-      currentLevel: 3,
-      totalXP: 1250,
-      coins: 5,
-    );
+    // Valores por defecto para nuevo usuario
+    final defaultAchievement = Achievement.initial();
     await saveAchievements(defaultAchievement);
     return defaultAchievement;
   }
@@ -44,19 +39,20 @@ class AchievementsLocalDatasource {
       final List<dynamic> badgesJson = jsonDecode(jsonString);
       return badgesJson.map((json) => Badge.fromJson(json)).toList();
     }
-    // Valores por defecto (mock data basado en la imagen)
-    final defaultBadges = [
+    // Nuevo usuario: no tiene badges desbloqueados
+    // Los badges vendrán de Firebase, todos locked por defecto
+    final defaultBadges = <Badge>[
       const Badge(
         id: 'investigador_junior',
         title: 'Investigador\nJunior',
         iconName: 'search',
-        isUnlocked: true,
+        isUnlocked: false,
       ),
       const Badge(
         id: 'maestro_contrasenas',
         title: 'Maestro\nde Contraseñas',
         iconName: 'lock',
-        isUnlocked: true,
+        isUnlocked: false,
       ),
       const Badge(
         id: 'guardian_digital',
@@ -68,7 +64,7 @@ class AchievementsLocalDatasource {
         id: 'detector_spam',
         title: 'Detector\nde Spam',
         iconName: 'flag',
-        isUnlocked: true,
+        isUnlocked: false,
       ),
       const Badge(
         id: 'navegante_experto',
@@ -77,7 +73,7 @@ class AchievementsLocalDatasource {
         isUnlocked: false,
       ),
     ];
-    await saveBadges(defaultBadges);
+    // No guardamos por defecto, dejamos que Firebase sea la fuente de verdad
     return defaultBadges;
   }
 

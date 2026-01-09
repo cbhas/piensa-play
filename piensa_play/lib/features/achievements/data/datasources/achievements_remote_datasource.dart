@@ -15,7 +15,6 @@ class AchievementsRemoteDatasource {
           .collection('achievements')
           .doc('current')
           .set({
-            'generalProgress': achievement.generalProgress,
             'currentLevel': achievement.currentLevel,
             'totalXP': achievement.totalXP,
             'coins': achievement.coins,
@@ -41,7 +40,6 @@ class AchievementsRemoteDatasource {
       if (doc.exists) {
         final data = doc.data() ?? {};
         return Achievement(
-          generalProgress: (data['generalProgress'] as num?)?.toDouble() ?? 0.0,
           currentLevel: data['currentLevel'] ?? 0,
           totalXP: data['totalXP'] ?? 0,
           coins: data['coins'] ?? 0,

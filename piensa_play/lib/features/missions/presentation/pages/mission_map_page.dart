@@ -111,6 +111,11 @@ class _MissionMapPageState extends State<MissionMapPage> {
   }
 
   void _navigateToMission(Mission mission) {
+    // DEBUG: Ver qué tipo de misión llega
+    print(
+      '🔵 NAVIGATION: Mission ${mission.id}, type: ${mission.type}, category: ${widget.category.id}',
+    );
+
     // Navegación basada en el TIPO de misión, no en IDs hardcodeados
     switch (mission.type) {
       case MissionType.quiz:

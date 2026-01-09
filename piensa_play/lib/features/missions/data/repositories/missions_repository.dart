@@ -142,6 +142,7 @@ class MissionsRepository {
           description: mission.description,
           isCompleted: progress[mission.id] ?? false,
           iconName: mission.iconName,
+          type: mission.type,
           questions: mission.questions,
         );
       }).toList();
@@ -181,6 +182,7 @@ class MissionsRepository {
                       'description': m.description,
                       'isCompleted': m.isCompleted,
                       'iconName': m.iconName,
+                      'type': m.type.toJson(),
                     },
                   )
                   .toList(),
@@ -213,6 +215,7 @@ class MissionsRepository {
           description: missionMap['description'] ?? '',
           isCompleted: missionMap['isCompleted'] ?? false,
           iconName: missionMap['iconName'] ?? '',
+          type: MissionTypeExtension.fromJson(missionMap['type'] as String?),
           questions: [],
         );
       }).toList();

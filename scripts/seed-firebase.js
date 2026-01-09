@@ -142,6 +142,7 @@ const missions = [
     subtitle: 'Veracidadville',
     description: 'Aprende a identificar noticias engañosas',
     iconName: 'check',
+    type: 'quiz',
     order: 1,
   },
   {
@@ -151,6 +152,7 @@ const missions = [
     subtitle: 'Veracidadville',
     description: 'Desentraña titulares para encontrar la verdad.',
     iconName: 'warning',
+    type: 'trueFalse',
     order: 2,
   },
   // Zona Cero Odio missions
@@ -161,6 +163,7 @@ const missions = [
     subtitle: 'Zona Cero Odio',
     description: 'Identifica palabras y frases que promueven el odio.',
     iconName: 'lock',
+    type: 'wordSelection',
     order: 1,
   },
   // Fortaleza Privacidad missions
@@ -171,6 +174,7 @@ const missions = [
     subtitle: 'Fortaleza Privacidad',
     description: 'Aprende a proteger tus datos al navegar.',
     iconName: 'diamond',
+    type: 'quiz',
     order: 1,
   },
   // Ciberseguridad missions
@@ -181,6 +185,7 @@ const missions = [
     subtitle: 'Ciberseguridad',
     description: 'Detecta correos y mensajes fraudulentos.',
     iconName: 'flag',
+    type: 'quiz',
     order: 1,
   },
   {
@@ -190,6 +195,7 @@ const missions = [
     subtitle: 'Ciberseguridad',
     description: 'Identifica software malicioso y protégete.',
     iconName: 'flag',
+    type: 'quiz',
     order: 2,
   },
   {
@@ -199,9 +205,11 @@ const missions = [
     subtitle: 'Ciberseguridad',
     description: 'Crea contraseñas seguras y robustas.',
     iconName: 'flag',
+    type: 'quiz',
     order: 3,
   },
 ];
+
 
 // ============================================================================
 // SEED DATA: QUESTIONS
@@ -635,18 +643,18 @@ const questions = [
 
 async function seedCollection(collectionName, documents, idField = 'id') {
   console.log(`\n📦 Seeding ${collectionName}...`);
-  
+
   const batch = db.batch();
   let count = 0;
-  
+
   for (const doc of documents) {
     const docId = doc[idField];
     const docRef = db.collection(collectionName).doc(docId);
-    
+
     // Remove id from the document data (it's already in the document ID)
     const docData = { ...doc };
     delete docData[idField];
-    
+
     if (DRY_RUN) {
       console.log(`   [DRY RUN] Would create: ${collectionName}/${docId}`);
     } else {
@@ -654,35 +662,35 @@ async function seedCollection(collectionName, documents, idField = 'id') {
     }
     count++;
   }
-  
+
   if (!DRY_RUN) {
     await batch.commit();
   }
-  
+
   console.log(`   ✅ ${count} documents ${DRY_RUN ? 'would be ' : ''}created in ${collectionName}`);
 }
 
 async function main() {
   console.log('🚀 PiensaPlay Firebase Seed Script');
   console.log('==================================');
-  
+
   if (DRY_RUN) {
     console.log('⚠️  DRY RUN MODE - No changes will be made to Firebase');
   }
-  
+
   try {
     // Seed badges (global catalog)
     await seedCollection('badges', badges);
-    
+
     // Seed mission categories
     await seedCollection('mission_categories', missionCategories);
-    
+
     // Seed missions
     await seedCollection('missions', missions);
-    
+
     // Seed questions
     await seedCollection('questions', questions);
-    
+
     console.log('\n==================================');
     console.log('🎉 Seed completed successfully!');
     console.log('\nCollections populated:');
@@ -690,16 +698,16 @@ async function main() {
     console.log(`   • mission_categories: ${missionCategories.length} documents`);
     console.log(`   • missions: ${missions.length} documents`);
     console.log(`   • questions: ${questions.length} documents`);
-    
+
     if (DRY_RUN) {
       console.log('\n⚠️  This was a DRY RUN. Run without --dry-run to apply changes.');
     }
-    
+
   } catch (error) {
     console.error('\n❌ Error during seed:', error);
     process.exit(1);
   }
-  
+
   process.exit(0);
 }
 
