@@ -1,4 +1,5 @@
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:piensa_play/core/services/logger_service.dart';
 
 /// Service to manage mission progress persistence
 class MissionProgressService {
@@ -14,7 +15,7 @@ class MissionProgressService {
   Future<void> completeMission(String missionId) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('$_keyPrefix$missionId', true);
-    print('✅ Mission completed: $missionId');
+    AppLogger.success('Mission completed: $missionId');
   }
 
   /// Get all completed missions for a category
@@ -33,7 +34,7 @@ class MissionProgressService {
   Future<void> resetMission(String missionId) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('$_keyPrefix$missionId');
-    print('🔄 Mission reset: $missionId');
+    AppLogger.refresh('Mission reset: $missionId');
   }
 
   /// Reset all progress (for testing)
@@ -43,6 +44,6 @@ class MissionProgressService {
     for (final key in keys) {
       await prefs.remove(key);
     }
-    print('🔄 All mission progress reset');
+    AppLogger.refresh('All mission progress reset');
   }
 }

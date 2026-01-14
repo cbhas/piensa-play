@@ -29,12 +29,12 @@ class RecentActivitiesList extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: AppTheme.accentBlue.withOpacity(0.4),
+          color: AppTheme.accentBlue.withValues(alpha: 0.4),
           width: 2.5,
         ),
         boxShadow: [
           BoxShadow(
-            color: AppTheme.accentBlue.withOpacity(0.15),
+            color: AppTheme.accentBlue.withValues(alpha: 0.15),
             blurRadius: 15,
             offset: const Offset(0, 6),
           ),

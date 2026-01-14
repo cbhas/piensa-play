@@ -53,7 +53,7 @@ class MissionNodeWidget extends StatelessWidget {
                                 borderRadius: BorderRadius.circular(18),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withOpacity(0.15),
+                                    color: Colors.black.withValues(alpha: 0.15),
                                     blurRadius: 8,
                                     offset: const Offset(0, 2),
                                   ),
@@ -117,7 +117,7 @@ class MissionNodeWidget extends StatelessWidget {
                             shape: BoxShape.circle,
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.25),
+                                color: Colors.black.withValues(alpha: 0.25),
                                 blurRadius: 12,
                                 offset: const Offset(0, 5),
                               ),
@@ -134,12 +134,14 @@ class MissionNodeWidget extends StatelessWidget {
                               gradient: _getNodeGradient(),
                               boxShadow: [
                                 BoxShadow(
-                                  color: _getNodeColor().withOpacity(0.35),
+                                  color: _getNodeColor().withValues(
+                                    alpha: 0.35,
+                                  ),
                                   blurRadius: 8,
                                   offset: const Offset(0, 2),
                                 ),
                                 BoxShadow(
-                                  color: Colors.white.withOpacity(0.25),
+                                  color: Colors.white.withValues(alpha: 0.25),
                                   blurRadius: 3,
                                   offset: const Offset(0, -1),
                                 ),
@@ -153,7 +155,7 @@ class MissionNodeWidget extends StatelessWidget {
                                     gradient: RadialGradient(
                                       colors: [
                                         Colors.transparent,
-                                        Colors.black.withOpacity(0.06),
+                                        Colors.black.withValues(alpha: 0.06),
                                       ],
                                       stops: const [0.65, 1.0],
                                     ),
@@ -170,7 +172,7 @@ class MissionNodeWidget extends StatelessWidget {
                           .shimmer(
                             delay: (1500 + index * 200).ms,
                             duration: 2500.ms,
-                            color: Colors.white.withOpacity(0.25),
+                            color: Colors.white.withValues(alpha: 0.25),
                           ),
                     ],
                   ),
@@ -209,7 +211,7 @@ class MissionNodeWidget extends StatelessWidget {
                       borderRadius: BorderRadius.circular(12),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.2),
+                          color: Colors.black.withValues(alpha: 0.2),
                           blurRadius: 12,
                           offset: const Offset(0, 4),
                         ),
@@ -255,9 +257,9 @@ class MissionNodeWidget extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            baseColor.withOpacity(0.8),
+            baseColor.withValues(alpha: 0.8),
             baseColor,
-            baseColor.withOpacity(0.7),
+            baseColor.withValues(alpha: 0.7),
           ],
           stops: const [0.0, 0.5, 1.0],
         );
@@ -266,9 +268,9 @@ class MissionNodeWidget extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            baseColor.withOpacity(0.6),
-            baseColor.withOpacity(0.8),
-            baseColor.withOpacity(0.9),
+            baseColor.withValues(alpha: 0.6),
+            baseColor.withValues(alpha: 0.8),
+            baseColor.withValues(alpha: 0.9),
           ],
           stops: const [0.0, 0.5, 1.0],
         );
@@ -326,7 +328,7 @@ class YellowRingPainter extends CustomPainter {
       ..strokeCap = StrokeCap.round;
 
     final shadowPaint = Paint()
-      ..color = Colors.black.withOpacity(0.12)
+      ..color = Colors.black.withValues(alpha: 0.12)
       ..strokeWidth = 5
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round
@@ -426,7 +428,7 @@ class Chest3DPainter extends CustomPainter {
     canvas.drawCircle(Offset(center.dx, center.dy + 8), 4, keyholePaint);
 
     final highlightPaint = Paint()
-      ..color = Colors.white.withOpacity(0.15)
+      ..color = Colors.white.withValues(alpha: 0.15)
       ..style = PaintingStyle.fill;
 
     canvas.drawRRect(

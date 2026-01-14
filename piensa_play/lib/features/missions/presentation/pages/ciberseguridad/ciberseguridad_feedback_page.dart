@@ -137,7 +137,7 @@ class CiberseguridadFeedbackPage extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.3),
+              color: Colors.white.withValues(alpha: 0.3),
               shape: BoxShape.circle,
             ),
             child: Text(
@@ -158,7 +158,7 @@ class CiberseguridadFeedbackPage extends StatelessWidget {
         borderRadius: BorderRadius.circular(30),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.2),
+            color: Colors.black.withValues(alpha: 0.2),
             blurRadius: 30,
             offset: const Offset(0, 15),
           ),
@@ -206,7 +206,7 @@ class CiberseguridadFeedbackPage extends StatelessWidget {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -221,7 +221,7 @@ class CiberseguridadFeedbackPage extends StatelessWidget {
               gradient: LinearGradient(
                 colors: [
                   AppTheme.primaryDark,
-                  AppTheme.primaryDark.withOpacity(0.8),
+                  AppTheme.primaryDark.withValues(alpha: 0.8),
                 ],
               ),
               borderRadius: const BorderRadius.only(
@@ -377,7 +377,7 @@ class CiberseguridadFeedbackPage extends StatelessWidget {
             border: Border.all(color: borderColor, width: 3),
             boxShadow: [
               BoxShadow(
-                color: borderColor.withOpacity(0.3),
+                color: borderColor.withValues(alpha: 0.3),
                 blurRadius: 12,
                 offset: const Offset(0, 6),
               ),
@@ -394,7 +394,7 @@ class CiberseguridadFeedbackPage extends StatelessWidget {
                       width: 60,
                       height: 60,
                       decoration: BoxDecoration(
-                        color: color.withOpacity(0.2),
+                        color: color.withValues(alpha: 0.2),
                         shape: BoxShape.circle,
                       ),
                       child: Center(
@@ -420,7 +420,7 @@ class CiberseguridadFeedbackPage extends StatelessWidget {
                         vertical: 4,
                       ),
                       decoration: BoxDecoration(
-                        color: borderColor.withOpacity(0.2),
+                        color: borderColor.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
@@ -466,7 +466,7 @@ class CiberseguridadFeedbackPage extends StatelessWidget {
             borderRadius: BorderRadius.circular(30),
             boxShadow: [
               BoxShadow(
-                color: AppTheme.accentRed.withOpacity(0.5),
+                color: AppTheme.accentRed.withValues(alpha: 0.5),
                 blurRadius: 20,
                 offset: const Offset(0, 10),
               ),
@@ -535,6 +535,6 @@ class CiberseguridadFeedbackPage extends StatelessWidget {
         .animate(delay: 1000.ms)
         .scale(duration: 400.ms, curve: Curves.easeOutBack)
         .then()
-        .shimmer(duration: 2000.ms, color: Colors.white.withOpacity(0.5));
+        .shimmer(duration: 2000.ms, color: Colors.white.withValues(alpha: 0.5));
   }
 }

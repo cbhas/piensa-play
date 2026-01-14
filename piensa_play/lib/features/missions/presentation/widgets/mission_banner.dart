@@ -24,7 +24,7 @@ class MissionBanner extends StatelessWidget {
             color: backgroundColor,
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.08),
+                color: Colors.black.withValues(alpha: 0.08),
                 blurRadius: 6,
                 offset: const Offset(0, 2),
               ),
@@ -36,7 +36,7 @@ class MissionBanner extends StatelessWidget {
                     width: 48,
                     height: 48,
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.25),
+                      color: Colors.white.withValues(alpha: 0.25),
                       shape: BoxShape.circle,
                       border: Border.all(color: Colors.white, width: 2.5),
                     ),
@@ -92,7 +92,9 @@ class MissionBanner extends StatelessWidget {
                       Text(
                         missionDescription,
                         style: TextStyle(
-                          color: (textColor ?? Colors.white).withOpacity(0.92),
+                          color: (textColor ?? Colors.white).withValues(
+                            alpha: 0.92,
+                          ),
                           fontSize: 13,
                           height: 1.2,
                         ),
@@ -118,7 +120,7 @@ class MissionBanner extends StatelessWidget {
         .animate(key: ValueKey(missionTitle), target: 1)
         .shimmer(
           duration: 500.ms,
-          color: Colors.white.withOpacity(0.15),
+          color: Colors.white.withValues(alpha: 0.15),
           curve: Curves.easeInOut,
         );
   }

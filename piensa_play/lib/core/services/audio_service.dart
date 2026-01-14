@@ -1,4 +1,5 @@
 import 'package:audioplayers/audioplayers.dart';
+import 'package:piensa_play/core/services/logger_service.dart';
 
 /// Service to manage mascot audio playback across the app
 /// Ensures only one audio plays at a time
@@ -41,7 +42,7 @@ class AudioService {
         _currentAudio = null;
       });
     } catch (e) {
-      print('Error playing audio: $e');
+      AppLogger.error('Error playing audio: $e');
       _isPlaying = false;
       _currentAudio = null;
     }
@@ -54,7 +55,7 @@ class AudioService {
       _isPlaying = false;
       _currentAudio = null;
     } catch (e) {
-      print('Error stopping audio: $e');
+      AppLogger.error('Error stopping audio: $e');
     }
   }
 
@@ -64,7 +65,7 @@ class AudioService {
       await _player.pause();
       _isPlaying = false;
     } catch (e) {
-      print('Error pausing audio: $e');
+      AppLogger.error('Error pausing audio: $e');
     }
   }
 
@@ -74,7 +75,7 @@ class AudioService {
       await _player.resume();
       _isPlaying = true;
     } catch (e) {
-      print('Error resuming audio: $e');
+      AppLogger.error('Error resuming audio: $e');
     }
   }
 

@@ -1,6 +1,7 @@
 // lib/features/glossary/data/datasources/glossary_remote_datasource.dart
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:piensa_play/core/services/logger_service.dart';
 import '../../domain/entities/glossary_term.dart';
 
 class GlossaryRemoteDatasource {
@@ -8,7 +9,7 @@ class GlossaryRemoteDatasource {
 
   /// Fetch all glossary terms from Firestore, ordered by 'order' field
   Future<List<GlossaryTerm>> getGlossaryTerms(String userId) async {
-    print('🔵 GLOSSARY REMOTE: Fetching from Firestore...');
+    AppLogger.log('GLOSSARY REMOTE: Fetching from Firestore...');
 
     try {
       final snapshot = await _firestore
@@ -22,10 +23,10 @@ class GlossaryRemoteDatasource {
         return GlossaryTerm.fromJson(data);
       }).toList();
 
-      print('🟢 GLOSSARY REMOTE: Fetched ${terms.length} terms');
+      AppLogger.success('GLOSSARY REMOTE: Fetched ${terms.length} terms');
       return terms;
     } catch (e) {
-      print('❌ GLOSSARY REMOTE: Error fetching terms: $e');
+      AppLogger.error('GLOSSARY REMOTE: Error fetching terms: $e');
       rethrow;
     }
   }
@@ -35,7 +36,7 @@ class GlossaryRemoteDatasource {
     String userId,
     List<GlossaryTerm> terms,
   ) async {
-    print('🔵 GLOSSARY REMOTE: Saving ${terms.length} terms to Firestore');
+    AppLogger.log('GLOSSARY REMOTE: Saving ${terms.length} terms to Firestore');
 
     try {
       final batch = _firestore.batch();
@@ -46,9 +47,9 @@ class GlossaryRemoteDatasource {
       }
 
       await batch.commit();
-      print('🟢 GLOSSARY REMOTE: Terms saved successfully');
+      AppLogger.success('GLOSSARY REMOTE: Terms saved successfully');
     } catch (e) {
-      print('❌ GLOSSARY REMOTE: Error saving terms: $e');
+      AppLogger.error('GLOSSARY REMOTE: Error saving terms: $e');
       rethrow;
     }
   }

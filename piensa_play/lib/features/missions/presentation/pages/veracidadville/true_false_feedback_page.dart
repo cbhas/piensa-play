@@ -92,7 +92,7 @@ class TrueFalseFeedbackPage extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.3),
+              color: Colors.white.withValues(alpha: 0.3),
               shape: BoxShape.circle,
             ),
             child: Text(
@@ -113,7 +113,7 @@ class TrueFalseFeedbackPage extends StatelessWidget {
         borderRadius: BorderRadius.circular(30),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.2),
+            color: Colors.black.withValues(alpha: 0.2),
             blurRadius: 30,
             offset: const Offset(0, 15),
           ),
@@ -162,7 +162,7 @@ class TrueFalseFeedbackPage extends StatelessWidget {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -201,8 +201,8 @@ class TrueFalseFeedbackPage extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: (question.correctAnswer ?? false)
-                  ? Colors.green.withOpacity(0.1)
-                  : Colors.red.withOpacity(0.1),
+                  ? Colors.green.withValues(alpha: 0.1)
+                  : Colors.red.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
                 color: (question.correctAnswer ?? false)
@@ -260,7 +260,7 @@ class TrueFalseFeedbackPage extends StatelessWidget {
                         margin: const EdgeInsets.only(top: 2),
                         padding: const EdgeInsets.all(6),
                         decoration: BoxDecoration(
-                          color: AppTheme.accentGreen.withOpacity(0.2),
+                          color: AppTheme.accentGreen.withValues(alpha: 0.2),
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(
@@ -286,7 +286,7 @@ class TrueFalseFeedbackPage extends StatelessWidget {
                 .animate(delay: (400 + index * 100).ms)
                 .fadeIn(duration: 300.ms)
                 .slideX(begin: 0.1, duration: 300.ms);
-          }).toList(),
+          }),
         ],
       ),
     ).animate().slideY(delay: 400.ms, begin: 0.2, duration: 400.ms);
@@ -307,7 +307,7 @@ class TrueFalseFeedbackPage extends StatelessWidget {
             borderRadius: BorderRadius.circular(30),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFFFDD835).withOpacity(0.5),
+                color: const Color(0xFFFDD835).withValues(alpha: 0.5),
                 blurRadius: 20,
                 offset: const Offset(0, 10),
               ),
@@ -373,6 +373,6 @@ class TrueFalseFeedbackPage extends StatelessWidget {
         .animate(delay: 1000.ms)
         .scale(duration: 400.ms, curve: Curves.easeOutBack)
         .then()
-        .shimmer(duration: 2000.ms, color: Colors.white.withOpacity(0.5));
+        .shimmer(duration: 2000.ms, color: Colors.white.withValues(alpha: 0.5));
   }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:piensa_play/core/services/logger_service.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/app_animations.dart';
 import '../../../../core/services/app_data_service.dart';
@@ -32,25 +33,25 @@ class _AchievementsPageState extends State<AchievementsPage> {
       _achievement = AppDataService.instance.achievement;
       _badges = AppDataService.instance.badges;
     });
-    print(
-      '🔵 ACHIEVEMENTS: Loaded from cache - Level ${_achievement?.currentLevel}, ${_badges.length} badges',
+    AppLogger.log(
+      'ACHIEVEMENTS: Loaded from cache - Level ${_achievement?.currentLevel}, ${_badges.length} badges',
     );
   }
 
   Future<void> _refreshData() async {
     setState(() => _isLoading = true);
     try {
-      print('🔄 ACHIEVEMENTS: Refreshing data...');
+      AppLogger.refresh('ACHIEVEMENTS: Refreshing data...');
       await AppDataService.instance.refreshAchievements();
       setState(() {
         _achievement = AppDataService.instance.achievement;
         _badges = AppDataService.instance.badges;
         _isLoading = false;
       });
-      print('🟢 ACHIEVEMENTS: Data refreshed');
+      AppLogger.success('ACHIEVEMENTS: Data refreshed');
     } catch (e) {
       setState(() => _isLoading = false);
-      print('❌ ACHIEVEMENTS: Error refreshing: $e');
+      AppLogger.error('ACHIEVEMENTS: Error refreshing: $e');
     }
   }
 

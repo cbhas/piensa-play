@@ -88,7 +88,7 @@ class _MascotAudioButtonState extends State<MascotAudioButton>
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
+                      color: Colors.black.withValues(alpha: 0.1),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
                     ),
@@ -134,7 +134,7 @@ class _MascotAudioButtonState extends State<MascotAudioButton>
                             return CustomPaint(
                               painter: SoundWavesPainter(
                                 progress: _talkingController.value,
-                                color: Colors.blue.withOpacity(0.3),
+                                color: Colors.blue.withValues(alpha: 0.3),
                               ),
                             );
                           },
@@ -174,7 +174,7 @@ class SoundWavesPainter extends CustomPainter {
       final radius = (size.width / 2) * (0.6 + (progress * 0.4) + (i * 0.15));
       final opacity = 1.0 - ((progress + (i * 0.3)) % 1.0);
 
-      paint.color = color.withOpacity(opacity * 0.5);
+      paint.color = color.withValues(alpha: opacity * 0.5);
       canvas.drawCircle(center, radius, paint);
     }
   }

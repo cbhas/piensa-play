@@ -15,7 +15,7 @@ class BadgeUnlockDialog extends StatelessWidget {
     return showDialog(
       context: context,
       barrierDismissible: true,
-      barrierColor: Colors.black.withOpacity(0.7),
+      barrierColor: Colors.black.withValues(alpha: 0.7),
       builder: (context) => BadgeUnlockDialog(
         badge: badge,
         onClose: () => Navigator.of(context).pop(),
@@ -29,6 +29,7 @@ class BadgeUnlockDialog extends StatelessWidget {
     List<entities.Badge> badges,
   ) async {
     for (final badge in badges) {
+      if (!context.mounted) return;
       await show(context, badge);
       await Future.delayed(const Duration(milliseconds: 300));
     }
@@ -71,12 +72,12 @@ class BadgeUnlockDialog extends StatelessWidget {
           ),
           borderRadius: BorderRadius.circular(24),
           border: Border.all(
-            color: AppTheme.accentYellow.withOpacity(0.5),
+            color: AppTheme.accentYellow.withValues(alpha: 0.5),
             width: 2,
           ),
           boxShadow: [
             BoxShadow(
-              color: AppTheme.accentYellow.withOpacity(0.3),
+              color: AppTheme.accentYellow.withValues(alpha: 0.3),
               blurRadius: 30,
               spreadRadius: 5,
             ),
@@ -115,12 +116,12 @@ class BadgeUnlockDialog extends StatelessWidget {
                       end: Alignment.bottomRight,
                       colors: [
                         AppTheme.accentYellow,
-                        AppTheme.accentYellow.withOpacity(0.7),
+                        AppTheme.accentYellow.withValues(alpha: 0.7),
                       ],
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: AppTheme.accentYellow.withOpacity(0.5),
+                        color: AppTheme.accentYellow.withValues(alpha: 0.5),
                         blurRadius: 20,
                         spreadRadius: 5,
                       ),
@@ -144,7 +145,7 @@ class BadgeUnlockDialog extends StatelessWidget {
                 .shimmer(
                   delay: 1000.ms,
                   duration: 1500.ms,
-                  color: Colors.white.withOpacity(0.3),
+                  color: Colors.white.withValues(alpha: 0.3),
                 ),
 
             const SizedBox(height: 24),
@@ -169,7 +170,7 @@ class BadgeUnlockDialog extends StatelessWidget {
                 badge.description!,
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: Colors.white.withOpacity(0.7),
+                  color: Colors.white.withValues(alpha: 0.7),
                   fontSize: 14,
                 ),
               ).animate().fadeIn(delay: 500.ms, duration: 400.ms),

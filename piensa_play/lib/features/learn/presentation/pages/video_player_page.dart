@@ -166,7 +166,9 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
                                 vertical: 6,
                               ),
                               decoration: BoxDecoration(
-                                color: AppTheme.accentPink.withOpacity(0.2),
+                                color: AppTheme.accentPink.withValues(
+                                  alpha: 0.2,
+                                ),
                                 borderRadius: BorderRadius.circular(16),
                               ),
                               child: Row(

@@ -40,7 +40,6 @@ class _QuizQuestionPageState extends State<QuizQuestionPage> {
         .where((e) => e.isCorrect)
         .map((e) => e.id)
         .toSet();
-    final correctlySelected = selectedElements.intersection(correctElements);
     final incorrectlySelected = selectedElements.difference(correctElements);
     final missed = correctElements.difference(selectedElements);
 
@@ -70,7 +69,7 @@ class _QuizQuestionPageState extends State<QuizQuestionPage> {
             end: Alignment.bottomCenter,
             colors: [
               AppTheme.primaryDark,
-              AppTheme.primaryDark.withOpacity(0.9),
+              AppTheme.primaryDark.withValues(alpha: 0.9),
               Colors.white,
             ],
             stops: const [0.0, 0.3, 0.3],
@@ -135,7 +134,7 @@ class _QuizQuestionPageState extends State<QuizQuestionPage> {
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFFFDD835).withOpacity(0.5),
+                      color: const Color(0xFFFDD835).withValues(alpha: 0.5),
                       blurRadius: 12,
                       offset: const Offset(0, 4),
                     ),
@@ -151,7 +150,7 @@ class _QuizQuestionPageState extends State<QuizQuestionPage> {
             child: LinearProgressIndicator(
               value: progress,
               minHeight: 8,
-              backgroundColor: Colors.white.withOpacity(0.3),
+              backgroundColor: Colors.white.withValues(alpha: 0.3),
               valueColor: const AlwaysStoppedAnimation<Color>(
                 Color(0xFFFDD835),
               ),
@@ -169,7 +168,7 @@ class _QuizQuestionPageState extends State<QuizQuestionPage> {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -184,7 +183,7 @@ class _QuizQuestionPageState extends State<QuizQuestionPage> {
               gradient: LinearGradient(
                 colors: [
                   AppTheme.accentPink,
-                  AppTheme.accentPink.withOpacity(0.8),
+                  AppTheme.accentPink.withValues(alpha: 0.8),
                 ],
               ),
               borderRadius: const BorderRadius.only(
@@ -335,7 +334,7 @@ class _QuizQuestionPageState extends State<QuizQuestionPage> {
             gradient: LinearGradient(
               colors: [
                 AppTheme.accentYellow,
-                AppTheme.accentYellow.withOpacity(0.8),
+                AppTheme.accentYellow.withValues(alpha: 0.8),
               ],
             ),
             borderRadius: BorderRadius.circular(16),
@@ -403,7 +402,7 @@ class _QuizQuestionPageState extends State<QuizQuestionPage> {
             decoration: BoxDecoration(
               gradient: isSelected
                   ? LinearGradient(
-                      colors: [color, color.withOpacity(0.7)],
+                      colors: [color, color.withValues(alpha: 0.7)],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     )
@@ -417,8 +416,8 @@ class _QuizQuestionPageState extends State<QuizQuestionPage> {
               boxShadow: [
                 BoxShadow(
                   color: isSelected
-                      ? color.withOpacity(0.4)
-                      : Colors.black.withOpacity(0.05),
+                      ? color.withValues(alpha: 0.4)
+                      : Colors.black.withValues(alpha: 0.05),
                   blurRadius: isSelected ? 16 : 8,
                   offset: Offset(0, isSelected ? 8 : 4),
                 ),
@@ -436,8 +435,8 @@ class _QuizQuestionPageState extends State<QuizQuestionPage> {
                         height: 60,
                         decoration: BoxDecoration(
                           color: isSelected
-                              ? Colors.white.withOpacity(0.3)
-                              : color.withOpacity(0.2),
+                              ? Colors.white.withValues(alpha: 0.3)
+                              : color.withValues(alpha: 0.2),
                           shape: BoxShape.circle,
                         ),
                         child: Center(
@@ -462,7 +461,7 @@ class _QuizQuestionPageState extends State<QuizQuestionPage> {
                         style: TextStyle(
                           fontSize: 13,
                           color: isSelected
-                              ? Colors.white.withOpacity(0.9)
+                              ? Colors.white.withValues(alpha: 0.9)
                               : Colors.grey[600],
                         ),
                         textAlign: TextAlign.center,
@@ -515,7 +514,7 @@ class _QuizQuestionPageState extends State<QuizQuestionPage> {
         boxShadow: canContinue
             ? [
                 BoxShadow(
-                  color: AppTheme.accentPink.withOpacity(0.5),
+                  color: AppTheme.accentPink.withValues(alpha: 0.5),
                   blurRadius: 20,
                   offset: const Offset(0, 10),
                 ),

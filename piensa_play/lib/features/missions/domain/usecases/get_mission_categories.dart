@@ -1,3 +1,4 @@
+import 'package:piensa_play/core/services/logger_service.dart';
 import '../entities/mission_category.dart';
 import '../../data/repositories/missions_repository.dart';
 
@@ -17,10 +18,10 @@ class GetMissionCategories {
   Future<List<MissionCategory>> execute(String userId) async {
     try {
       final categories = await _repository.getMissionCategories(userId);
-      print('✅ Misiones cargadas (${categories.length} categorías)');
+      AppLogger.success('Misiones cargadas (${categories.length} categorías)');
       return categories;
     } catch (e) {
-      print('⚠️ Error cargando misiones: $e');
+      AppLogger.warning('Error cargando misiones: $e');
       return [];
     }
   }
@@ -29,9 +30,9 @@ class GetMissionCategories {
   Future<void> completeMission(String userId, String missionId) async {
     try {
       await _repository.completeMission(userId, missionId);
-      print('✅ Misión $missionId completada');
+      AppLogger.success('Misión $missionId completada');
     } catch (e) {
-      print('⚠️ Error completando misión: $e');
+      AppLogger.warning('Error completando misión: $e');
     }
   }
 
@@ -42,6 +43,8 @@ class GetMissionCategories {
   Future<void> save(String userId, List<MissionCategory> categories) async {
     // This method is now a no-op since categories come from global collections
     // User progress is saved via completeMission
-    print('ℹ️ save() called but no longer needed - categories are global');
+    AppLogger.info(
+      'save() called but no longer needed - categories are global',
+    );
   }
 }

@@ -81,7 +81,7 @@ class MissionBanner extends StatelessWidget {
               decoration: BoxDecoration(
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.2),
+                    color: Colors.black.withValues(alpha: 0.2),
                     blurRadius: 50,
                     offset: const Offset(0, 10),
                   ),
@@ -90,11 +90,8 @@ class MissionBanner extends StatelessWidget {
               child: Image.asset(
                 'assets/images/mascot.png',
                 fit: BoxFit.contain,
-                errorBuilder: (_, __, ___) => const Icon(
-                  Icons.pets,
-                  size: 100,
-                  color: Colors.orange,
-                ),
+                errorBuilder: (_, __, ___) =>
+                    const Icon(Icons.pets, size: 100, color: Colors.orange),
               ),
             ),
           ),

@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:piensa_play/core/services/logger_service.dart';
 import '../../domain/entities/achievement.dart';
 import '../../domain/entities/badge.dart';
 import '../../domain/entities/recent_activity.dart';
@@ -20,9 +21,9 @@ class AchievementsRemoteDatasource {
             'coins': achievement.coins,
             'lastUpdated': FieldValue.serverTimestamp(),
           });
-      print('✅ Achievement guardado en Firestore');
+      AppLogger.success('Achievement guardado en Firestore');
     } catch (e) {
-      print('❌ Error guardando Achievement: $e');
+      AppLogger.error('Error guardando Achievement: $e');
       rethrow;
     }
   }
@@ -47,7 +48,7 @@ class AchievementsRemoteDatasource {
       }
       return null;
     } catch (e) {
-      print('❌ Error obteniendo Achievement: $e');
+      AppLogger.error('Error obteniendo Achievement: $e');
       return null;
     }
   }
@@ -55,7 +56,7 @@ class AchievementsRemoteDatasource {
   // Guardar Badges desbloqueados en Firestore (solo IDs)
   Future<void> saveBadges(String userId, List<Badge> badges) async {
     try {
-      print('🔵 BADGES: Saving unlocked badges for user $userId');
+      AppLogger.log('BADGES: Saving unlocked badges for user $userId');
 
       final batch = firestore.batch();
       final unlockedBadgesRef = firestore
@@ -66,7 +67,7 @@ class AchievementsRemoteDatasource {
       // Solo guardar los badges que están desbloqueados
       final unlockedBadges = badges.where((badge) => badge.isUnlocked).toList();
 
-      print('🟡 BADGES: Saving ${unlockedBadges.length} unlocked badges');
+      AppLogger.log('BADGES: Saving ${unlockedBadges.length} unlocked badges');
 
       for (var badge in unlockedBadges) {
         batch.set(unlockedBadgesRef.doc(badge.id), {
@@ -75,9 +76,9 @@ class AchievementsRemoteDatasource {
       }
 
       await batch.commit();
-      print('✅ Badges desbloqueados guardados en Firestore');
+      AppLogger.success('Badges desbloqueados guardados en Firestore');
     } catch (e) {
-      print('❌ Error guardando Badges: $e');
+      AppLogger.error('Error guardando Badges: $e');
       rethrow;
     }
   }
@@ -85,7 +86,7 @@ class AchievementsRemoteDatasource {
   // Obtener Badges desde Firestore (nueva estructura)
   Future<List<Badge>?> getBadges(String userId) async {
     try {
-      print('🔵 BADGES: Loading from global collection...');
+      AppLogger.log('BADGES: Loading from global collection...');
 
       // 1. Cargar todos los badges desde la colección global
       final badgesSnapshot = await firestore
@@ -94,7 +95,7 @@ class AchievementsRemoteDatasource {
           .get();
 
       if (badgesSnapshot.docs.isEmpty) {
-        print('⚠️ BADGES: No badges found in global collection');
+        AppLogger.warning('BADGES: No badges found in global collection');
         return null;
       }
 
@@ -106,7 +107,7 @@ class AchievementsRemoteDatasource {
           .get();
 
       final unlockedIds = unlockedSnapshot.docs.map((doc) => doc.id).toSet();
-      print('🟡 BADGES: User has ${unlockedIds.length} unlocked badges');
+      AppLogger.log('BADGES: User has ${unlockedIds.length} unlocked badges');
 
       // 3. Combinar: marcar como desbloqueados los que tiene el usuario
       final badges = badgesSnapshot.docs.map((doc) {
@@ -122,10 +123,10 @@ class AchievementsRemoteDatasource {
         );
       }).toList();
 
-      print('🟢 BADGES: Loaded ${badges.length} badges total');
+      AppLogger.success('BADGES: Loaded ${badges.length} badges total');
       return badges;
     } catch (e) {
-      print('❌ Error obteniendo Badges: $e');
+      AppLogger.error('Error obteniendo Badges: $e');
       return null;
     }
   }
@@ -152,9 +153,9 @@ class AchievementsRemoteDatasource {
         });
       }
       await batch.commit();
-      print('✅ Recent Activities guardadas en Firestore');
+      AppLogger.success('Recent Activities guardadas en Firestore');
     } catch (e) {
-      print('❌ Error guardando Recent Activities: $e');
+      AppLogger.error('Error guardando Recent Activities: $e');
       rethrow;
     }
   }
@@ -185,7 +186,7 @@ class AchievementsRemoteDatasource {
       }
       return null;
     } catch (e) {
-      print('❌ Error obteniendo Recent Activities: $e');
+      AppLogger.error('Error obteniendo Recent Activities: $e');
       return null;
     }
   }

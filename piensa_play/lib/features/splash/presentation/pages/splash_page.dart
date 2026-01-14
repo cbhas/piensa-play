@@ -3,11 +3,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:piensa_play/core/routes/app_routes.dart';
 import 'package:piensa_play/core/theme/app_theme.dart';
 import 'package:piensa_play/core/services/app_data_service.dart';
+import 'package:piensa_play/core/services/logger_service.dart';
 import 'package:piensa_play/features/splash/domain/usecases/get_splash_config.dart';
 import 'package:piensa_play/features/splash/domain/entities/splash_config.dart';
 
 class SplashPage extends StatefulWidget {
-  const SplashPage({Key? key}) : super(key: key);
+  const SplashPage({super.key});
 
   @override
   State<SplashPage> createState() => _SplashPageState();
@@ -20,7 +21,6 @@ class _SplashPageState extends State<SplashPage>
   late Animation<double> _scaleAnimation;
   late final GetSplashConfig _getSplashConfig;
   late final SplashConfig _config;
-  String _loadingMessage = 'Cargando...';
 
   @override
   void initState() {
@@ -66,26 +66,26 @@ class _SplashPageState extends State<SplashPage>
     final prefs = await SharedPreferences.getInstance();
     final hasProfile = prefs.containsKey('user_profile');
 
-    print('🔵 SPLASH: Checking profile... hasProfile: $hasProfile');
+    if (!mounted) return;
+
+    AppLogger.log('SPLASH: Checking profile... hasProfile: $hasProfile');
 
     if (hasProfile) {
       // User has completed onboarding, go directly to home
-      print('🟢 SPLASH: Profile found, navigating to home');
+      AppLogger.success('SPLASH: Profile found, navigating to home');
       Navigator.of(context).pushReplacementNamed(AppRoutes.home);
     } else {
       // New user, show welcome/onboarding
-      print('🟡 SPLASH: No profile, navigating to welcome');
+      AppLogger.log('SPLASH: No profile, navigating to welcome');
       Navigator.of(context).pushReplacementNamed(AppRoutes.welcome);
     }
   }
 
   Future<void> _loadAppData() async {
     try {
-      setState(() => _loadingMessage = 'Cargando misiones...');
       await AppDataService.instance.loadAllData();
-      setState(() => _loadingMessage = '¡Listo!');
     } catch (e) {
-      print('⚠️ SPLASH: Error loading data: $e');
+      AppLogger.warning('SPLASH: Error loading data: $e');
     }
   }
 
@@ -119,28 +119,6 @@ class _SplashPageState extends State<SplashPage>
       ),
     );
   }
-
-  // Widget _buildMascotContainer() {
-  //   return Container(
-  //     width: 180,
-  //     height: 180,
-  //     decoration: BoxDecoration(
-  //       color: AppTheme.mascotBackground,
-  //       shape: BoxShape.circle,
-  //       boxShadow: AppTheme.defaultShadow,
-  //     ),
-  //     child: Center(
-  //       child: Text(
-  //         _config.mascot,
-  //         style: const TextStyle(fontSize: 100),
-  //       ),
-  //       //         child: Image.asset(
-  //       //   _config.mascot, // o AppConstants.mascotImage
-
-  //       // ),
-  //     ),
-  //   );
-  // }
 
   Widget _buildMascotContainer() {
     return SizedBox(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:piensa_play/core/services/logger_service.dart';
 import '../../../../../core/theme/app_theme.dart';
 import '../../../domain/entities/veracidadville/quiz_question.dart';
 import '../../../domain/entities/veracidadville/quiz_element.dart'; // Import QuizElement
@@ -60,18 +61,20 @@ class _CiberseguridadQuestionPageState
         widget.currentMission.questions ?? [];
 
     // Debug logging
-    print('🔍 Ciberseguridad Debug:');
-    print('  Mission ID: ${widget.currentMission.id}');
-    print('  Total questions: ${missionQuestions.length}');
-    print('  Current questionIndex: ${widget.questionIndex}');
-    print('  Questions list: ${missionQuestions.map((q) => q.id).toList()}');
+    AppLogger.debug('Ciberseguridad Debug:');
+    AppLogger.debug('  Mission ID: ${widget.currentMission.id}');
+    AppLogger.debug('  Total questions: ${missionQuestions.length}');
+    AppLogger.debug('  Current questionIndex: ${widget.questionIndex}');
+    AppLogger.debug(
+      '  Questions list: ${missionQuestions.map((q) => q.id).toList()}',
+    );
 
     if (widget.questionIndex < missionQuestions.length) {
       question = missionQuestions[widget.questionIndex];
       selectedElements.clear();
-      print('  ✅ Loading question: ${question.id}');
+      AppLogger.success('  Loading question: ${question.id}');
     } else {
-      print('  ❌ No more questions, going to feedback');
+      AppLogger.log('  No more questions, going to feedback');
       WidgetsBinding.instance.addPostFrameCallback((_) {
         Navigator.pushReplacement(
           context,
@@ -108,7 +111,6 @@ class _CiberseguridadQuestionPageState
         .where((e) => e.isCorrect)
         .map((e) => e.id)
         .toSet();
-    final correctlySelected = selectedElements.intersection(correctElements);
     final incorrectlySelected = selectedElements.difference(correctElements);
     final missed = correctElements.difference(selectedElements);
 
@@ -149,7 +151,7 @@ class _CiberseguridadQuestionPageState
             end: Alignment.bottomCenter,
             colors: [
               AppTheme.primaryDark,
-              AppTheme.primaryDark.withOpacity(0.9),
+              AppTheme.primaryDark.withValues(alpha: 0.9),
               Colors.white,
             ],
             stops: const [0.0, 0.3, 0.3],
@@ -216,7 +218,7 @@ class _CiberseguridadQuestionPageState
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: AppTheme.accentRed.withOpacity(0.5),
+                      color: AppTheme.accentRed.withValues(alpha: 0.5),
                       blurRadius: 12,
                       offset: const Offset(0, 4),
                     ),
@@ -232,7 +234,7 @@ class _CiberseguridadQuestionPageState
             child: LinearProgressIndicator(
               value: progress,
               minHeight: 8,
-              backgroundColor: Colors.white.withOpacity(0.3),
+              backgroundColor: Colors.white.withValues(alpha: 0.3),
               valueColor: const AlwaysStoppedAnimation<Color>(
                 AppTheme.accentRed,
               ),
@@ -250,7 +252,7 @@ class _CiberseguridadQuestionPageState
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -265,7 +267,7 @@ class _CiberseguridadQuestionPageState
               gradient: LinearGradient(
                 colors: [
                   AppTheme.accentRed,
-                  AppTheme.accentRed.withOpacity(0.8),
+                  AppTheme.accentRed.withValues(alpha: 0.8),
                 ],
               ),
               borderRadius: const BorderRadius.only(
@@ -383,7 +385,10 @@ class _CiberseguridadQuestionPageState
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [AppTheme.accentRed, AppTheme.accentRed.withOpacity(0.8)],
+              colors: [
+                AppTheme.accentRed,
+                AppTheme.accentRed.withValues(alpha: 0.8),
+              ],
             ),
             borderRadius: BorderRadius.circular(16),
           ),
@@ -443,7 +448,7 @@ class _CiberseguridadQuestionPageState
         decoration: BoxDecoration(
           gradient: isSelected
               ? LinearGradient(
-                  colors: [color, color.withOpacity(0.7)],
+                  colors: [color, color.withValues(alpha: 0.7)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 )
@@ -457,8 +462,8 @@ class _CiberseguridadQuestionPageState
           boxShadow: [
             BoxShadow(
               color: isSelected
-                  ? color.withOpacity(0.4)
-                  : Colors.black.withOpacity(0.05),
+                  ? color.withValues(alpha: 0.4)
+                  : Colors.black.withValues(alpha: 0.05),
               blurRadius: 16,
               offset: Offset(0, isSelected ? 8 : 4),
             ),
@@ -476,8 +481,8 @@ class _CiberseguridadQuestionPageState
                     height: 60,
                     decoration: BoxDecoration(
                       color: isSelected
-                          ? Colors.white.withOpacity(0.3)
-                          : color.withOpacity(0.2),
+                          ? Colors.white.withValues(alpha: 0.3)
+                          : color.withValues(alpha: 0.2),
                       shape: BoxShape.circle,
                     ),
                     child: Center(
@@ -540,7 +545,7 @@ class _CiberseguridadQuestionPageState
         boxShadow: canContinue
             ? [
                 BoxShadow(
-                  color: AppTheme.accentRed.withOpacity(0.5),
+                  color: AppTheme.accentRed.withValues(alpha: 0.5),
                   blurRadius: 20,
                   offset: const Offset(0, 10),
                 ),

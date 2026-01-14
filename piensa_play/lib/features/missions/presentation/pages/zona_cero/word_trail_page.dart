@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import '../../../../../core/theme/app_theme.dart';
 import '../../../data/datasources/zona_cero/zona_cero_quiz_data.dart';
 import '../shared/mission_results_page.dart';
@@ -52,7 +51,7 @@ class _WordTrailPageState extends State<WordTrailPage> {
                   height: 80,
                   decoration: BoxDecoration(
                     color: (isCorrect ? AppTheme.accentGreen : Colors.redAccent)
-                        .withOpacity(0.18),
+                        .withValues(alpha: 0.18),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
@@ -226,7 +225,7 @@ class _WordTrailPageState extends State<WordTrailPage> {
             child: Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
+                color: Colors.white.withValues(alpha: 0.2),
                 shape: BoxShape.circle,
               ),
               child: const Icon(Icons.arrow_back, color: Colors.white),
@@ -264,7 +263,7 @@ class _WordTrailPageState extends State<WordTrailPage> {
         borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.06),
+            color: Colors.black.withValues(alpha: 0.06),
             blurRadius: 10,
             offset: const Offset(0, 6),
           ),
@@ -320,7 +319,7 @@ class _WordTrailPageState extends State<WordTrailPage> {
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.08),
+              color: Colors.black.withValues(alpha: 0.08),
               blurRadius: 12,
               offset: const Offset(0, 6),
             ),
@@ -365,7 +364,7 @@ class _WordTrailPageState extends State<WordTrailPage> {
         border: Border.all(color: Colors.grey.shade200),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 10,
             offset: const Offset(0, 6),
           ),

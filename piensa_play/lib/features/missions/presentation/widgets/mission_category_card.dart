@@ -64,7 +64,7 @@ class _MissionCategoryCardState extends State<MissionCategoryCard> {
         border: Border.all(color: categoryColor, width: 3),
         boxShadow: [
           BoxShadow(
-            color: categoryColor.withOpacity(0.2),
+            color: categoryColor.withValues(alpha: 0.2),
             blurRadius: 15,
             offset: const Offset(0, 6),
           ),
@@ -83,7 +83,7 @@ class _MissionCategoryCardState extends State<MissionCategoryCard> {
                     width: 56,
                     height: 56,
                     decoration: BoxDecoration(
-                      color: categoryColor.withOpacity(0.2),
+                      color: categoryColor.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Icon(

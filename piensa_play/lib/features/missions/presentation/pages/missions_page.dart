@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:piensa_play/core/services/logger_service.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/services/app_data_service.dart';
 import '../../domain/entities/mission_category.dart';
@@ -27,22 +28,24 @@ class _MissionsPageState extends State<MissionsPage> {
     setState(() {
       _categories = AppDataService.instance.missionCategories;
     });
-    print('🔵 MISSIONS: Loaded ${_categories.length} categories from cache');
+    AppLogger.log(
+      'MISSIONS: Loaded ${_categories.length} categories from cache',
+    );
   }
 
   Future<void> _refreshData() async {
     setState(() => _isLoading = true);
     try {
-      print('🔄 MISSIONS: Refreshing data...');
+      AppLogger.refresh('MISSIONS: Refreshing data...');
       await AppDataService.instance.refreshMissions();
       setState(() {
         _categories = AppDataService.instance.missionCategories;
         _isLoading = false;
       });
-      print('🟢 MISSIONS: Data refreshed');
+      AppLogger.success('MISSIONS: Data refreshed');
     } catch (e) {
       setState(() => _isLoading = false);
-      print('❌ MISSIONS: Error refreshing: $e');
+      AppLogger.error('MISSIONS: Error refreshing: $e');
     }
   }
 

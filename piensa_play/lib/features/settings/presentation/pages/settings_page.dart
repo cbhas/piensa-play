@@ -72,7 +72,7 @@ class SettingsPage extends StatelessWidget {
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
+                          color: Colors.black.withValues(alpha: 0.1),
                           blurRadius: 8,
                           offset: const Offset(0, 2),
                         ),
@@ -100,7 +100,7 @@ class SettingsPage extends StatelessWidget {
                       ),
                       value: isDark,
                       onChanged: (_) => themeProvider.toggleTheme(),
-                      activeColor: AppTheme.accentGreen,
+                      activeThumbColor: AppTheme.accentGreen,
                       secondary: Icon(
                         isDark ? Icons.dark_mode : Icons.light_mode,
                         color: isDark
@@ -132,7 +132,7 @@ class SettingsPage extends StatelessWidget {
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
+                          color: Colors.black.withValues(alpha: 0.1),
                           blurRadius: 8,
                           offset: const Offset(0, 2),
                         ),
@@ -212,7 +212,7 @@ class SettingsPage extends StatelessWidget {
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
+                          color: Colors.black.withValues(alpha: 0.1),
                           blurRadius: 8,
                           offset: const Offset(0, 2),
                         ),

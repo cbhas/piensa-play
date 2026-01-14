@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
+import 'package:piensa_play/core/services/logger_service.dart';
 import '../../features/achievements/domain/entities/achievement.dart';
 import '../../features/achievements/domain/entities/badge.dart' as entities;
 import '../../features/missions/domain/entities/mission.dart';
@@ -27,7 +28,7 @@ class GamificationService {
     final userId = UserIdProvider.currentUserId;
     final unlockedBadges = <entities.Badge>[];
 
-    print('🎮 GAMIFICATION: Completing mission ${mission.id}');
+    AppLogger.log('GAMIFICATION: Completing mission ${mission.id}');
 
     try {
       // 1. Cargar achievement actual
@@ -44,10 +45,10 @@ class GamificationService {
         currentLevel: newLevel,
       );
 
-      print(
-        '🎮 GAMIFICATION: +${GamificationConfig.xpPerMission} XP, +${GamificationConfig.coinsPerMission} coins',
+      AppLogger.log(
+        'GAMIFICATION: +${GamificationConfig.xpPerMission} XP, +${GamificationConfig.coinsPerMission} coins',
       );
-      print('🎮 GAMIFICATION: Total XP: $newTotalXP, Level: $newLevel');
+      AppLogger.log('GAMIFICATION: Total XP: $newTotalXP, Level: $newLevel');
 
       // 3. Desbloquear badge de la misión
       final missionBadge = await _unlockBadge(userId, 'mission_${mission.id}');
@@ -58,8 +59,8 @@ class GamificationService {
       // 4. Verificar si la categoría está completa
       final isCategoryComplete = await _checkCategoryComplete(userId, category);
       if (isCategoryComplete) {
-        print(
-          '🎮 GAMIFICATION: Category ${category.id} complete! +${GamificationConfig.xpPerCategory} XP bonus',
+        AppLogger.success(
+          'GAMIFICATION: Category ${category.id} complete! +${GamificationConfig.xpPerCategory} XP bonus',
         );
 
         // Bonus XP por categoría completa
@@ -84,10 +85,12 @@ class GamificationService {
       await _saveAchievement(userId, achievement);
       await _saveMissionProgress(userId, mission.id);
 
-      print('🎮 GAMIFICATION: Unlocked ${unlockedBadges.length} badges');
+      AppLogger.success(
+        'GAMIFICATION: Unlocked ${unlockedBadges.length} badges',
+      );
       return unlockedBadges;
     } catch (e) {
-      print('❌ GAMIFICATION: Error completing mission: $e');
+      AppLogger.error('GAMIFICATION: Error completing mission: $e');
       return [];
     }
   }
@@ -106,7 +109,7 @@ class GamificationService {
         return Achievement.fromJson(doc.data()!);
       }
     } catch (e) {
-      print('⚠️ GAMIFICATION: Error loading achievement: $e');
+      AppLogger.warning('GAMIFICATION: Error loading achievement: $e');
     }
 
     // Fallback: intentar desde cache local
@@ -117,7 +120,7 @@ class GamificationService {
         return Achievement.fromJson(jsonDecode(jsonString));
       }
     } catch (e) {
-      print('⚠️ GAMIFICATION: Error loading from cache: $e');
+      AppLogger.warning('GAMIFICATION: Error loading from cache: $e');
     }
 
     return Achievement.initial();
@@ -141,9 +144,9 @@ class GamificationService {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('achievements', jsonEncode(achievement.toJson()));
 
-      print('✅ GAMIFICATION: Achievement saved');
+      AppLogger.success('GAMIFICATION: Achievement saved');
     } catch (e) {
-      print('❌ GAMIFICATION: Error saving achievement: $e');
+      AppLogger.error('GAMIFICATION: Error saving achievement: $e');
     }
   }
 
@@ -158,7 +161,7 @@ class GamificationService {
 
       final existing = await badgeRef.get();
       if (existing.exists) {
-        print('🎖️ GAMIFICATION: Badge $badgeId already unlocked');
+        AppLogger.log('GAMIFICATION: Badge $badgeId already unlocked');
         return null; // Ya desbloqueado
       }
 
@@ -169,7 +172,9 @@ class GamificationService {
           .get();
 
       if (!globalBadge.exists) {
-        print('⚠️ GAMIFICATION: Badge $badgeId not found in global catalog');
+        AppLogger.warning(
+          'GAMIFICATION: Badge $badgeId not found in global catalog',
+        );
         return null;
       }
 
@@ -185,10 +190,10 @@ class GamificationService {
         isUnlocked: true,
       );
 
-      print('🎖️ GAMIFICATION: Badge unlocked: ${badge.title}');
+      AppLogger.success('GAMIFICATION: Badge unlocked: ${badge.title}');
       return badge;
     } catch (e) {
-      print('❌ GAMIFICATION: Error unlocking badge: $e');
+      AppLogger.error('GAMIFICATION: Error unlocking badge: $e');
       return null;
     }
   }
@@ -214,7 +219,7 @@ class GamificationService {
 
       return categoryMissionIds.every((id) => completedMissionIds.contains(id));
     } catch (e) {
-      print('❌ GAMIFICATION: Error checking category completion: $e');
+      AppLogger.error('GAMIFICATION: Error checking category completion: $e');
       return false;
     }
   }
@@ -232,7 +237,7 @@ class GamificationService {
             'completedAt': FieldValue.serverTimestamp(),
           });
     } catch (e) {
-      print('❌ GAMIFICATION: Error saving mission progress: $e');
+      AppLogger.error('GAMIFICATION: Error saving mission progress: $e');
     }
   }
 

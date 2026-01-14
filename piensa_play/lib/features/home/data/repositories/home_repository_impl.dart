@@ -1,5 +1,6 @@
 // lib/features/home/data/repositories/home_repository_impl.dart
 
+import 'package:piensa_play/core/services/logger_service.dart';
 import '../../domain/entities/dashboard_stats.dart';
 import '../../domain/entities/user_progress.dart';
 import '../datasources/home_local_datasource.dart';
@@ -18,7 +19,7 @@ class HomeRepositoryImpl {
         return remoteStats;
       }
     } catch (e) {
-      print('Firestore falló, usando caché local: $e');
+      AppLogger.warning('Firestore falló, usando caché local: $e');
     }
     return await localDatasource.getDashboardStats();
   }
@@ -32,7 +33,7 @@ class HomeRepositoryImpl {
         return remoteProgress;
       }
     } catch (e) {
-      print('Firestore falló, usando caché local: $e');
+      AppLogger.warning('Firestore falló, usando caché local: $e');
     }
     return await localDatasource.getUserProgress();
   }
@@ -43,7 +44,9 @@ class HomeRepositoryImpl {
     try {
       await remoteDatasource.saveDashboardStats(userId, stats);
     } catch (e) {
-      print('⚠️ Error sincronizando con Firestore, pero guardado localmente: $e');
+      AppLogger.warning(
+        'Error sincronizando con Firestore, pero guardado localmente: $e',
+      );
     }
   }
 
@@ -53,7 +56,9 @@ class HomeRepositoryImpl {
     try {
       await remoteDatasource.saveUserProgress(userId, progress);
     } catch (e) {
-      print('⚠️ Error sincronizando con Firestore, pero guardado localmente: $e');
+      AppLogger.warning(
+        'Error sincronizando con Firestore, pero guardado localmente: $e',
+      );
     }
   }
 }

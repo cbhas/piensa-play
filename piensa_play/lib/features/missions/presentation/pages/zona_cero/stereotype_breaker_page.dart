@@ -226,7 +226,7 @@ class _StereotypeBreakerPageState extends State<StereotypeBreakerPage> {
                 child: Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
+                    color: Colors.white.withValues(alpha: 0.2),
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(Icons.arrow_back, color: Colors.white),
@@ -321,7 +321,7 @@ class _StereotypeBreakerPageState extends State<StereotypeBreakerPage> {
         border: Border.all(color: Colors.green.shade100),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 12,
             offset: const Offset(0, 6),
           ),
@@ -341,7 +341,9 @@ class _StereotypeBreakerPageState extends State<StereotypeBreakerPage> {
           const SizedBox(height: 6),
           Text(
             scene.description,
-            style: TextStyle(color: AppTheme.primaryDark.withOpacity(0.8)),
+            style: TextStyle(
+              color: AppTheme.primaryDark.withValues(alpha: 0.8),
+            ),
           ),
           const SizedBox(height: 16),
           ...scene.statements.asMap().entries.map((entry) {
@@ -436,7 +438,7 @@ class _StereotypeBreakerPageState extends State<StereotypeBreakerPage> {
                   Text(
                     subtitle,
                     style: TextStyle(
-                      color: AppTheme.primaryDark.withOpacity(0.8),
+                      color: AppTheme.primaryDark.withValues(alpha: 0.8),
                       fontSize: 13,
                     ),
                   ),
@@ -447,7 +449,7 @@ class _StereotypeBreakerPageState extends State<StereotypeBreakerPage> {
               Icon(
                 Icons.arrow_forward_ios,
                 size: 16,
-                color: AppTheme.primaryDark.withOpacity(0.6),
+                color: AppTheme.primaryDark.withValues(alpha: 0.6),
               ),
           ],
         ),
@@ -468,7 +470,7 @@ class _StereotypeBreakerPageState extends State<StereotypeBreakerPage> {
         borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
+            color: Colors.black.withValues(alpha: 0.08),
             blurRadius: 12,
             offset: const Offset(0, 6),
           ),
@@ -504,7 +506,7 @@ class _StereotypeBreakerPageState extends State<StereotypeBreakerPage> {
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
+                      color: Colors.black.withValues(alpha: 0.05),
                       blurRadius: 8,
                       offset: const Offset(0, 4),
                     ),

@@ -53,7 +53,6 @@ class AppTheme {
         primary: primaryDark,
         secondary: accentYellow,
         surface: Colors.white,
-        background: backgroundLight,
       ),
 
       appBarTheme: const AppBarTheme(
@@ -89,7 +88,6 @@ class AppTheme {
         primary: accentGreen,
         secondary: accentYellow,
         surface: surfaceDark,
-        background: backgroundDark,
       ),
 
       appBarTheme: const AppBarTheme(
@@ -128,7 +126,7 @@ class AppTheme {
   static List<BoxShadow> get defaultShadow {
     return [
       BoxShadow(
-        color: Colors.black.withOpacity(0.3),
+        color: Colors.black.withValues(alpha: 0.3),
         blurRadius: 20,
         offset: const Offset(0, 10),
       ),

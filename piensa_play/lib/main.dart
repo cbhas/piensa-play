@@ -26,7 +26,7 @@ void main() async {
 }
 
 class PiensaPlayApp extends StatelessWidget {
-  const PiensaPlayApp({Key? key}) : super(key: key);
+  const PiensaPlayApp({super.key});
 
   @override
   Widget build(BuildContext context) {

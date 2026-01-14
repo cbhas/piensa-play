@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:piensa_play/core/services/logger_service.dart';
 
 class ThemeProvider extends ChangeNotifier {
   static const String _themeKey = 'theme_mode';
@@ -28,10 +29,10 @@ class ThemeProvider extends ChangeNotifier {
           orElse: () => ThemeMode.light,
         );
         notifyListeners();
-        print('🎨 THEME: Loaded theme mode: $_themeMode');
+        AppLogger.log('THEME: Loaded theme mode: $_themeMode');
       }
     } catch (e) {
-      print('❌ THEME: Error loading theme: $e');
+      AppLogger.error('THEME: Error loading theme: $e');
     }
   }
 
@@ -42,7 +43,7 @@ class ThemeProvider extends ChangeNotifier {
         : ThemeMode.light;
     await _saveThemeMode();
     notifyListeners();
-    print('🎨 THEME: Toggled to $_themeMode');
+    AppLogger.log('THEME: Toggled to $_themeMode');
   }
 
   /// Set specific theme mode
@@ -52,7 +53,7 @@ class ThemeProvider extends ChangeNotifier {
     _themeMode = mode;
     await _saveThemeMode();
     notifyListeners();
-    print('🎨 THEME: Set theme mode to $_themeMode');
+    AppLogger.log('THEME: Set theme mode to $_themeMode');
   }
 
   /// Save theme preference to SharedPreferences
@@ -60,9 +61,9 @@ class ThemeProvider extends ChangeNotifier {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(_themeKey, _themeMode.toString());
-      print('🎨 THEME: Saved theme mode: $_themeMode');
+      AppLogger.success('THEME: Saved theme mode: $_themeMode');
     } catch (e) {
-      print('❌ THEME: Error saving theme: $e');
+      AppLogger.error('THEME: Error saving theme: $e');
     }
   }
 }

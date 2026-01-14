@@ -5,7 +5,7 @@ import 'package:piensa_play/features/onboarding/presentation/pages/onboarding_pa
 import 'package:piensa_play/features/home/presentation/pages/home_page.dart';
 import 'package:piensa_play/features/achievements/presentation/pages/achievements_page.dart';
 import 'package:piensa_play/features/missions/presentation/pages/missions_page.dart';
-import 'package:piensa_play/features/missions/presentation/pages/mission_map_page.dart';
+
 import 'package:piensa_play/features/glossary/presentation/pages/glossary_page.dart';
 import 'package:piensa_play/features/settings/presentation/pages/settings_page.dart';
 import 'package:piensa_play/features/learn/presentation/pages/learn_page.dart';

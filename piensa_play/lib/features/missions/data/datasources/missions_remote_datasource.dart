@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:piensa_play/core/services/logger_service.dart';
 import '../../domain/entities/mission.dart';
 import '../../domain/entities/mission_category.dart';
 import '../../domain/entities/veracidadville/quiz_question.dart';
@@ -14,7 +15,7 @@ class MissionsRemoteDatasource {
 
   /// Fetch all mission categories from Firestore
   Future<List<MissionCategory>> getMissionCategories() async {
-    print('🔵 MISSIONS REMOTE: Fetching categories from Firestore...');
+    AppLogger.log('MISSIONS REMOTE: Fetching categories from Firestore...');
 
     try {
       // 1. Get all categories
@@ -24,7 +25,7 @@ class MissionsRemoteDatasource {
           .get();
 
       if (categoriesSnapshot.docs.isEmpty) {
-        print('⚠️ MISSIONS REMOTE: No categories found');
+        AppLogger.warning('MISSIONS REMOTE: No categories found');
         return [];
       }
 
@@ -41,7 +42,9 @@ class MissionsRemoteDatasource {
         final categoryId = data['categoryId'] as String? ?? '';
 
         // DEBUG: Ver qué type viene de Firebase
-        print('🔍 FIREBASE: Mission ${doc.id}, type field: "${data['type']}"');
+        AppLogger.debug(
+          'FIREBASE: Mission ${doc.id}, type field: "${data['type']}"',
+        );
 
         final mission = Mission(
           id: doc.id,
@@ -71,17 +74,21 @@ class MissionsRemoteDatasource {
         );
       }).toList();
 
-      print('🟢 MISSIONS REMOTE: Loaded ${categories.length} categories');
+      AppLogger.success(
+        'MISSIONS REMOTE: Loaded ${categories.length} categories',
+      );
       return categories;
     } catch (e) {
-      print('❌ MISSIONS REMOTE: Error fetching categories: $e');
+      AppLogger.error('MISSIONS REMOTE: Error fetching categories: $e');
       rethrow;
     }
   }
 
   /// Fetch questions for a specific mission
   Future<List<QuizQuestion>> getQuestionsByMission(String missionId) async {
-    print('🔵 MISSIONS REMOTE: Fetching questions for mission $missionId...');
+    AppLogger.log(
+      'MISSIONS REMOTE: Fetching questions for mission $missionId...',
+    );
 
     try {
       final snapshot = await _firestore
@@ -91,7 +98,9 @@ class MissionsRemoteDatasource {
           .get();
 
       if (snapshot.docs.isEmpty) {
-        print('⚠️ MISSIONS REMOTE: No questions found for mission $missionId');
+        AppLogger.warning(
+          'MISSIONS REMOTE: No questions found for mission $missionId',
+        );
         return [];
       }
 
@@ -114,17 +123,19 @@ class MissionsRemoteDatasource {
         );
       }).toList();
 
-      print('🟢 MISSIONS REMOTE: Loaded ${questions.length} questions');
+      AppLogger.success(
+        'MISSIONS REMOTE: Loaded ${questions.length} questions',
+      );
       return questions;
     } catch (e) {
-      print('❌ MISSIONS REMOTE: Error fetching questions: $e');
+      AppLogger.error('MISSIONS REMOTE: Error fetching questions: $e');
       rethrow;
     }
   }
 
   /// Fetch all questions (for preloading)
   Future<Map<String, List<QuizQuestion>>> getAllQuestions() async {
-    print('🔵 MISSIONS REMOTE: Fetching all questions...');
+    AppLogger.log('MISSIONS REMOTE: Fetching all questions...');
 
     try {
       final snapshot = await _firestore
@@ -158,12 +169,12 @@ class MissionsRemoteDatasource {
         questionsByMission[missionId]!.add(question);
       }
 
-      print(
-        '🟢 MISSIONS REMOTE: Loaded questions for ${questionsByMission.keys.length} missions',
+      AppLogger.success(
+        'MISSIONS REMOTE: Loaded questions for ${questionsByMission.keys.length} missions',
       );
       return questionsByMission;
     } catch (e) {
-      print('❌ MISSIONS REMOTE: Error fetching all questions: $e');
+      AppLogger.error('MISSIONS REMOTE: Error fetching all questions: $e');
       rethrow;
     }
   }
@@ -214,9 +225,9 @@ class MissionsRemoteDatasource {
             'lastUpdated': FieldValue.serverTimestamp(),
           }, SetOptions(merge: true));
 
-      print('✅ Mission progress saved for $missionId');
+      AppLogger.success('Mission progress saved for $missionId');
     } catch (e) {
-      print('❌ Error saving mission progress: $e');
+      AppLogger.error('Error saving mission progress: $e');
       rethrow;
     }
   }
@@ -237,7 +248,7 @@ class MissionsRemoteDatasource {
 
       return progress;
     } catch (e) {
-      print('❌ Error getting mission progress: $e');
+      AppLogger.error('Error getting mission progress: $e');
       return {};
     }
   }
@@ -280,7 +291,7 @@ class MissionsRemoteDatasource {
         'lastUpdated': FieldValue.serverTimestamp(),
       });
     } catch (e) {
-      print('Error guardando misiones en Firestore: $e');
+      AppLogger.error('Error guardando misiones en Firestore: $e');
       rethrow;
     }
   }

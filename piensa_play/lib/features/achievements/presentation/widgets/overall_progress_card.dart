@@ -21,7 +21,7 @@ class OverallProgressCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: AppTheme.primaryDark.withOpacity(0.3),
+            color: AppTheme.primaryDark.withValues(alpha: 0.3),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -51,12 +51,12 @@ class OverallProgressCard extends StatelessWidget {
                 end: Alignment.bottomRight,
                 colors: [
                   AppTheme.accentYellow,
-                  AppTheme.accentYellow.withOpacity(0.7),
+                  AppTheme.accentYellow.withValues(alpha: 0.7),
                 ],
               ),
               boxShadow: [
                 BoxShadow(
-                  color: AppTheme.accentYellow.withOpacity(0.4),
+                  color: AppTheme.accentYellow.withValues(alpha: 0.4),
                   blurRadius: 20,
                   offset: const Offset(0, 8),
                 ),
@@ -98,7 +98,7 @@ class OverallProgressCard extends StatelessWidget {
                 child: LinearProgressIndicator(
                   value: achievement.levelProgress,
                   minHeight: 12,
-                  backgroundColor: Colors.white.withOpacity(0.2),
+                  backgroundColor: Colors.white.withValues(alpha: 0.2),
                   valueColor: const AlwaysStoppedAnimation<Color>(
                     AppTheme.accentYellow,
                   ),
@@ -160,9 +160,9 @@ class _InfoItem extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.15),
+        color: Colors.white.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withOpacity(0.5), width: 2),
+        border: Border.all(color: color.withValues(alpha: 0.5), width: 2),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -175,7 +175,7 @@ class _InfoItem extends StatelessWidget {
               Text(
                 label,
                 style: TextStyle(
-                  color: Colors.white.withOpacity(0.7),
+                  color: Colors.white.withValues(alpha: 0.7),
                   fontSize: 11,
                 ),
               ),

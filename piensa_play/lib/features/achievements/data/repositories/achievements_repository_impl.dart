@@ -1,3 +1,4 @@
+import 'package:piensa_play/core/services/logger_service.dart';
 import '../../domain/entities/achievement.dart';
 import '../../domain/entities/badge.dart';
 import '../../domain/entities/recent_activity.dart';
@@ -19,7 +20,7 @@ class AchievementsRepositoryImpl {
         return remote;
       }
     } catch (e) {
-      print('Firestore falló, usando caché local: $e');
+      AppLogger.warning('Firestore falló, usando caché local: $e');
     }
     return await localDatasource.getAchievements();
   }
@@ -30,8 +31,8 @@ class AchievementsRepositoryImpl {
     try {
       await remoteDatasource.saveAchievements(userId, achievement);
     } catch (e) {
-      print(
-        '⚠️ Error sincronizando con Firestore, pero guardado localmente: $e',
+      AppLogger.warning(
+        'Error sincronizando con Firestore, pero guardado localmente: $e',
       );
     }
   }
@@ -45,7 +46,7 @@ class AchievementsRepositoryImpl {
         return remote;
       }
     } catch (e) {
-      print('Firestore falló, usando caché local: $e');
+      AppLogger.warning('Firestore falló, usando caché local: $e');
     }
     return await localDatasource.getBadges();
   }
@@ -56,8 +57,8 @@ class AchievementsRepositoryImpl {
     try {
       await remoteDatasource.saveBadges(userId, badges);
     } catch (e) {
-      print(
-        '⚠️ Error sincronizando con Firestore, pero guardado localmente: $e',
+      AppLogger.warning(
+        'Error sincronizando con Firestore, pero guardado localmente: $e',
       );
     }
   }
@@ -71,7 +72,7 @@ class AchievementsRepositoryImpl {
         return remote;
       }
     } catch (e) {
-      print('Firestore falló, usando caché local: $e');
+      AppLogger.warning('Firestore falló, usando caché local: $e');
     }
     return await localDatasource.getRecentActivities();
   }
@@ -85,8 +86,8 @@ class AchievementsRepositoryImpl {
     try {
       await remoteDatasource.saveRecentActivities(userId, activities);
     } catch (e) {
-      print(
-        '⚠️ Error sincronizando con Firestore, pero guardado localmente: $e',
+      AppLogger.warning(
+        'Error sincronizando con Firestore, pero guardado localmente: $e',
       );
     }
   }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:piensa_play/core/services/logger_service.dart';
 import '../../../../../core/theme/app_theme.dart';
 import '../../../../../core/services/mission_progress_service.dart';
 import '../../../../../core/services/gamification_service.dart';
@@ -99,13 +100,13 @@ class _MissionResultsPageState extends State<MissionResultsPage> {
           if (mission != null) break;
         }
       } catch (e) {
-        print('❌ GAMIFICATION: Error loading mission/category: $e');
+        AppLogger.error('GAMIFICATION: Error loading mission/category: $e');
       }
     }
 
     // Procesar gamificación si tenemos los datos
     if (mission != null && category != null) {
-      print('🎮 GAMIFICATION: Processing completion for ${mission.id}');
+      AppLogger.log('GAMIFICATION: Processing completion for ${mission.id}');
       final unlockedBadges = await _gamificationService.completeMission(
         mission: mission,
         category: category,
@@ -119,8 +120,8 @@ class _MissionResultsPageState extends State<MissionResultsPage> {
         }
       }
     } else {
-      print(
-        '⚠️ GAMIFICATION: Could not find mission/category for ${widget.missionId}',
+      AppLogger.warning(
+        'GAMIFICATION: Could not find mission/category for ${widget.missionId}',
       );
     }
   }
@@ -173,20 +174,20 @@ class _MissionResultsPageState extends State<MissionResultsPage> {
     if (isPerfect) {
       return [
         widget.primaryColor,
-        widget.primaryColor.withOpacity(0.8),
-        widget.secondaryColor.withOpacity(0.6),
+        widget.primaryColor.withValues(alpha: 0.8),
+        widget.secondaryColor.withValues(alpha: 0.6),
       ];
     } else if (isGood) {
       return [
         AppTheme.accentGreen,
-        AppTheme.accentGreen.withOpacity(0.8),
-        AppTheme.accentGreen.withOpacity(0.6),
+        AppTheme.accentGreen.withValues(alpha: 0.8),
+        AppTheme.accentGreen.withValues(alpha: 0.6),
       ];
     } else {
       return [
         AppTheme.accentBlue,
-        AppTheme.accentBlue.withOpacity(0.8),
-        AppTheme.accentBlue.withOpacity(0.6),
+        AppTheme.accentBlue.withValues(alpha: 0.8),
+        AppTheme.accentBlue.withValues(alpha: 0.6),
       ];
     }
   }
@@ -227,7 +228,7 @@ class _MissionResultsPageState extends State<MissionResultsPage> {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.3),
+            color: Colors.white.withValues(alpha: 0.3),
             borderRadius: BorderRadius.circular(20),
           ),
           child: Text(
@@ -256,7 +257,7 @@ class _MissionResultsPageState extends State<MissionResultsPage> {
         borderRadius: BorderRadius.circular(30),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.2),
+            color: Colors.black.withValues(alpha: 0.2),
             blurRadius: 30,
             offset: const Offset(0, 15),
           ),
@@ -362,7 +363,7 @@ class _MissionResultsPageState extends State<MissionResultsPage> {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: color.withOpacity(0.3),
+            color: color.withValues(alpha: 0.3),
             blurRadius: 15,
             offset: const Offset(0, 8),
           ),
@@ -373,7 +374,7 @@ class _MissionResultsPageState extends State<MissionResultsPage> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.2),
+              color: color.withValues(alpha: 0.2),
               shape: BoxShape.circle,
             ),
             child: Icon(icon, color: color, size: 32),
@@ -414,7 +415,7 @@ class _MissionResultsPageState extends State<MissionResultsPage> {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -447,9 +448,7 @@ class _MissionResultsPageState extends State<MissionResultsPage> {
             ],
           ),
           const SizedBox(height: 20),
-          ...widget.learningPoints
-              .map((point) => _buildLearningPoint(point))
-              .toList(),
+          ...widget.learningPoints.map((point) => _buildLearningPoint(point)),
         ],
       ),
     ).animate().slideX(delay: 1200.ms, begin: 0.3, duration: 400.ms);
@@ -465,7 +464,7 @@ class _MissionResultsPageState extends State<MissionResultsPage> {
             margin: const EdgeInsets.only(top: 2),
             padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
-              color: AppTheme.accentGreen.withOpacity(0.2),
+              color: AppTheme.accentGreen.withValues(alpha: 0.2),
               shape: BoxShape.circle,
             ),
             child: const Icon(
@@ -562,7 +561,7 @@ class _MissionResultsPageState extends State<MissionResultsPage> {
         borderRadius: BorderRadius.circular(30),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.2),
+            color: Colors.black.withValues(alpha: 0.2),
             blurRadius: 15,
             offset: const Offset(0, 8),
           ),

@@ -46,22 +46,12 @@ class _AnimatedBubbleState extends State<AnimatedBubble>
     _animationY = Tween<double>(
       begin: 0,
       end: widget.offset,
-    ).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: Curves.easeInOut,
-      ),
-    );
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
 
     _animationScale = Tween<double>(
       begin: 1.0,
       end: 1.1,
-    ).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: Curves.easeInOut,
-      ),
-    );
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
 
     _controller.repeat(reverse: true);
   }
@@ -85,7 +75,7 @@ class _AnimatedBubbleState extends State<AnimatedBubble>
               width: widget.size,
               height: widget.size,
               decoration: BoxDecoration(
-                color: const Color(0xFFF5F5DC).withOpacity(0.4),
+                color: const Color(0xFFF5F5DC).withValues(alpha: 0.4),
                 shape: BoxShape.circle,
               ),
             ),
@@ -101,9 +91,7 @@ class _AnimatedBubbleState extends State<AnimatedBubble>
         bottom: 0,
         right: widget.right,
         left: widget.left,
-        child: Center(
-          child: bubble,
-        ),
+        child: Center(child: bubble),
       );
     }
 

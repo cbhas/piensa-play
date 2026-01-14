@@ -2,6 +2,7 @@
 
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:piensa_play/core/services/logger_service.dart';
 import '../../domain/entities/glossary_term.dart';
 
 class GlossaryLocalDatasource {
@@ -9,7 +10,7 @@ class GlossaryLocalDatasource {
 
   /// Save glossary terms to local cache
   Future<void> saveGlossaryTerms(List<GlossaryTerm> terms) async {
-    print('🔵 GLOSSARY LOCAL: Saving ${terms.length} terms to cache');
+    AppLogger.log('GLOSSARY LOCAL: Saving ${terms.length} terms to cache');
 
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -17,22 +18,22 @@ class GlossaryLocalDatasource {
       final jsonString = jsonEncode(jsonList);
 
       await prefs.setString(_cacheKey, jsonString);
-      print('🟢 GLOSSARY LOCAL: Terms cached successfully');
+      AppLogger.success('GLOSSARY LOCAL: Terms cached successfully');
     } catch (e) {
-      print('❌ GLOSSARY LOCAL: Error caching terms: $e');
+      AppLogger.error('GLOSSARY LOCAL: Error caching terms: $e');
     }
   }
 
   /// Get glossary terms from local cache
   Future<List<GlossaryTerm>> getGlossaryTerms() async {
-    print('🔵 GLOSSARY LOCAL: Reading from cache');
+    AppLogger.log('GLOSSARY LOCAL: Reading from cache');
 
     try {
       final prefs = await SharedPreferences.getInstance();
       final jsonString = prefs.getString(_cacheKey);
 
       if (jsonString == null) {
-        print('🟡 GLOSSARY LOCAL: No cache found');
+        AppLogger.log('GLOSSARY LOCAL: No cache found');
         return [];
       }
 
@@ -41,10 +42,12 @@ class GlossaryLocalDatasource {
           .map((json) => GlossaryTerm.fromJson(json as Map<String, dynamic>))
           .toList();
 
-      print('🟢 GLOSSARY LOCAL: Loaded ${terms.length} terms from cache');
+      AppLogger.success(
+        'GLOSSARY LOCAL: Loaded ${terms.length} terms from cache',
+      );
       return terms;
     } catch (e) {
-      print('❌ GLOSSARY LOCAL: Error reading cache: $e');
+      AppLogger.error('GLOSSARY LOCAL: Error reading cache: $e');
       return [];
     }
   }
@@ -53,6 +56,6 @@ class GlossaryLocalDatasource {
   Future<void> clearCache() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_cacheKey);
-    print('🟢 GLOSSARY LOCAL: Cache cleared');
+    AppLogger.success('GLOSSARY LOCAL: Cache cleared');
   }
 }

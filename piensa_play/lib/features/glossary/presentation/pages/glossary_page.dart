@@ -1,6 +1,7 @@
 // lib/features/glossary/presentation/pages/glossary_page.dart
 
 import 'package:flutter/material.dart';
+import 'package:piensa_play/core/services/logger_service.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/app_animations.dart';
 import '../../../../core/services/app_data_service.dart';
@@ -54,13 +55,13 @@ class _GlossaryPageState extends State<GlossaryPage> {
       _filteredTerms = terms;
       _categories = categories;
     });
-    print('🔵 GLOSSARY PAGE: Loaded ${terms.length} terms from cache');
+    AppLogger.log('GLOSSARY PAGE: Loaded ${terms.length} terms from cache');
   }
 
   Future<void> _refreshData() async {
     setState(() => _isLoading = true);
     try {
-      print('🔄 GLOSSARY: Refreshing data...');
+      AppLogger.refresh('GLOSSARY: Refreshing data...');
       await AppDataService.instance.refreshGlossary();
 
       final terms = AppDataService.instance.glossaryTerms;
@@ -75,10 +76,10 @@ class _GlossaryPageState extends State<GlossaryPage> {
 
       // Reapply filters
       _applyFilters();
-      print('🟢 GLOSSARY: Data refreshed');
+      AppLogger.success('GLOSSARY: Data refreshed');
     } catch (e) {
       setState(() => _isLoading = false);
-      print('❌ GLOSSARY: Error refreshing: $e');
+      AppLogger.error('GLOSSARY: Error refreshing: $e');
     }
   }
 
@@ -179,13 +180,13 @@ class _GlossaryPageState extends State<GlossaryPage> {
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
                   borderSide: BorderSide(
-                    color: AppTheme.accentBlue.withOpacity(0.3),
+                    color: AppTheme.accentBlue.withValues(alpha: 0.3),
                   ),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
                   borderSide: BorderSide(
-                    color: AppTheme.accentBlue.withOpacity(0.3),
+                    color: AppTheme.accentBlue.withValues(alpha: 0.3),
                   ),
                 ),
                 focusedBorder: OutlineInputBorder(
@@ -221,7 +222,7 @@ class _GlossaryPageState extends State<GlossaryPage> {
                             ? AppTheme.cardDark
                             : Colors.white,
                         selectedColor: isDark
-                            ? AppTheme.accentBlue.withOpacity(0.5)
+                            ? AppTheme.accentBlue.withValues(alpha: 0.5)
                             : const Color(0xFF90CAF9),
                         labelStyle: TextStyle(
                           color: isSelected

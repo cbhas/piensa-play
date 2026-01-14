@@ -11,6 +11,7 @@ import 'package:piensa_play/features/home/domain/entities/dashboard_stats.dart';
 import 'package:piensa_play/features/home/domain/entities/user_progress.dart';
 import 'package:piensa_play/features/home/domain/usecases/get_dashboard_stats.dart';
 import 'package:piensa_play/features/home/domain/usecases/get_user_progress.dart';
+import 'package:piensa_play/core/services/logger_service.dart';
 import 'user_id_provider.dart';
 
 /// Singleton service that manages all app data.
@@ -64,7 +65,7 @@ class AppDataService {
     if (_isLoading) return;
     _isLoading = true;
 
-    print('🔵 APP DATA SERVICE: Loading all data...');
+    AppLogger.log('APP DATA SERVICE: Loading all data...');
 
     try {
       // Load all data in parallel for speed
@@ -77,9 +78,9 @@ class AppDataService {
       ]);
 
       _isLoaded = true;
-      print('🟢 APP DATA SERVICE: All data loaded successfully');
+      AppLogger.success('APP DATA SERVICE: All data loaded successfully');
     } catch (e) {
-      print('❌ APP DATA SERVICE: Error loading data: $e');
+      AppLogger.error('APP DATA SERVICE: Error loading data: $e');
     } finally {
       _isLoading = false;
     }
@@ -87,33 +88,33 @@ class AppDataService {
 
   /// Refresh a specific section of data
   Future<void> refreshMissions() async {
-    print('🔄 APP DATA SERVICE: Refreshing missions...');
+    AppLogger.refresh('APP DATA SERVICE: Refreshing missions...');
     await _loadMissions();
   }
 
   Future<void> refreshAchievements() async {
-    print('🔄 APP DATA SERVICE: Refreshing achievements...');
+    AppLogger.refresh('APP DATA SERVICE: Refreshing achievements...');
     await _loadAchievements();
   }
 
   Future<void> refreshGlossary() async {
-    print('🔄 APP DATA SERVICE: Refreshing glossary...');
+    AppLogger.refresh('APP DATA SERVICE: Refreshing glossary...');
     await _loadGlossary();
   }
 
   Future<void> refreshProfile() async {
-    print('🔄 APP DATA SERVICE: Refreshing profile...');
+    AppLogger.refresh('APP DATA SERVICE: Refreshing profile...');
     await _loadProfile();
   }
 
   Future<void> refreshDashboard() async {
-    print('🔄 APP DATA SERVICE: Refreshing dashboard...');
+    AppLogger.refresh('APP DATA SERVICE: Refreshing dashboard...');
     await _loadDashboard();
   }
 
   /// Refresh all data
   Future<void> refreshAll() async {
-    print('🔄 APP DATA SERVICE: Refreshing all data...');
+    AppLogger.refresh('APP DATA SERVICE: Refreshing all data...');
     await loadAllData();
   }
 
@@ -121,9 +122,11 @@ class AppDataService {
   Future<void> _loadMissions() async {
     try {
       _missionCategories = await _getMissionCategories.execute(_userId);
-      print('✅ Missions loaded: ${_missionCategories?.length ?? 0} categories');
+      AppLogger.success(
+        'Missions loaded: ${_missionCategories?.length ?? 0} categories',
+      );
     } catch (e) {
-      print('⚠️ Failed to load missions: $e');
+      AppLogger.warning('Failed to load missions: $e');
     }
   }
 
@@ -131,29 +134,31 @@ class AppDataService {
     try {
       _achievement = await _achievementsRepo.getAchievements(_userId);
       _badges = await _achievementsRepo.getBadges(_userId);
-      print(
-        '✅ Achievements loaded: Level ${_achievement?.currentLevel}, ${_badges?.length ?? 0} badges',
+      AppLogger.success(
+        'Achievements loaded: Level ${_achievement?.currentLevel}, ${_badges?.length ?? 0} badges',
       );
     } catch (e) {
-      print('⚠️ Failed to load achievements: $e');
+      AppLogger.warning('Failed to load achievements: $e');
     }
   }
 
   Future<void> _loadGlossary() async {
     try {
       _glossaryTerms = await _getGlossaryTerms.execute(_userId);
-      print('✅ Glossary loaded: ${_glossaryTerms?.length ?? 0} terms');
+      AppLogger.success(
+        'Glossary loaded: ${_glossaryTerms?.length ?? 0} terms',
+      );
     } catch (e) {
-      print('⚠️ Failed to load glossary: $e');
+      AppLogger.warning('Failed to load glossary: $e');
     }
   }
 
   Future<void> _loadProfile() async {
     try {
       _userProfile = await _getUserProfile.execute();
-      print('✅ Profile loaded: ${_userProfile?.name}');
+      AppLogger.success('Profile loaded: ${_userProfile?.name}');
     } catch (e) {
-      print('⚠️ Failed to load profile: $e');
+      AppLogger.warning('Failed to load profile: $e');
     }
   }
 
@@ -161,9 +166,9 @@ class AppDataService {
     try {
       _dashboardStats = await _getDashboardStats.execute(_userId);
       _userProgress = await _getUserProgress.execute(_userId);
-      print('✅ Dashboard loaded');
+      AppLogger.success('Dashboard loaded');
     } catch (e) {
-      print('⚠️ Failed to load dashboard: $e');
+      AppLogger.warning('Failed to load dashboard: $e');
     }
   }
 

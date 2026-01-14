@@ -106,7 +106,7 @@ extension AnimateExtensions on Widget {
     ).shimmer(
       delay: delay,
       duration: duration,
-      color: color ?? Colors.white.withOpacity(0.2),
+      color: color ?? Colors.white.withValues(alpha: 0.2),
     );
   }
 

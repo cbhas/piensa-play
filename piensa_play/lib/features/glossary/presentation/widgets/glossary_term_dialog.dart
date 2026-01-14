@@ -19,7 +19,7 @@ class GlossaryTermDialog extends StatefulWidget {
   static void show(BuildContext context, GlossaryTerm term) {
     showDialog(
       context: context,
-      barrierColor: Colors.black.withOpacity(0.7),
+      barrierColor: Colors.black.withValues(alpha: 0.7),
       builder: (context) => GlossaryTermDialog(term: term),
     );
   }
@@ -36,6 +36,7 @@ class _GlossaryTermDialogState extends State<GlossaryTermDialog> {
     super.dispose();
   }
 
+  @override
   Widget build(BuildContext context) {
     return Stack(
       children: [
@@ -74,7 +75,7 @@ class _GlossaryTermDialogState extends State<GlossaryTermDialog> {
                           width: 50,
                           height: 50,
                           decoration: BoxDecoration(
-                            color: AppTheme.accentGreen.withOpacity(0.3),
+                            color: AppTheme.accentGreen.withValues(alpha: 0.3),
                             shape: BoxShape.circle,
                           ),
                           child: Center(
@@ -102,7 +103,7 @@ class _GlossaryTermDialogState extends State<GlossaryTermDialog> {
                               Text(
                                 'Definición',
                                 style: TextStyle(
-                                  color: Colors.white.withOpacity(0.7),
+                                  color: Colors.white.withValues(alpha: 0.7),
                                   fontSize: 12,
                                 ),
                               ),
@@ -161,7 +162,7 @@ class _GlossaryTermDialogState extends State<GlossaryTermDialog> {
                           widget.term.definition,
                           style: TextStyle(
                             fontSize: 15,
-                            color: AppTheme.primaryDark.withOpacity(0.8),
+                            color: AppTheme.primaryDark.withValues(alpha: 0.8),
                             height: 1.5,
                           ),
                         ),
@@ -254,13 +255,5 @@ class _GlossaryTermDialogState extends State<GlossaryTermDialog> {
         .toLowerCase()
         .replaceAll(' ', '_')
         .replaceAll(RegExp(r'[^\w_]'), '');
-  }
-
-  static void show(BuildContext context, GlossaryTerm term) {
-    showDialog(
-      context: context,
-      barrierColor: Colors.black.withOpacity(0.7),
-      builder: (context) => GlossaryTermDialog(term: term),
-    );
   }
 }

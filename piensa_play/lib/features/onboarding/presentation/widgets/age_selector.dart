@@ -49,7 +49,7 @@ class AgeSelector extends StatelessWidget {
                   boxShadow: isSelected
                       ? [
                           BoxShadow(
-                            color: AppTheme.accentGreen.withOpacity(0.3),
+                            color: AppTheme.accentGreen.withValues(alpha: 0.3),
                             blurRadius: 8,
                             offset: const Offset(0, 3),
                           ),
@@ -73,8 +73,8 @@ class AgeSelector extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 11,
                         color: isSelected
-                            ? Colors.white.withOpacity(0.9)
-                            : AppTheme.primaryDark.withOpacity(0.6),
+                            ? Colors.white.withValues(alpha: 0.9)
+                            : AppTheme.primaryDark.withValues(alpha: 0.6),
                         fontWeight: isSelected
                             ? FontWeight.w600
                             : FontWeight.normal,

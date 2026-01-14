@@ -1,6 +1,7 @@
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 
+import 'package:piensa_play/core/services/logger_service.dart';
 import '../datasources/missions_local_datasource.dart';
 import '../datasources/missions_remote_datasource.dart';
 import '../../domain/entities/mission.dart';
@@ -34,7 +35,7 @@ class MissionsRepository {
 
   /// Get mission categories with missions (remote-first with fallback)
   Future<List<MissionCategory>> getMissionCategories(String userId) async {
-    print('🔵 MISSIONS REPO: Getting categories for user $userId');
+    AppLogger.log('MISSIONS REPO: Getting categories for user $userId');
 
     try {
       // 1. Try remote first
@@ -48,36 +49,36 @@ class MissionsRepository {
         // Cache the data
         await _cacheCategories(categoriesWithProgress);
 
-        print(
-          '🟢 MISSIONS REPO: Loaded ${categories.length} categories from Firebase',
+        AppLogger.success(
+          'MISSIONS REPO: Loaded ${categories.length} categories from Firebase',
         );
         return categoriesWithProgress;
       }
     } catch (e) {
-      print('⚠️ MISSIONS REPO: Remote fetch failed: $e');
+      AppLogger.warning('MISSIONS REPO: Remote fetch failed: $e');
     }
 
     // 2. Try cache
     try {
       final cached = await _getCachedCategories();
       if (cached.isNotEmpty) {
-        print(
-          '🟡 MISSIONS REPO: Loaded ${cached.length} categories from cache',
+        AppLogger.log(
+          'MISSIONS REPO: Loaded ${cached.length} categories from cache',
         );
         return cached;
       }
     } catch (e) {
-      print('⚠️ MISSIONS REPO: Cache load failed: $e');
+      AppLogger.warning('MISSIONS REPO: Cache load failed: $e');
     }
 
     // 3. Fallback to hardcoded
-    print('🟠 MISSIONS REPO: Using hardcoded fallback');
+    AppLogger.warning('MISSIONS REPO: Using hardcoded fallback');
     return _localDatasource.getMissionCategories(userId);
   }
 
   /// Get questions for a specific mission
   Future<List<QuizQuestion>> getQuestionsForMission(String missionId) async {
-    print('🔵 MISSIONS REPO: Getting questions for mission $missionId');
+    AppLogger.log('MISSIONS REPO: Getting questions for mission $missionId');
 
     try {
       // 1. Try remote first
@@ -89,28 +90,30 @@ class MissionsRepository {
         // Cache the questions
         await _cacheQuestions(missionId, questions);
 
-        print(
-          '🟢 MISSIONS REPO: Loaded ${questions.length} questions from Firebase',
+        AppLogger.success(
+          'MISSIONS REPO: Loaded ${questions.length} questions from Firebase',
         );
         return questions;
       }
     } catch (e) {
-      print('⚠️ MISSIONS REPO: Remote fetch failed: $e');
+      AppLogger.warning('MISSIONS REPO: Remote fetch failed: $e');
     }
 
     // 2. Try cache
     try {
       final cached = await _getCachedQuestions(missionId);
       if (cached.isNotEmpty) {
-        print('🟡 MISSIONS REPO: Loaded ${cached.length} questions from cache');
+        AppLogger.log(
+          'MISSIONS REPO: Loaded ${cached.length} questions from cache',
+        );
         return cached;
       }
     } catch (e) {
-      print('⚠️ MISSIONS REPO: Cache load failed: $e');
+      AppLogger.warning('MISSIONS REPO: Cache load failed: $e');
     }
 
     // 3. Fallback to hardcoded - find in local datasource
-    print('🟠 MISSIONS REPO: Using hardcoded fallback for questions');
+    AppLogger.warning('MISSIONS REPO: Using hardcoded fallback for questions');
     return _getHardcodedQuestions(missionId);
   }
 
@@ -118,9 +121,11 @@ class MissionsRepository {
   Future<void> completeMission(String userId, String missionId) async {
     try {
       await _remoteDatasource.saveUserMissionProgress(userId, missionId, true);
-      print('✅ MISSIONS REPO: Mission $missionId marked as completed');
+      AppLogger.success(
+        'MISSIONS REPO: Mission $missionId marked as completed',
+      );
     } catch (e) {
-      print('❌ MISSIONS REPO: Failed to save mission progress: $e');
+      AppLogger.error('MISSIONS REPO: Failed to save mission progress: $e');
       rethrow;
     }
   }
@@ -191,9 +196,9 @@ class MissionsRepository {
           .toList();
 
       await prefs.setString(_categoriesCacheKey, jsonEncode(jsonData));
-      print('✅ MISSIONS REPO: Categories cached');
+      AppLogger.success('MISSIONS REPO: Categories cached');
     } catch (e) {
-      print('⚠️ MISSIONS REPO: Failed to cache categories: $e');
+      AppLogger.warning('MISSIONS REPO: Failed to cache categories: $e');
     }
   }
 
@@ -241,9 +246,9 @@ class MissionsRepository {
       final jsonData = questions.map((q) => q.toJson()).toList();
 
       await prefs.setString(key, jsonEncode(jsonData));
-      print('✅ MISSIONS REPO: Questions for $missionId cached');
+      AppLogger.success('MISSIONS REPO: Questions for $missionId cached');
     } catch (e) {
-      print('⚠️ MISSIONS REPO: Failed to cache questions: $e');
+      AppLogger.warning('MISSIONS REPO: Failed to cache questions: $e');
     }
   }
 

@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:piensa_play/core/services/logger_service.dart';
 import '../../domain/entities/user_profile.dart';
 
 class OnboardingRepositoryImpl {
@@ -15,9 +16,9 @@ class OnboardingRepositoryImpl {
         'avatarId': profile.avatarId,
       });
       await prefs.setString(_profileKey, profileJson);
-      print('Perfil guardado: $profileJson'); // Debug
+      AppLogger.success('Perfil guardado: $profileJson');
     } catch (e) {
-      print('Error guardando perfil: $e');
+      AppLogger.error('Error guardando perfil: $e');
       rethrow;
     }
   }
@@ -28,7 +29,7 @@ class OnboardingRepositoryImpl {
       final prefs = await SharedPreferences.getInstance();
       final profileJson = prefs.getString(_profileKey);
 
-      print('Perfil recuperado: $profileJson'); // Debug
+      AppLogger.log('Perfil recuperado: $profileJson');
 
       if (profileJson == null) return null;
 
@@ -39,7 +40,7 @@ class OnboardingRepositoryImpl {
         avatarId: data['avatarId'] ?? 'cocodrilo',
       );
     } catch (e) {
-      print('Error recuperando perfil: $e');
+      AppLogger.error('Error recuperando perfil: $e');
       return null;
     }
   }

@@ -1,6 +1,7 @@
 // lib/core/services/auth_service.dart
 
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:piensa_play/core/services/logger_service.dart';
 
 /// Service to handle Firebase Anonymous Authentication
 /// This provides a unique user ID for each device without requiring login
@@ -21,13 +22,13 @@ class AuthService {
   /// but is lost if the app is uninstalled
   Future<String> signInAnonymously() async {
     try {
-      print('🔵 AUTH: Signing in anonymously...');
+      AppLogger.log('AUTH: Signing in anonymously...');
       final userCredential = await _auth.signInAnonymously();
       final uid = userCredential.user!.uid;
-      print('🟢 AUTH: Signed in anonymously with UID: $uid');
+      AppLogger.success('AUTH: Signed in anonymously with UID: $uid');
       return uid;
     } catch (e) {
-      print('❌ AUTH: Error signing in anonymously: $e');
+      AppLogger.error('AUTH: Error signing in anonymously: $e');
       rethrow;
     }
   }
@@ -37,7 +38,7 @@ class AuthService {
   Future<String> ensureSignedIn() async {
     if (_auth.currentUser != null) {
       final uid = _auth.currentUser!.uid;
-      print('🟢 AUTH: Already signed in with UID: $uid');
+      AppLogger.success('AUTH: Already signed in with UID: $uid');
       return uid;
     }
 
@@ -47,11 +48,11 @@ class AuthService {
   /// Sign out (useful for testing or resetting the app)
   Future<void> signOut() async {
     try {
-      print('🔵 AUTH: Signing out...');
+      AppLogger.log('AUTH: Signing out...');
       await _auth.signOut();
-      print('🟢 AUTH: Signed out successfully');
+      AppLogger.success('AUTH: Signed out successfully');
     } catch (e) {
-      print('❌ AUTH: Error signing out: $e');
+      AppLogger.error('AUTH: Error signing out: $e');
       rethrow;
     }
   }

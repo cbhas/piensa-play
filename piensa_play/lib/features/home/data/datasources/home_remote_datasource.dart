@@ -1,6 +1,7 @@
 // lib/features/home/data/datasources/home_remote_datasource.dart
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:piensa_play/core/services/logger_service.dart';
 import '../../domain/entities/dashboard_stats.dart';
 import '../../domain/entities/user_progress.dart';
 
@@ -16,15 +17,15 @@ class HomeRemoteDatasource {
           .collection('dashboard')
           .doc('stats')
           .set({
-        'newGames': stats.newGames,
-        'pendingGlossary': stats.pendingGlossary,
-        'achievements': stats.achievements,
-        'activeMissions': stats.activeMissions,
-        'lastUpdated': FieldValue.serverTimestamp(),
-      });
-      print('✅ DashboardStats guardado en Firestore');
+            'newGames': stats.newGames,
+            'pendingGlossary': stats.pendingGlossary,
+            'achievements': stats.achievements,
+            'activeMissions': stats.activeMissions,
+            'lastUpdated': FieldValue.serverTimestamp(),
+          });
+      AppLogger.success('DashboardStats guardado en Firestore');
     } catch (e) {
-      print('❌ Error guardando DashboardStats: $e');
+      AppLogger.error('Error guardando DashboardStats: $e');
       rethrow;
     }
   }
@@ -50,7 +51,7 @@ class HomeRemoteDatasource {
       }
       return null;
     } catch (e) {
-      print('❌ Error obteniendo DashboardStats: $e');
+      AppLogger.error('Error obteniendo DashboardStats: $e');
       return null;
     }
   }
@@ -64,13 +65,13 @@ class HomeRemoteDatasource {
           .collection('progress')
           .doc('current')
           .set({
-        'generalProgress': progress.generalProgress,
-        'monthlyProgress': progress.monthlyProgress,
-        'lastUpdated': FieldValue.serverTimestamp(),
-      });
-      print('✅ UserProgress guardado en Firestore');
+            'generalProgress': progress.generalProgress,
+            'monthlyProgress': progress.monthlyProgress,
+            'lastUpdated': FieldValue.serverTimestamp(),
+          });
+      AppLogger.success('UserProgress guardado en Firestore');
     } catch (e) {
-      print('❌ Error guardando UserProgress: $e');
+      AppLogger.error('Error guardando UserProgress: $e');
       rethrow;
     }
   }
@@ -92,14 +93,14 @@ class HomeRemoteDatasource {
           monthlyProgress: Map<String, double>.from(
             (data['monthlyProgress'] as Map?)?.map(
                   (k, v) => MapEntry(k.toString(), (v as num).toDouble()),
-            ) ??
+                ) ??
                 {},
           ),
         );
       }
       return null;
     } catch (e) {
-      print('❌ Error obteniendo UserProgress: $e');
+      AppLogger.error('Error obteniendo UserProgress: $e');
       return null;
     }
   }
@@ -113,16 +114,16 @@ class HomeRemoteDatasource {
         .doc('stats')
         .snapshots()
         .map((doc) {
-      if (doc.exists) {
-        final data = doc.data() ?? {};
-        return DashboardStats(
-          newGames: data['newGames'] ?? 0,
-          pendingGlossary: data['pendingGlossary'] ?? 0,
-          achievements: data['achievements'] ?? 0,
-          activeMissions: data['activeMissions'] ?? 0,
-        );
-      }
-      return null;
-    });
+          if (doc.exists) {
+            final data = doc.data() ?? {};
+            return DashboardStats(
+              newGames: data['newGames'] ?? 0,
+              pendingGlossary: data['pendingGlossary'] ?? 0,
+              achievements: data['achievements'] ?? 0,
+              activeMissions: data['activeMissions'] ?? 0,
+            );
+          }
+          return null;
+        });
   }
 }

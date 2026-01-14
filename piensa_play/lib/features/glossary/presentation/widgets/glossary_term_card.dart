@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import '../../../../core/theme/app_theme.dart';
 import 'glossary_mascots.dart';
 
 class GlossaryTermCard extends StatefulWidget {
@@ -43,8 +42,6 @@ class _GlossaryTermCardState extends State<GlossaryTermCard>
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     // Bright, fun colors for kids
     final colors = [
       const Color(0xFF42A5F5), // Bright Blue
@@ -65,26 +62,28 @@ class _GlossaryTermCardState extends State<GlossaryTermCard>
           onTapCancel: () => setState(() => _isPressed = false),
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 200),
-            transform: Matrix4.identity()
-              ..scale(_isPressed ? 0.92 : 1.0)
-              ..rotateZ(_isPressed ? -0.02 : 0.0),
+            transform: Matrix4.diagonal3Values(
+              _isPressed ? 0.92 : 1.0,
+              _isPressed ? 0.92 : 1.0,
+              1.0,
+            )..rotateZ(_isPressed ? -0.02 : 0.0),
             child: Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
-                  colors: [color, color.withOpacity(0.8)],
+                  colors: [color, color.withValues(alpha: 0.8)],
                 ),
                 borderRadius: BorderRadius.circular(24),
                 boxShadow: [
                   BoxShadow(
-                    color: color.withOpacity(0.4),
+                    color: color.withValues(alpha: 0.4),
                     blurRadius: 15,
                     offset: const Offset(0, 8),
                     spreadRadius: 2,
                   ),
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
+                    color: Colors.black.withValues(alpha: 0.1),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -100,7 +99,7 @@ class _GlossaryTermCardState extends State<GlossaryTermCard>
                       width: 80,
                       height: 80,
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.1),
+                        color: Colors.white.withValues(alpha: 0.1),
                         shape: BoxShape.circle,
                       ),
                     ),
@@ -112,7 +111,7 @@ class _GlossaryTermCardState extends State<GlossaryTermCard>
                       width: 100,
                       height: 100,
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.08),
+                        color: Colors.white.withValues(alpha: 0.08),
                         shape: BoxShape.circle,
                       ),
                     ),
@@ -144,7 +143,9 @@ class _GlossaryTermCardState extends State<GlossaryTermCard>
                                   shape: BoxShape.circle,
                                   boxShadow: [
                                     BoxShadow(
-                                      color: Colors.black.withOpacity(0.15),
+                                      color: Colors.black.withValues(
+                                        alpha: 0.15,
+                                      ),
                                       blurRadius: 10,
                                       offset: Offset(0, 5 + (5 * bounceValue)),
                                     ),
@@ -196,11 +197,13 @@ class _GlossaryTermCardState extends State<GlossaryTermCard>
                                   width: 6,
                                   height: 6,
                                   decoration: BoxDecoration(
-                                    color: Colors.white.withOpacity(0.8),
+                                    color: Colors.white.withValues(alpha: 0.8),
                                     shape: BoxShape.circle,
                                     boxShadow: [
                                       BoxShadow(
-                                        color: Colors.white.withOpacity(0.5),
+                                        color: Colors.white.withValues(
+                                          alpha: 0.5,
+                                        ),
                                         blurRadius: 4,
                                         spreadRadius: 1,
                                       ),
@@ -215,7 +218,7 @@ class _GlossaryTermCardState extends State<GlossaryTermCard>
                             .shimmer(
                               duration: 1500.ms,
                               delay: (widget.index * 200).ms,
-                              color: Colors.white.withOpacity(0.6),
+                              color: Colors.white.withValues(alpha: 0.6),
                             ),
                       ],
                     ),
@@ -264,7 +267,7 @@ class _GlossaryTermCardState extends State<GlossaryTermCard>
                         },
                       ),
                     );
-                  }).toList(),
+                  }),
 
                   // Shine effect overlay
                   Positioned.fill(
@@ -275,7 +278,7 @@ class _GlossaryTermCardState extends State<GlossaryTermCard>
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                           colors: [
-                            Colors.white.withOpacity(0.2),
+                            Colors.white.withValues(alpha: 0.2),
                             Colors.transparent,
                             Colors.transparent,
                           ],
@@ -296,7 +299,7 @@ class _GlossaryTermCardState extends State<GlossaryTermCard>
         .shimmer(
           duration: 2000.ms,
           delay: (widget.index * 300).ms,
-          color: Colors.white.withOpacity(0.3),
+          color: Colors.white.withValues(alpha: 0.3),
         );
   }
 }

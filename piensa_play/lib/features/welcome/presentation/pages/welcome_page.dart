@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:piensa_play/core/constants/app_constants.dart';
 import 'package:piensa_play/core/theme/app_theme.dart';
 import 'package:piensa_play/core/services/audio_service.dart';
+import 'package:piensa_play/core/services/logger_service.dart';
 import 'package:piensa_play/features/welcome/domain/usecases/get_welcome_config.dart';
 import 'package:piensa_play/features/welcome/domain/usecases/show_tutorial.dart';
 import 'package:piensa_play/features/welcome/domain/usecases/start_adventure.dart';
@@ -9,7 +10,7 @@ import 'package:piensa_play/features/welcome/domain/entities/welcome_config.dart
 import 'package:piensa_play/core/routes/app_routes.dart';
 
 class WelcomePage extends StatefulWidget {
-  const WelcomePage({Key? key}) : super(key: key);
+  const WelcomePage({super.key});
 
   @override
   State<WelcomePage> createState() => _WelcomePageState();
@@ -37,7 +38,7 @@ class _WelcomePageState extends State<WelcomePage> {
     try {
       await AudioService().playMascotAudio('bienvenida.mp3');
     } catch (e) {
-      print('Error playing welcome audio: $e');
+      AppLogger.error('Error playing welcome audio: $e');
     }
   }
 
@@ -166,7 +167,7 @@ class _WelcomePageState extends State<WelcomePage> {
           backgroundColor: AppTheme.accentYellow,
           foregroundColor: AppTheme.secondaryDark,
           elevation: 8,
-          shadowColor: Colors.black.withOpacity(0.3),
+          shadowColor: Colors.black.withValues(alpha: 0.3),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(28),
           ),
@@ -199,7 +200,7 @@ class _WelcomePageState extends State<WelcomePage> {
         style: OutlinedButton.styleFrom(
           foregroundColor: Colors.white,
           side: const BorderSide(color: AppTheme.accentGreen, width: 2),
-          backgroundColor: AppTheme.accentGreen.withOpacity(0.3),
+          backgroundColor: AppTheme.accentGreen.withValues(alpha: 0.3),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(28),
           ),

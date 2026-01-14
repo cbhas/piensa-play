@@ -118,7 +118,7 @@ class _ZonaCeroMapPageState extends State<ZonaCeroMapPage> {
                     ),
                   ),
                 ),
-                Container(color: Colors.white.withOpacity(0.1)),
+                Container(color: Colors.white.withValues(alpha: 0.1)),
                 SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
                   child: SizedBox(
@@ -159,7 +159,7 @@ class _ZonaCeroMapPageState extends State<ZonaCeroMapPage> {
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.12),
+                color: Colors.black.withValues(alpha: 0.12),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               ),
@@ -325,7 +325,7 @@ class MapPathPainter extends CustomPainter {
     }
 
     final shadowPaint = Paint()
-      ..color = Colors.black.withOpacity(0.12)
+      ..color = Colors.black.withValues(alpha: 0.12)
       ..strokeWidth = 22
       ..strokeCap = StrokeCap.round
       ..style = PaintingStyle.stroke
@@ -350,7 +350,7 @@ class MapPathPainter extends CustomPainter {
     canvas.drawPath(path, pathPaint);
 
     final highlightPaint = Paint()
-      ..color = const Color(0xFFE8DCC8).withOpacity(0.5)
+      ..color = const Color(0xFFE8DCC8).withValues(alpha: 0.5)
       ..strokeWidth = 5
       ..strokeCap = StrokeCap.round
       ..style = PaintingStyle.stroke;

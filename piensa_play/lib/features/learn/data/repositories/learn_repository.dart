@@ -1,5 +1,6 @@
 // lib/features/learn/data/repositories/learn_repository.dart
 
+import 'package:piensa_play/core/services/logger_service.dart';
 import '../datasources/learn_remote_datasource.dart';
 import '../../domain/entities/media_item.dart';
 
@@ -32,11 +33,11 @@ class LearnRepository {
         return items;
       }
       // If Firebase returns empty, use fallback
-      print('🟡 LEARN REPO: Firebase empty, using fallback data');
+      AppLogger.warning('LEARN REPO: Firebase empty, using fallback data');
       return _hardcodedItems;
     } catch (e) {
       // On any error (network, etc.), use fallback
-      print('🟡 LEARN REPO: Firebase failed, using fallback data: $e');
+      AppLogger.warning('LEARN REPO: Firebase failed, using fallback data: $e');
       return _hardcodedItems;
     }
   }

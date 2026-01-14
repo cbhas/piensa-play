@@ -71,7 +71,7 @@ class _TrueFalseQuestionPageState extends State<TrueFalseQuestionPage> {
                 end: Alignment.bottomCenter,
                 colors: [
                   AppTheme.primaryDark,
-                  AppTheme.primaryDark.withOpacity(0.9),
+                  AppTheme.primaryDark.withValues(alpha: 0.9),
                   Colors.white,
                 ],
                 stops: const [0.0, 0.25, 0.25],
@@ -154,7 +154,7 @@ class _TrueFalseQuestionPageState extends State<TrueFalseQuestionPage> {
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFFFDD835).withOpacity(0.5),
+                      color: const Color(0xFFFDD835).withValues(alpha: 0.5),
                       blurRadius: 12,
                       offset: const Offset(0, 4),
                     ),
@@ -170,7 +170,7 @@ class _TrueFalseQuestionPageState extends State<TrueFalseQuestionPage> {
             child: LinearProgressIndicator(
               value: progress,
               minHeight: 8,
-              backgroundColor: Colors.white.withOpacity(0.3),
+              backgroundColor: Colors.white.withValues(alpha: 0.3),
               valueColor: const AlwaysStoppedAnimation<Color>(
                 Color(0xFFFDD835),
               ),
@@ -188,7 +188,7 @@ class _TrueFalseQuestionPageState extends State<TrueFalseQuestionPage> {
         color: const Color(0xFFE3F2FD),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: AppTheme.accentBlue.withOpacity(0.3),
+          color: AppTheme.accentBlue.withValues(alpha: 0.3),
           width: 2,
         ),
       ),
@@ -219,7 +219,7 @@ class _TrueFalseQuestionPageState extends State<TrueFalseQuestionPage> {
         border: Border.all(color: Colors.grey[300]!, width: 3),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 15,
             offset: const Offset(0, 8),
           ),
@@ -322,7 +322,7 @@ class _TrueFalseQuestionPageState extends State<TrueFalseQuestionPage> {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: AppTheme.primaryDark.withOpacity(0.1),
+                    color: AppTheme.primaryDark.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Row(
@@ -359,12 +359,12 @@ class _TrueFalseQuestionPageState extends State<TrueFalseQuestionPage> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: AppTheme.accentBlue.withOpacity(0.5),
+          color: AppTheme.accentBlue.withValues(alpha: 0.5),
           width: 2,
         ),
         boxShadow: [
           BoxShadow(
-            color: AppTheme.accentBlue.withOpacity(0.2),
+            color: AppTheme.accentBlue.withValues(alpha: 0.2),
             blurRadius: 12,
             offset: const Offset(0, 6),
           ),
@@ -392,7 +392,7 @@ class _TrueFalseQuestionPageState extends State<TrueFalseQuestionPage> {
             final index = entry.key;
             final clue = entry.value;
             return _buildClueItem(clue, index);
-          }).toList(),
+          }),
         ],
       ),
     ).animate().slideX(delay: 500.ms, begin: 0.2, duration: 400.ms);
@@ -408,7 +408,7 @@ class _TrueFalseQuestionPageState extends State<TrueFalseQuestionPage> {
                 margin: const EdgeInsets.only(top: 2),
                 padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
-                  color: Colors.red.withOpacity(0.2),
+                  color: Colors.red.withValues(alpha: 0.2),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(Icons.warning, color: Colors.red, size: 16),
@@ -471,11 +471,11 @@ class _TrueFalseQuestionPageState extends State<TrueFalseQuestionPage> {
     return Container(
       height: 70,
       decoration: BoxDecoration(
-        gradient: LinearGradient(colors: [color, color.withOpacity(0.8)]),
+        gradient: LinearGradient(colors: [color, color.withValues(alpha: 0.8)]),
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: color.withOpacity(0.4),
+            color: color.withValues(alpha: 0.4),
             blurRadius: 12,
             offset: const Offset(0, 6),
           ),

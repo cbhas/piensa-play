@@ -27,7 +27,7 @@ class CustomBottomNavBar extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.3),
+            color: Colors.black.withValues(alpha: 0.3),
             blurRadius: 15,
             offset: const Offset(0, -5),
           ),
@@ -86,7 +86,7 @@ class _NavBarItem extends StatelessWidget {
             color: isSelected
                 ? AppTheme
                       .accentYellow // CORRECTO
-                : Colors.white.withOpacity(0.6),
+                : Colors.white.withValues(alpha: 0.6),
           ),
           const SizedBox(height: 4),
           Text(
@@ -97,7 +97,7 @@ class _NavBarItem extends StatelessWidget {
               color: isSelected
                   ? AppTheme
                         .accentYellow // CORRECTO
-                  : Colors.white.withOpacity(0.6),
+                  : Colors.white.withValues(alpha: 0.6),
             ),
           ),
         ],

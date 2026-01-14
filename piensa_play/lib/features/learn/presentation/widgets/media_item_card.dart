@@ -60,26 +60,28 @@ class _MediaItemCardState extends State<MediaItemCard>
           onTapCancel: () => setState(() => _isPressed = false),
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 200),
-            transform: Matrix4.identity()
-              ..scale(_isPressed ? 0.92 : 1.0)
-              ..rotateZ(_isPressed ? -0.02 : 0.0),
+            transform: Matrix4.diagonal3Values(
+              _isPressed ? 0.92 : 1.0,
+              _isPressed ? 0.92 : 1.0,
+              1.0,
+            )..rotateZ(_isPressed ? -0.02 : 0.0),
             child: Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
-                  colors: [color, color.withOpacity(0.8)],
+                  colors: [color, color.withValues(alpha: 0.8)],
                 ),
                 borderRadius: BorderRadius.circular(24),
                 boxShadow: [
                   BoxShadow(
-                    color: color.withOpacity(0.4),
+                    color: color.withValues(alpha: 0.4),
                     blurRadius: 15,
                     offset: const Offset(0, 8),
                     spreadRadius: 2,
                   ),
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
+                    color: Colors.black.withValues(alpha: 0.1),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -95,7 +97,7 @@ class _MediaItemCardState extends State<MediaItemCard>
                       width: 80,
                       height: 80,
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.1),
+                        color: Colors.white.withValues(alpha: 0.1),
                         shape: BoxShape.circle,
                       ),
                     ),
@@ -107,7 +109,7 @@ class _MediaItemCardState extends State<MediaItemCard>
                       width: 100,
                       height: 100,
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.08),
+                        color: Colors.white.withValues(alpha: 0.08),
                         shape: BoxShape.circle,
                       ),
                     ),
@@ -139,7 +141,9 @@ class _MediaItemCardState extends State<MediaItemCard>
                                   shape: BoxShape.circle,
                                   boxShadow: [
                                     BoxShadow(
-                                      color: Colors.black.withOpacity(0.15),
+                                      color: Colors.black.withValues(
+                                        alpha: 0.15,
+                                      ),
                                       blurRadius: 10,
                                       offset: Offset(0, 5 + (5 * bounceValue)),
                                     ),
@@ -170,7 +174,9 @@ class _MediaItemCardState extends State<MediaItemCard>
                                       width: 80,
                                       height: 80,
                                       decoration: BoxDecoration(
-                                        color: Colors.black.withOpacity(0.3),
+                                        color: Colors.black.withValues(
+                                          alpha: 0.3,
+                                        ),
                                         shape: BoxShape.circle,
                                       ),
                                       child: Icon(
@@ -218,7 +224,7 @@ class _MediaItemCardState extends State<MediaItemCard>
                             vertical: 4,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.25),
+                            color: Colors.white.withValues(alpha: 0.25),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Row(
@@ -256,7 +262,7 @@ class _MediaItemCardState extends State<MediaItemCard>
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                           colors: [
-                            Colors.white.withOpacity(0.2),
+                            Colors.white.withValues(alpha: 0.2),
                             Colors.transparent,
                             Colors.transparent,
                           ],
@@ -277,7 +283,7 @@ class _MediaItemCardState extends State<MediaItemCard>
         .shimmer(
           duration: 2000.ms,
           delay: (widget.index * 300).ms,
-          color: Colors.white.withOpacity(0.3),
+          color: Colors.white.withValues(alpha: 0.3),
         );
   }
 }

@@ -1,6 +1,7 @@
 // lib/features/home/presentation/pages/home_page.dart
 
 import 'package:flutter/material.dart';
+import 'package:piensa_play/core/services/logger_service.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/app_animations.dart';
 import '../../../../core/services/user_id_provider.dart';
@@ -34,7 +35,6 @@ class _HomePageState extends State<HomePage> {
   UserProgress? _progress;
   String? _avatarId;
   String? _userName;
-  int _currentNavIndex = 0;
   bool _isLoading = true;
 
   @override
@@ -46,15 +46,15 @@ class _HomePageState extends State<HomePage> {
   Future<void> _loadData() async {
     setState(() => _isLoading = true);
     try {
-      print('🔵 HOME: Iniciando carga de datos...');
+      AppLogger.log('HOME: Iniciando carga de datos...');
 
       // Carga los tres datos EN SECUENCIA
       final profile = await _getUserProfile.execute();
       final stats = await _getDashboardStats.execute(userId);
       final progress = await _getUserProgress.execute(userId);
 
-      print('🟡 HOME: Perfil recuperado: $profile');
-      print('🟡 HOME: AvatarId: ${profile?.avatarId}');
+      AppLogger.log('HOME: Perfil recuperado: $profile');
+      AppLogger.log('HOME: AvatarId: ${profile?.avatarId}');
 
       // Actualiza el estado con los datos cargados
       setState(() {
@@ -69,11 +69,11 @@ class _HomePageState extends State<HomePage> {
       await _getDashboardStats.save(userId, stats);
       await _getUserProgress.save(userId, progress);
 
-      print('🟢 HOME: Avatar cargado: $_avatarId');
-      print('🟢 HOME: Datos guardados en Firestore');
+      AppLogger.success('HOME: Avatar cargado: $_avatarId');
+      AppLogger.success('HOME: Datos guardados en Firestore');
     } catch (e) {
       setState(() => _isLoading = false);
-      print('❌ HOME: Error: $e');
+      AppLogger.error('HOME: Error: $e');
     }
   }
 

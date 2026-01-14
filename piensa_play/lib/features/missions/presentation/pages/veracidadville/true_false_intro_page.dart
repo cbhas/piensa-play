@@ -33,8 +33,8 @@ class TrueFalseIntroPage extends StatelessWidget {
             end: Alignment.bottomRight,
             colors: [
               AppTheme.primaryDark,
-              AppTheme.primaryDark.withOpacity(0.8),
-              const Color(0xFF66BB6A).withOpacity(0.3),
+              AppTheme.primaryDark.withValues(alpha: 0.8),
+              const Color(0xFF66BB6A).withValues(alpha: 0.3),
             ],
           ),
         ),
@@ -105,13 +105,16 @@ class TrueFalseIntroPage extends StatelessWidget {
           Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withValues(alpha: 0.2),
                   shape: BoxShape.circle,
                 ),
                 child: const Text('🎯', style: TextStyle(fontSize: 32)),
               )
               .animate(onPlay: (controller) => controller.repeat())
-              .shimmer(duration: 2000.ms, color: Colors.white.withOpacity(0.3)),
+              .shimmer(
+                duration: 2000.ms,
+                color: Colors.white.withValues(alpha: 0.3),
+              ),
         ],
       ),
     ).animate().fadeIn(duration: 400.ms);
@@ -130,7 +133,7 @@ class TrueFalseIntroPage extends StatelessWidget {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF66BB6A).withOpacity(0.4),
+            color: const Color(0xFF66BB6A).withValues(alpha: 0.4),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -240,7 +243,7 @@ class TrueFalseIntroPage extends StatelessWidget {
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
-                color: color.withOpacity(0.3),
+                color: color.withValues(alpha: 0.3),
                 blurRadius: 12,
                 offset: const Offset(0, 6),
               ),
@@ -253,14 +256,14 @@ class TrueFalseIntroPage extends StatelessWidget {
                 height: 60,
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [color, color.withOpacity(0.7)],
+                    colors: [color, color.withValues(alpha: 0.7)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: color.withOpacity(0.4),
+                      color: color.withValues(alpha: 0.4),
                       blurRadius: 8,
                       offset: const Offset(0, 4),
                     ),
@@ -283,7 +286,7 @@ class TrueFalseIntroPage extends StatelessWidget {
                             vertical: 4,
                           ),
                           decoration: BoxDecoration(
-                            color: color.withOpacity(0.2),
+                            color: color.withValues(alpha: 0.2),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
@@ -335,7 +338,7 @@ class TrueFalseIntroPage extends StatelessWidget {
             borderRadius: BorderRadius.circular(30),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF66BB6A).withOpacity(0.5),
+                color: const Color(0xFF66BB6A).withValues(alpha: 0.5),
                 blurRadius: 20,
                 offset: const Offset(0, 10),
               ),
@@ -384,7 +387,7 @@ class TrueFalseIntroPage extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.3),
+                      color: Colors.white.withValues(alpha: 0.3),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
@@ -401,6 +404,6 @@ class TrueFalseIntroPage extends StatelessWidget {
         .animate(delay: 800.ms)
         .scale(duration: 400.ms, curve: Curves.easeOutBack)
         .then()
-        .shimmer(duration: 2000.ms, color: Colors.white.withOpacity(0.3));
+        .shimmer(duration: 2000.ms, color: Colors.white.withValues(alpha: 0.3));
   }
 }

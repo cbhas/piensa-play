@@ -66,7 +66,7 @@ class MissionItem extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -80,7 +80,7 @@ class MissionItem extends StatelessWidget {
             height: 36,
             decoration: BoxDecoration(
               color: mission.isCompleted
-                  ? AppTheme.accentGreen.withOpacity(0.2)
+                  ? AppTheme.accentGreen.withValues(alpha: 0.2)
                   : Colors.red.shade50,
               shape: BoxShape.circle,
             ),
@@ -134,7 +134,7 @@ class MissionItem extends StatelessWidget {
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: AppTheme.accentGreen.withOpacity(0.4),
+                    color: AppTheme.accentGreen.withValues(alpha: 0.4),
                     blurRadius: 8,
                     offset: const Offset(0, 3),
                   ),

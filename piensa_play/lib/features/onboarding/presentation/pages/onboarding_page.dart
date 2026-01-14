@@ -1,6 +1,7 @@
 // lib/features/onboarding/presentation/pages/onboarding_page.dart
 
 import 'package:flutter/material.dart';
+import 'package:piensa_play/core/services/logger_service.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/widgets/mascot_audio_button.dart';
 import '../../../../core/services/audio_service.dart';
@@ -42,7 +43,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
     try {
       await AudioService().playMascotAudio('perfil.mp3');
     } catch (e) {
-      print('Error playing profile audio: $e');
+      AppLogger.error('Error playing profile audio: $e');
     }
   }
 
@@ -77,13 +78,13 @@ class _OnboardingPageState extends State<OnboardingPage> {
         avatarId: _selectedAvatarId!,
       );
 
-      print(
-        '🔵 Guardando perfil: nombre=${profile.name}, edad=${profile.age}, avatarId=${profile.avatarId}',
+      AppLogger.log(
+        'Guardando perfil: nombre=${profile.name}, edad=${profile.age}, avatarId=${profile.avatarId}',
       );
 
       await _saveUserProfile.execute(profile);
 
-      print('🟢 Perfil guardado exitosamente');
+      AppLogger.success('Perfil guardado exitosamente');
 
       if (mounted) {
         Navigator.pushReplacementNamed(context, '/home');
@@ -117,7 +118,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
                       Container(
                         child: Center(
                           child: ClipOval(
-                            child: Container(
+                            child: SizedBox(
                               width: 100,
                               height: 100,
                               child: Center(
@@ -191,7 +192,9 @@ class _OnboardingPageState extends State<OnboardingPage> {
                               decoration: InputDecoration(
                                 hintText: '¿Cómo te llamas?',
                                 hintStyle: TextStyle(
-                                  color: AppTheme.primaryDark.withOpacity(0.4),
+                                  color: AppTheme.primaryDark.withValues(
+                                    alpha: 0.4,
+                                  ),
                                   fontSize: 16,
                                 ),
                                 filled: true,
@@ -210,8 +213,8 @@ class _OnboardingPageState extends State<OnboardingPage> {
                                 focusedBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(30),
                                   borderSide: BorderSide(
-                                    color: AppTheme.primaryDark.withOpacity(
-                                      0.5,
+                                    color: AppTheme.primaryDark.withValues(
+                                      alpha: 0.5,
                                     ),
                                     width: 2,
                                   ),
@@ -240,11 +243,13 @@ class _OnboardingPageState extends State<OnboardingPage> {
 
                             // Selector de edad (dropdown)
                             DropdownButtonFormField<int>(
-                              value: _selectedAge,
+                              initialValue: _selectedAge,
                               decoration: InputDecoration(
                                 hintText: '¿Cuántos años tienes?',
                                 hintStyle: TextStyle(
-                                  color: AppTheme.primaryDark.withOpacity(0.4),
+                                  color: AppTheme.primaryDark.withValues(
+                                    alpha: 0.4,
+                                  ),
                                   fontSize: 16,
                                 ),
                                 filled: true,
@@ -263,8 +268,8 @@ class _OnboardingPageState extends State<OnboardingPage> {
                                 focusedBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(30),
                                   borderSide: BorderSide(
-                                    color: AppTheme.primaryDark.withOpacity(
-                                      0.5,
+                                    color: AppTheme.primaryDark.withValues(
+                                      alpha: 0.5,
                                     ),
                                     width: 2,
                                   ),

@@ -1,6 +1,7 @@
 // lib/features/learn/presentation/pages/learn_page.dart
 
 import 'package:flutter/material.dart';
+import 'package:piensa_play/core/services/logger_service.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/app_animations.dart';
 import '../../../../core/widgets/mascot_audio_button.dart';
@@ -52,10 +53,10 @@ class _LearnPageState extends State<LearnPage> {
         _categories = categories;
         _isLoading = false;
       });
-      print('🔵 LEARN PAGE: Loaded ${items.length} media items');
+      AppLogger.log('LEARN PAGE: Loaded ${items.length} media items');
     } catch (e) {
       setState(() => _isLoading = false);
-      print('❌ LEARN PAGE: Error loading: $e');
+      AppLogger.error('LEARN PAGE: Error loading: $e');
     }
   }
 
@@ -164,13 +165,13 @@ class _LearnPageState extends State<LearnPage> {
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
                   borderSide: BorderSide(
-                    color: AppTheme.accentBlue.withOpacity(0.3),
+                    color: AppTheme.accentBlue.withValues(alpha: 0.3),
                   ),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
                   borderSide: BorderSide(
-                    color: AppTheme.accentBlue.withOpacity(0.3),
+                    color: AppTheme.accentBlue.withValues(alpha: 0.3),
                   ),
                 ),
                 focusedBorder: OutlineInputBorder(
@@ -206,7 +207,7 @@ class _LearnPageState extends State<LearnPage> {
                             ? AppTheme.cardDark
                             : Colors.white,
                         selectedColor: isDark
-                            ? AppTheme.accentBlue.withOpacity(0.5)
+                            ? AppTheme.accentBlue.withValues(alpha: 0.5)
                             : const Color(0xFF90CAF9),
                         labelStyle: TextStyle(
                           color: isSelected

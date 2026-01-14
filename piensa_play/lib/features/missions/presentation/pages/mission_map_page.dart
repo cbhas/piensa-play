@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:piensa_play/core/services/logger_service.dart';
 import '../widgets/map_header.dart';
 import '../widgets/mission_banner.dart';
 import '../widgets/mission_node.dart';
@@ -112,8 +113,8 @@ class _MissionMapPageState extends State<MissionMapPage> {
 
   void _navigateToMission(Mission mission) {
     // DEBUG: Ver qué tipo de misión llega
-    print(
-      '🔵 NAVIGATION: Mission ${mission.id}, type: ${mission.type}, category: ${widget.category.id}',
+    AppLogger.log(
+      'NAVIGATION: Mission ${mission.id}, type: ${mission.type}, category: ${widget.category.id}',
     );
 
     // Navegación basada en el TIPO de misión, no en IDs hardcodeados
@@ -380,7 +381,7 @@ class MapPathPainter extends CustomPainter {
     }
 
     final shadowPaint = Paint()
-      ..color = Colors.black.withOpacity(0.12)
+      ..color = Colors.black.withValues(alpha: 0.12)
       ..strokeWidth = 22
       ..strokeCap = StrokeCap.round
       ..style = PaintingStyle.stroke
@@ -405,7 +406,7 @@ class MapPathPainter extends CustomPainter {
     canvas.drawPath(path, pathPaint);
 
     final highlightPaint = Paint()
-      ..color = const Color(0xFFE8DCC8).withOpacity(0.5)
+      ..color = const Color(0xFFE8DCC8).withValues(alpha: 0.5)
       ..strokeWidth = 5
       ..strokeCap = StrokeCap.round
       ..style = PaintingStyle.stroke;

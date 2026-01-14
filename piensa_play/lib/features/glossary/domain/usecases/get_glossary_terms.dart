@@ -1,5 +1,6 @@
 // lib/features/glossary/domain/usecases/get_glossary_terms.dart
 
+import 'package:piensa_play/core/services/logger_service.dart';
 import '../entities/glossary_term.dart';
 import '../../data/repositories/glossary_repository_impl.dart';
 
@@ -8,13 +9,13 @@ class GetGlossaryTerms {
 
   /// Fetch all glossary terms (remote first, fallback to cache)
   Future<List<GlossaryTerm>> execute(String userId) async {
-    print('🔵 GLOSSARY: Fetching terms for user $userId');
+    AppLogger.log('GLOSSARY: Fetching terms for user $userId');
     return await _repository.getGlossaryTerms(userId);
   }
 
   /// Save glossary terms to cache and remote
   Future<void> save(String userId, List<GlossaryTerm> terms) async {
-    print('🔵 GLOSSARY: Saving ${terms.length} terms');
+    AppLogger.log('GLOSSARY: Saving ${terms.length} terms');
     await _repository.saveGlossaryTerms(userId, terms);
   }
 
