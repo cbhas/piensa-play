@@ -1,17 +1,48 @@
 import 'package:audioplayers/audioplayers.dart';
 import 'package:piensa_play/core/services/logger_service.dart';
 
-/// Service to manage mascot audio playback across the app
-/// Ensures only one audio plays at a time
+/// Service to manage audio playback across the app
+/// Includes preloaded sound effects for instant playback
 class AudioService {
   // Singleton pattern
   static final AudioService _instance = AudioService._internal();
   factory AudioService() => _instance;
-  AudioService._internal();
+  AudioService._internal() {
+    _initSoundEffects();
+  }
 
   final AudioPlayer _player = AudioPlayer();
   bool _isPlaying = false;
   String? _currentAudio;
+
+  // Pre-loaded sound effect players for instant playback
+  late AudioPlayer _correctPlayer;
+  late AudioPlayer _incorrectPlayer;
+  late AudioPlayer _tapPlayer;
+  bool _effectsInitialized = false;
+
+  /// Initialize sound effect players (preload for instant playback)
+  Future<void> _initSoundEffects() async {
+    try {
+      _correctPlayer = AudioPlayer();
+      _incorrectPlayer = AudioPlayer();
+      _tapPlayer = AudioPlayer();
+
+      // Set audio sources (preload)
+      await _correctPlayer.setSource(AssetSource('audio/correct.wav'));
+      await _incorrectPlayer.setSource(AssetSource('audio/incorrect.mp3'));
+
+      // Set release mode to stop (so we can replay)
+      await _correctPlayer.setReleaseMode(ReleaseMode.stop);
+      await _incorrectPlayer.setReleaseMode(ReleaseMode.stop);
+      await _tapPlayer.setReleaseMode(ReleaseMode.stop);
+
+      _effectsInitialized = true;
+      AppLogger.debug('Sound effects preloaded successfully');
+    } catch (e) {
+      AppLogger.error('Error preloading sound effects: $e');
+    }
+  }
 
   /// Check if audio is currently playing
   bool get isPlaying => _isPlaying;
@@ -20,23 +51,15 @@ class AudioService {
   String? get currentAudio => _currentAudio;
 
   /// Play mascot audio from assets
-  /// Automatically stops any currently playing audio
   Future<void> playMascotAudio(String audioFileName) async {
     try {
-      // Stop current audio if playing
       if (_isPlaying) {
         await stop();
       }
-
-      // Build the asset path
       final assetPath = 'audio/mascot/$audioFileName';
       _currentAudio = assetPath;
-
-      // Play the audio
       await _player.play(AssetSource(assetPath));
       _isPlaying = true;
-
-      // Listen for completion
       _player.onPlayerComplete.listen((_) {
         _isPlaying = false;
         _currentAudio = null;
@@ -47,6 +70,31 @@ class AudioService {
       _currentAudio = null;
     }
   }
+
+  /// Play correct answer sound (INSTANT - preloaded)
+  Future<void> playCorrect() async {
+    if (!_effectsInitialized) return;
+    try {
+      await _correctPlayer.stop(); // Reset position
+      await _correctPlayer.resume(); // Play instantly
+    } catch (e) {
+      AppLogger.error('Error playing correct sound: $e');
+    }
+  }
+
+  /// Play incorrect answer sound (INSTANT - preloaded)
+  Future<void> playIncorrect() async {
+    if (!_effectsInitialized) return;
+    try {
+      await _incorrectPlayer.stop(); // Reset position
+      await _incorrectPlayer.resume(); // Play instantly
+    } catch (e) {
+      AppLogger.error('Error playing incorrect sound: $e');
+    }
+  }
+
+  /// Play tap sound (using system feedback)
+  /// This is handled by HapticFeedback in the widgets
 
   /// Stop currently playing audio
   Future<void> stop() async {
@@ -79,8 +127,11 @@ class AudioService {
     }
   }
 
-  /// Dispose the audio player
+  /// Dispose all audio players
   void dispose() {
     _player.dispose();
+    _correctPlayer.dispose();
+    _incorrectPlayer.dispose();
+    _tapPlayer.dispose();
   }
 }

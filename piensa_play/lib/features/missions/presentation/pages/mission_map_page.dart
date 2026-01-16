@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:piensa_play/core/services/logger_service.dart';
+import 'package:piensa_play/core/services/unified_questions_service.dart';
 import '../widgets/map_header.dart';
 import '../widgets/mission_banner.dart';
 import '../widgets/mission_node.dart';
+import 'unified/unified_mission_page.dart';
 import 'veracidadville/quiz_intro_page.dart';
 import 'veracidadville/true_false_intro_page.dart';
 import 'ciberseguridad/ciberseguridad_intro_page.dart';
@@ -11,6 +13,7 @@ import 'zona_cero/word_trail_page.dart';
 import 'zona_cero/stereotype_breaker_page.dart';
 import '../../domain/entities/mission.dart';
 import '../../domain/entities/mission_category.dart';
+import '../../domain/entities/unified_question.dart';
 import '../../../../core/services/mission_progress_service.dart';
 
 class MissionMapPage extends StatefulWidget {
@@ -99,28 +102,54 @@ class _MissionMapPageState extends State<MissionMapPage> {
   }
 
   void _selectMission(Mission mission) {
-    setState(() {
-      if (selectedMissionId == mission.id) {
-        _navigateToMission(mission);
-        return;
-      }
+    // Si ya está seleccionado, navega directamente
+    if (selectedMissionId == mission.id) {
+      _navigateToMission(mission);
+      return;
+    }
 
+    // Si no, solo lo selecciona
+    setState(() {
       selectedMissionId = mission.id;
       selectedMissionTitle = mission.title;
       selectedMissionDescription = mission.description;
     });
   }
 
-  void _navigateToMission(Mission mission) {
-    // DEBUG: Ver qué tipo de misión llega
+  void _navigateToMission(Mission mission) async {
     AppLogger.log(
       'NAVIGATION: Mission ${mission.id}, type: ${mission.type}, category: ${widget.category.id}',
     );
 
-    // Navegación basada en el TIPO de misión, no en IDs hardcodeados
+    // Cargar preguntas de Firebase
+    final questionsService = UnifiedQuestionsService();
+    final questions = await questionsService.getQuestionsForMission(mission.id);
+
+    if (questions.isEmpty) {
+      // Fallback a páginas legacy si no hay preguntas unificadas
+      _navigateToLegacyMission(mission);
+      return;
+    }
+
+    if (!mounted) return;
+
+    // Navegar a página unificada
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => UnifiedMissionPage(
+          mission: mission,
+          category: widget.category,
+          questions: questions,
+        ),
+      ),
+    );
+  }
+
+  /// Fallback para misiones que aún no tienen preguntas unificadas
+  void _navigateToLegacyMission(Mission mission) {
     switch (mission.type) {
       case MissionType.quiz:
-        // Para quiz, usamos la página de intro de quiz
         if (widget.category.id == 'veracidadville' &&
             mission.id == 'fake_news') {
           Navigator.push(
@@ -320,6 +349,12 @@ class _MissionMapPageState extends State<MissionMapPage> {
           onTap: () {
             if (missionData.type != MissionNodeType.locked) {
               _selectMission(missionData.mission);
+            }
+          },
+          // onPlay navega directamente sin verificar selección
+          onPlay: () {
+            if (missionData.type != MissionNodeType.locked) {
+              _navigateToMission(missionData.mission);
             }
           },
         ),

@@ -9,8 +9,9 @@ class MissionNodeWidget extends StatelessWidget {
   final bool isSelected;
   final double progress;
   final VoidCallback? onTap;
+  final VoidCallback? onPlay; // Callback para navegar directamente
   final int index;
-  final Color? nodeColor; // Configurable node color
+  final Color? nodeColor;
 
   const MissionNodeWidget({
     super.key,
@@ -18,8 +19,9 @@ class MissionNodeWidget extends StatelessWidget {
     this.isSelected = false,
     this.progress = 0.0,
     this.onTap,
+    this.onPlay,
     this.index = 0,
-    this.nodeColor, // Optional, defaults to green
+    this.nodeColor,
   });
 
   @override
@@ -37,52 +39,58 @@ class MissionNodeWidget extends StatelessWidget {
               alignment: Alignment.center,
               clipBehavior: Clip.none,
               children: [
-                // "JUGAR" button - Positioned absolutely above the node
-                // This prevents the node from shifting when the button appears
+                // "JUGAR" button - Clickeable para iniciar misión
                 if (isSelected && type == MissionNodeType.unlocked)
                   Positioned(
-                    top: -35, // Float above the node
-                    child:
-                        Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 14,
-                                vertical: 6,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(18),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.15),
-                                    blurRadius: 8,
-                                    offset: const Offset(0, 2),
-                                  ),
-                                ],
-                              ),
-                              child: const Text(
-                                'JUGAR',
-                                style: TextStyle(
-                                  color: Color(0xFF7FA891),
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                  letterSpacing: 0.5,
+                    top: -35,
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap:
+                          onPlay ?? onTap, // Usar onPlay si existe, sino onTap
+                      child:
+                          Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 14,
+                                  vertical: 6,
                                 ),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(18),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(
+                                        alpha: 0.15,
+                                      ),
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                child: const Text(
+                                  'JUGAR',
+                                  style: TextStyle(
+                                    color: Color(0xFF7FA891),
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+                              )
+                              .animate()
+                              .fadeIn(duration: 250.ms, curve: Curves.easeOut)
+                              .slideY(
+                                begin: 0.5,
+                                end: 0,
+                                duration: 350.ms,
+                                curve: Curves.easeOutBack,
+                              )
+                              .scale(
+                                begin: const Offset(0.8, 0.8),
+                                end: const Offset(1.0, 1.0),
+                                duration: 350.ms,
+                                curve: Curves.easeOutBack,
                               ),
-                            )
-                            .animate()
-                            .fadeIn(duration: 250.ms, curve: Curves.easeOut)
-                            .slideY(
-                              begin: 0.5,
-                              end: 0,
-                              duration: 350.ms,
-                              curve: Curves.easeOutBack,
-                            )
-                            .scale(
-                              begin: const Offset(0.8, 0.8),
-                              end: const Offset(1.0, 1.0),
-                              duration: 350.ms,
-                              curve: Curves.easeOutBack,
-                            ),
+                    ),
                   ),
 
                 // Node with 3D effect

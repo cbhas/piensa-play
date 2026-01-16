@@ -28,6 +28,7 @@ flutter:
   assets:
     - assets/images/
     - assets/avatars/
+    - assets/audio/
     - assets/audio/mascot/
   uses-material-design: true
 
