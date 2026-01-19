@@ -136,130 +136,142 @@ class _MissionResultsPageState extends State<MissionResultsPage> {
 
   @override
   Widget build(BuildContext context) {
+    // Color principal basado en resultado
+    final accentColor = isPerfect
+        ? widget.primaryColor
+        : isGood
+        ? AppTheme.accentGreen
+        : AppTheme.accentBlue;
+
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: _getGradientColors(),
-          ),
-        ),
-        child: SafeArea(
-          child: SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              children: [
-                const SizedBox(height: 20),
-                _buildCelebrationSection(),
-                const SizedBox(height: 30),
-                _buildScoreCard(),
-                const SizedBox(height: 20),
-                _buildStatsCards(),
-                const SizedBox(height: 30),
-                _buildLearningSection(),
-                const SizedBox(height: 30),
-                _buildActionButtons(context),
-                const SizedBox(height: 20),
-              ],
-            ),
+      backgroundColor: const Color(0xFFF5F7FA),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          child: Column(
+            children: [
+              // Header con celebración
+              _buildCelebrationHeader(accentColor),
+              // Contenido con padding
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  children: [
+                    _buildScoreCard(accentColor),
+                    const SizedBox(height: 20),
+                    _buildStatsCards(),
+                    const SizedBox(height: 24),
+                    _buildLearningSection(),
+                    const SizedBox(height: 24),
+                    _buildActionButtons(context, accentColor),
+                    const SizedBox(height: 20),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
       ),
     );
   }
 
-  List<Color> _getGradientColors() {
-    if (isPerfect) {
-      return [
-        widget.primaryColor,
-        widget.primaryColor.withValues(alpha: 0.8),
-        widget.secondaryColor.withValues(alpha: 0.6),
-      ];
-    } else if (isGood) {
-      return [
-        AppTheme.accentGreen,
-        AppTheme.accentGreen.withValues(alpha: 0.8),
-        AppTheme.accentGreen.withValues(alpha: 0.6),
-      ];
-    } else {
-      return [
-        AppTheme.accentBlue,
-        AppTheme.accentBlue.withValues(alpha: 0.8),
-        AppTheme.accentBlue.withValues(alpha: 0.6),
-      ];
-    }
-  }
-
-  Widget _buildCelebrationSection() {
-    return Column(
-      children: [
-        Text(
-              isPerfect
-                  ? '🏆'
-                  : isGood
-                  ? '🎉'
-                  : '💪',
-              style: const TextStyle(fontSize: 100),
-            )
-            .animate(onPlay: (controller) => controller.repeat(reverse: true))
-            .scale(
-              duration: 1000.ms,
-              begin: const Offset(0.9, 0.9),
-              end: const Offset(1.1, 1.1),
-            )
-            .rotate(begin: -0.05, end: 0.05),
-        const SizedBox(height: 20),
-        Text(
-          isPerfect
-              ? '¡PERFECTO!'
-              : isGood
-              ? '¡Excelente Trabajo!'
-              : '¡Buen Intento!',
-          style: const TextStyle(
-            fontSize: 36,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
+  /// Header con celebración - animación inmediata
+  Widget _buildCelebrationHeader(Color accentColor) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [accentColor, accentColor.withValues(alpha: 0.85)],
+        ),
+        borderRadius: const BorderRadius.only(
+          bottomLeft: Radius.circular(40),
+          bottomRight: Radius.circular(40),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: accentColor.withValues(alpha: 0.3),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
           ),
-          textAlign: TextAlign.center,
-        ).animate().fadeIn(delay: 200.ms).slideY(begin: 0.3, duration: 400.ms),
-        const SizedBox(height: 12),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.3),
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Text(
-            isPerfect
-                ? widget.perfectMessage
-                : isGood
-                ? widget.goodMessage
-                : widget.tryAgainMessage,
-            style: const TextStyle(
-              fontSize: 16,
-              color: Colors.white,
-              fontWeight: FontWeight.w600,
+        ],
+      ),
+      child: Column(
+        children: [
+          // Emoji - animación sutil inmediata
+          Text(
+                isPerfect
+                    ? '🏆'
+                    : isGood
+                    ? '🎉'
+                    : '💪',
+                style: const TextStyle(fontSize: 80),
+              )
+              .animate(onPlay: (c) => c.repeat(reverse: true))
+              .scale(
+                duration: 800.ms,
+                begin: const Offset(0.95, 0.95),
+                end: const Offset(1.05, 1.05),
+              ),
+          const SizedBox(height: 16),
+          // Título - fade inmediato
+          Text(
+                isPerfect
+                    ? '¡PERFECTO!'
+                    : isGood
+                    ? '¡Excelente Trabajo!'
+                    : '¡Buen Intento!',
+                style: const TextStyle(
+                  fontSize: 32,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                  letterSpacing: 1,
+                ),
+                textAlign: TextAlign.center,
+              )
+              .animate()
+              .fadeIn(duration: 300.ms)
+              .slideY(begin: 0.2, duration: 300.ms),
+          const SizedBox(height: 12),
+          // Mensaje
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(20),
             ),
-            textAlign: TextAlign.center,
-          ),
-        ).animate().fadeIn(delay: 400.ms),
-      ],
+            child: Text(
+              isPerfect
+                  ? widget.perfectMessage
+                  : isGood
+                  ? widget.goodMessage
+                  : widget.tryAgainMessage,
+              style: const TextStyle(
+                fontSize: 15,
+                color: Colors.white,
+                fontWeight: FontWeight.w500,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ).animate().fadeIn(delay: 100.ms, duration: 300.ms),
+        ],
+      ),
     );
   }
 
-  Widget _buildScoreCard() {
+  Widget _buildScoreCard(Color accentColor) {
     return Container(
-      padding: const EdgeInsets.all(30),
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(30),
+        borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.2),
-            blurRadius: 30,
-            offset: const Offset(0, 15),
+            color: accentColor.withValues(alpha: 0.15),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
           ),
         ],
       ),
@@ -269,23 +281,17 @@ class _MissionResultsPageState extends State<MissionResultsPage> {
             alignment: Alignment.center,
             children: [
               SizedBox(
-                width: 160,
-                height: 160,
+                width: 140,
+                height: 140,
                 child: CircularProgressIndicator(
                   value: scorePercentage / 100,
-                  strokeWidth: 12,
+                  strokeWidth: 10,
                   backgroundColor: Colors.grey[200],
-                  valueColor: AlwaysStoppedAnimation<Color>(
-                    isPerfect
-                        ? widget.primaryColor
-                        : isGood
-                        ? AppTheme.accentGreen
-                        : AppTheme.accentBlue,
-                  ),
+                  valueColor: AlwaysStoppedAnimation<Color>(accentColor),
                 ),
               ).animate().scale(
-                delay: 600.ms,
-                duration: 800.ms,
+                delay: 150.ms,
+                duration: 400.ms,
                 curve: Curves.easeOutBack,
               ),
               Column(
@@ -293,34 +299,26 @@ class _MissionResultsPageState extends State<MissionResultsPage> {
                   Text(
                     '${scorePercentage.toInt()}%',
                     style: TextStyle(
-                      fontSize: 48,
+                      fontSize: 42,
                       fontWeight: FontWeight.bold,
-                      color: isPerfect
-                          ? widget.primaryColor
-                          : isGood
-                          ? AppTheme.accentGreen
-                          : AppTheme.accentBlue,
+                      color: accentColor,
                     ),
                   ),
-                  const Text(
+                  Text(
                     'Puntuación',
                     style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.grey,
+                      fontSize: 14,
+                      color: Colors.grey.shade600,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
                 ],
-              ).animate().fadeIn(delay: 800.ms),
+              ).animate().fadeIn(delay: 200.ms, duration: 300.ms),
             ],
           ),
         ],
       ),
-    ).animate().scale(
-      delay: 500.ms,
-      duration: 500.ms,
-      curve: Curves.easeOutBack,
-    );
+    ).animate().fadeIn(duration: 300.ms).slideY(begin: 0.1, duration: 300.ms);
   }
 
   Widget _buildStatsCards() {
@@ -332,7 +330,7 @@ class _MissionResultsPageState extends State<MissionResultsPage> {
             value: widget.correctAnswers.toString(),
             label: 'Correctas',
             color: Colors.green,
-            delay: 1000,
+            delay: 250,
           ),
         ),
         const SizedBox(width: 16),
@@ -342,7 +340,7 @@ class _MissionResultsPageState extends State<MissionResultsPage> {
             value: widget.incorrectAnswers.toString(),
             label: 'Incorrectas',
             color: Colors.red,
-            delay: 1100,
+            delay: 300,
           ),
         ),
       ],
@@ -409,49 +407,54 @@ class _MissionResultsPageState extends State<MissionResultsPage> {
 
   Widget _buildLearningSection() {
     return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [widget.primaryColor, widget.secondaryColor],
-                  ),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Text('💡', style: TextStyle(fontSize: 28)),
-              ),
-              const SizedBox(width: 12),
-              const Text(
-                '¿Qué Aprendiste?',
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
-                ),
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.1),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
               ),
             ],
           ),
-          const SizedBox(height: 20),
-          ...widget.learningPoints.map((point) => _buildLearningPoint(point)),
-        ],
-      ),
-    ).animate().slideX(delay: 1200.ms, begin: 0.3, duration: 400.ms);
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [widget.primaryColor, widget.secondaryColor],
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Text('💡', style: TextStyle(fontSize: 28)),
+                  ),
+                  const SizedBox(width: 12),
+                  const Text(
+                    '¿Qué Aprendiste?',
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              ...widget.learningPoints.map(
+                (point) => _buildLearningPoint(point),
+              ),
+            ],
+          ),
+        )
+        .animate()
+        .fadeIn(delay: 350.ms, duration: 300.ms)
+        .slideY(begin: 0.1, duration: 300.ms);
   }
 
   Widget _buildLearningPoint(String text) {
@@ -489,7 +492,7 @@ class _MissionResultsPageState extends State<MissionResultsPage> {
     );
   }
 
-  Widget _buildActionButtons(BuildContext context) {
+  Widget _buildActionButtons(BuildContext context, Color accentColor) {
     return Column(
       children: [
         if (widget.showNextButton && widget.onNext != null)
@@ -498,49 +501,49 @@ class _MissionResultsPageState extends State<MissionResultsPage> {
                 label: widget.nextButtonLabel,
                 icon: Icons.arrow_forward,
                 gradient: LinearGradient(
-                  colors: [widget.primaryColor, widget.secondaryColor],
+                  colors: [accentColor, accentColor.withValues(alpha: 0.8)],
                 ),
                 textColor: Colors.white,
                 onTap: widget.onNext!,
               )
               .animate()
-              .fadeIn(delay: 1300.ms)
-              .slideY(begin: 0.3, duration: 300.ms),
+              .fadeIn(delay: 400.ms, duration: 300.ms)
+              .slideY(begin: 0.2, duration: 300.ms),
         if (widget.showNextButton && widget.onNext != null)
           const SizedBox(height: 12),
         _buildActionButton(
-          context: context,
-          label: 'Repetir Actividad',
-          icon: Icons.refresh,
-          gradient: LinearGradient(
-            colors: [widget.primaryColor, widget.secondaryColor],
-          ),
-          textColor: Colors.white,
-          onTap: () {
-            // Pop all pages until we're back at the intro/start of the mission
-            // This is more robust than counting pops
-            Navigator.of(context).popUntil((route) {
-              // Keep popping until we find a route that's either:
-              // 1. The first route (mission map/home)
-              // 2. Or we've popped 3 times (safety limit)
-              return route.isFirst || !Navigator.of(context).canPop();
-            });
-          },
-        ).animate().fadeIn(delay: 1400.ms).slideY(begin: 0.3, duration: 300.ms),
+              context: context,
+              label: 'Repetir Actividad',
+              icon: Icons.refresh,
+              gradient: LinearGradient(
+                colors: [accentColor, accentColor.withValues(alpha: 0.8)],
+              ),
+              textColor: Colors.white,
+              onTap: () {
+                Navigator.of(context).popUntil((route) {
+                  return route.isFirst || !Navigator.of(context).canPop();
+                });
+              },
+            )
+            .animate()
+            .fadeIn(delay: 450.ms, duration: 300.ms)
+            .slideY(begin: 0.2, duration: 300.ms),
         const SizedBox(height: 12),
         _buildActionButton(
-          context: context,
-          label: 'Volver al Inicio',
-          icon: Icons.home,
-          gradient: const LinearGradient(
-            colors: [AppTheme.primaryDark, Color(0xFF3A4F6F)],
-          ),
-          textColor: Colors.white,
-          onTap: () {
-            // Simple pop back - user can continue pressing back to reach home
-            Navigator.of(context).pop('completed');
-          },
-        ).animate().fadeIn(delay: 1500.ms).slideY(begin: 0.3, duration: 300.ms),
+              context: context,
+              label: 'Volver al Inicio',
+              icon: Icons.home,
+              gradient: const LinearGradient(
+                colors: [AppTheme.primaryDark, Color(0xFF3A4F6F)],
+              ),
+              textColor: Colors.white,
+              onTap: () {
+                Navigator.of(context).pop('completed');
+              },
+            )
+            .animate()
+            .fadeIn(delay: 500.ms, duration: 300.ms)
+            .slideY(begin: 0.2, duration: 300.ms),
       ],
     );
   }

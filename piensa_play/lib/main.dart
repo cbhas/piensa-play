@@ -7,6 +7,7 @@ import 'core/theme/app_theme.dart';
 import 'core/theme/theme_provider.dart';
 import 'core/services/auth_service.dart';
 import 'core/routes/app_routes.dart';
+import 'features/missions/presentation/pages/missions_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -35,12 +36,13 @@ class PiensaPlayApp extends StatelessWidget {
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, child) {
           return MaterialApp(
-            title: 'PiensaPlay',
+            title: 'Piensa Play',
             theme: AppTheme.lightTheme,
             darkTheme: AppTheme.darkTheme,
             themeMode: themeProvider.themeMode,
             initialRoute: AppRoutes.splash,
             routes: AppRoutes.routes,
+            navigatorObservers: [routeObserver],
             debugShowCheckedModeBanner: false,
           );
         },

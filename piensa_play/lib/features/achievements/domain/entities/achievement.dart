@@ -4,6 +4,12 @@ class GamificationConfig {
   static const int xpPerCategory = 250;
   static const int coinsPerMission = 50;
   static const int xpToLevelUp = 300;
+
+  // Daily Question rewards
+  static const int xpPerDailyCorrect = 50;
+  static const int xpPerDailyIncorrect = 10;
+  static const int coinsPerDailyCorrect = 30;
+  static const int coinsPerDailyIncorrect = 5;
 }
 
 class Achievement {

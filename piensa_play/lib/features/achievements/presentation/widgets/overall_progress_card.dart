@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/services/app_data_service.dart';
 import '../../domain/entities/achievement.dart';
 
 class OverallProgressCard extends StatelessWidget {
@@ -9,6 +10,9 @@ class OverallProgressCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final streak = AppDataService.instance.dailyStreak;
+    debugPrint('STREAK DEBUG: streak value = $streak');
+
     return Container(
       margin: const EdgeInsets.all(20),
       padding: const EdgeInsets.all(24),
@@ -38,40 +42,88 @@ class OverallProgressCard extends StatelessWidget {
               fontWeight: FontWeight.w500,
             ),
           ),
-          const SizedBox(height: 16),
-
-          // Nivel grande
-          Container(
-            width: 120,
-            height: 120,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  AppTheme.accentYellow,
-                  AppTheme.accentYellow.withValues(alpha: 0.7),
-                ],
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: AppTheme.accentYellow.withValues(alpha: 0.4),
-                  blurRadius: 20,
-                  offset: const Offset(0, 8),
+          const SizedBox(height: 32), // Más espacio para el fueguito
+          // Nivel grande con streak encima
+          Stack(
+            clipBehavior: Clip.none,
+            alignment: Alignment.topCenter,
+            children: [
+              // Círculo del nivel
+              Container(
+                width: 120,
+                height: 120,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      AppTheme.accentYellow,
+                      AppTheme.accentYellow.withValues(alpha: 0.7),
+                    ],
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppTheme.accentYellow.withValues(alpha: 0.4),
+                      blurRadius: 20,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            child: Center(
-              child: Text(
-                '${achievement.currentLevel}',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 48,
-                  fontWeight: FontWeight.bold,
+                child: Center(
+                  child: Text(
+                    '${achievement.currentLevel}',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 48,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
               ),
-            ),
+              // Fueguito con streak arriba (siempre visible para debug)
+              Positioned(
+                top: -20,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Colors.orange, Colors.deepOrange],
+                    ),
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.orange.withValues(alpha: 0.5),
+                        blurRadius: 10,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.local_fire_department,
+                        color: Colors.white,
+                        size: 18,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        '$streak',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
 
           const SizedBox(height: 24),

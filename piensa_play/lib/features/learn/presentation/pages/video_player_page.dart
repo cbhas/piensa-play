@@ -18,6 +18,7 @@ class VideoPlayerPage extends StatefulWidget {
 class _VideoPlayerPageState extends State<VideoPlayerPage> {
   late YoutubePlayerController _controller;
   bool _isPlayerReady = false;
+  bool _isFullScreen = false;
 
   @override
   void initState() {
@@ -44,9 +45,22 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
     }
   }
 
+  void _toggleFullScreen() {
+    setState(() {
+      _isFullScreen = !_isFullScreen;
+    });
+
+    if (_isFullScreen) {
+      // Hide system UI for immersive fullscreen
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+    } else {
+      // Restore system UI
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    }
+  }
+
   @override
   void deactivate() {
-    // Pause video when navigating away
     _controller.pause();
     super.deactivate();
   }
@@ -54,27 +68,54 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
   @override
   void dispose() {
     _controller.dispose();
-    // Reset orientation to portrait
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isShort = widget.item.isShort;
 
+    // Para Shorts en fullscreen, mostrar solo el player ocupando toda la pantalla
+    if (_isFullScreen && isShort) {
+      return Scaffold(
+        backgroundColor: Colors.black,
+        body: GestureDetector(
+          onTap: _toggleFullScreen,
+          child: Center(
+            child: AspectRatio(
+              aspectRatio: 9 / 16, // Aspect ratio de Shorts (vertical)
+              child: YoutubePlayer(
+                controller: _controller,
+                showVideoProgressIndicator: true,
+                progressIndicatorColor: AppTheme.accentPink,
+                progressColors: const ProgressBarColors(
+                  playedColor: AppTheme.accentPink,
+                  handleColor: AppTheme.accentPink,
+                ),
+                onReady: () => _isPlayerReady = true,
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    // Vista normal (no fullscreen o video normal)
     return YoutubePlayerBuilder(
       onExitFullScreen: () {
-        // Reset to portrait when exiting fullscreen
         SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
       },
       onEnterFullScreen: () {
-        // Allow all orientations in fullscreen for shorts (vertical videos)
-        SystemChrome.setPreferredOrientations([
-          DeviceOrientation.portraitUp,
-          DeviceOrientation.landscapeLeft,
-          DeviceOrientation.landscapeRight,
-        ]);
+        if (!isShort) {
+          // Solo para videos normales, permitir landscape
+          SystemChrome.setPreferredOrientations([
+            DeviceOrientation.landscapeLeft,
+            DeviceOrientation.landscapeRight,
+          ]);
+        }
       },
       player: YoutubePlayer(
         controller: _controller,
@@ -126,7 +167,14 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
                         ),
                       ),
                     ),
-                    const SizedBox(width: 48), // Balance for back button
+                    // Botón de fullscreen para Shorts
+                    if (isShort)
+                      IconButton(
+                        icon: const Icon(Icons.fullscreen, color: Colors.white),
+                        onPressed: _toggleFullScreen,
+                      )
+                    else
+                      const SizedBox(width: 48),
                   ],
                 ),
               ),
@@ -137,8 +185,22 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // YouTube Player
-                      player,
+                      // Para Shorts, mostrar en aspect ratio vertical
+                      if (isShort)
+                        Center(
+                          child: Container(
+                            constraints: BoxConstraints(
+                              maxHeight:
+                                  MediaQuery.of(context).size.height * 0.5,
+                            ),
+                            child: AspectRatio(
+                              aspectRatio: 9 / 16,
+                              child: player,
+                            ),
+                          ),
+                        )
+                      else
+                        player,
 
                       // Video Info
                       Padding(
@@ -188,6 +250,27 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
                                       color: AppTheme.accentPink,
                                     ),
                                   ),
+                                  if (isShort) ...[
+                                    const SizedBox(width: 8),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 2,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: Colors.red,
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: const Text(
+                                        'Short',
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ],
                               ),
                             ),

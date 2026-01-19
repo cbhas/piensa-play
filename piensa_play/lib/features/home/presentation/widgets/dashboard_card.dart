@@ -26,7 +26,10 @@ class DashboardCard extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return GestureDetector(
-      onTap: onTap,
+      onTap: () {
+        Feedback.forTap(context);
+        onTap();
+      },
       child: Container(
         decoration: BoxDecoration(
           color: isDark ? AppTheme.cardDark : Colors.white,

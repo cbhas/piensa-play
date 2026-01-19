@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:piensa_play/core/services/logger_service.dart';
+import 'package:piensa_play/core/services/app_data_service.dart';
 import '../../features/achievements/domain/entities/achievement.dart';
 import '../../features/achievements/domain/entities/badge.dart' as entities;
 import '../../features/missions/domain/entities/mission.dart';
@@ -144,6 +145,9 @@ class GamificationService {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('achievements', jsonEncode(achievement.toJson()));
 
+      // Actualizar caché de AppDataService para sincronizar UI inmediatamente
+      AppDataService.instance.updateAchievement(achievement);
+
       AppLogger.success('GAMIFICATION: Achievement saved');
     } catch (e) {
       AppLogger.error('GAMIFICATION: Error saving achievement: $e');
@@ -236,6 +240,9 @@ class GamificationService {
             'isCompleted': true,
             'completedAt': FieldValue.serverTimestamp(),
           });
+
+      // Actualizar caché para que el mapa refleje el cambio inmediatamente
+      AppDataService.instance.markMissionCompleted(missionId);
     } catch (e) {
       AppLogger.error('GAMIFICATION: Error saving mission progress: $e');
     }

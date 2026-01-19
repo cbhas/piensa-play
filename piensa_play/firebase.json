@@ -1,1 +1,41 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"piensa-play-6b08c","appId":"1:958999170347:android:bdd040040fb81a78e9c96e","fileOutput":"android/app/google-services.json"}},"ios":{"default":{"projectId":"piensa-play-6b08c","appId":"1:958999170347:ios:9e16c134902df07be9c96e","uploadDebugSymbols":false,"fileOutput":"ios/Runner/GoogleService-Info.plist"}},"macos":{"default":{"projectId":"piensa-play-6b08c","appId":"1:958999170347:ios:9e16c134902df07be9c96e","uploadDebugSymbols":false,"fileOutput":"macos/Runner/GoogleService-Info.plist"}},"dart":{"lib/firebase_options.dart":{"projectId":"piensa-play-6b08c","configurations":{"android":"1:958999170347:android:bdd040040fb81a78e9c96e","ios":"1:958999170347:ios:9e16c134902df07be9c96e","macos":"1:958999170347:ios:9e16c134902df07be9c96e","web":"1:958999170347:web:a1339763a86242b5e9c96e","windows":"1:958999170347:web:7846c84dd54666cce9c96e"}}}}}}
+{
+    "flutter": {
+        "platforms": {
+            "android": {
+                "default": {
+                    "projectId": "piensa-play-6b08c",
+                    "appId": "1:958999170347:android:bdd040040fb81a78e9c96e",
+                    "fileOutput": "android/app/google-services.json"
+                }
+            },
+            "ios": {
+                "default": {
+                    "projectId": "piensa-play-6b08c",
+                    "appId": "1:958999170347:ios:9e16c134902df07be9c96e",
+                    "uploadDebugSymbols": false,
+                    "fileOutput": "ios/Runner/GoogleService-Info.plist"
+                }
+            },
+            "macos": {
+                "default": {
+                    "projectId": "piensa-play-6b08c",
+                    "appId": "1:958999170347:ios:9e16c134902df07be9c96e",
+                    "uploadDebugSymbols": false,
+                    "fileOutput": "macos/Runner/GoogleService-Info.plist"
+                }
+            },
+            "dart": {
+                "lib/firebase_options.dart": {
+                    "projectId": "piensa-play-6b08c",
+                    "configurations": {
+                        "android": "1:958999170347:android:bdd040040fb81a78e9c96e",
+                        "ios": "1:958999170347:ios:9e16c134902df07be9c96e",
+                        "macos": "1:958999170347:ios:9e16c134902df07be9c96e",
+                        "web": "1:958999170347:web:a1339763a86242b5e9c96e",
+                        "windows": "1:958999170347:web:7846c84dd54666cce9c96e"
+                    }
+                }
+            }
+        }
+    }
+}

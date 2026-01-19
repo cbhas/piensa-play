@@ -135,7 +135,7 @@ const missionCategories = [
 // ============================================================================
 
 const missions = [
-  // Veracidadville missions
+  // Veracidadville missions (3 misiones)
   {
     id: 'fake_news',
     categoryId: 'veracidadville',
@@ -156,7 +156,17 @@ const missions = [
     type: 'trueFalse',
     order: 2,
   },
-  // Zona Cero Odio missions
+  {
+    id: 'fuentes_confiables',
+    categoryId: 'veracidadville',
+    title: 'Fuentes Confiables',
+    subtitle: 'Veracidadville',
+    description: 'Aprende a identificar fuentes de información confiables.',
+    iconName: 'search',
+    type: 'quiz',
+    order: 3,
+  },
+  // Zona Cero Odio missions (3 misiones)
   {
     id: 'mensaje_escondido',
     categoryId: 'zona_cero_odio',
@@ -167,18 +177,27 @@ const missions = [
     type: 'wordSelection',
     order: 1,
   },
-  // Fortaleza Privacidad missions
   {
-    id: 'navegacion_segura',
-    categoryId: 'fortaleza_privacidad',
-    title: 'Navegación Segura',
-    subtitle: 'Fortaleza Privacidad',
-    description: 'Aprende a proteger tus datos al navegar.',
-    iconName: 'diamond',
+    id: 'empatia_digital',
+    categoryId: 'zona_cero_odio',
+    title: 'Empatía Digital',
+    subtitle: 'Zona Cero Odio',
+    description: 'Aprende a responder con empatía en línea.',
+    iconName: 'favorite',
     type: 'quiz',
-    order: 1,
+    order: 2,
   },
-  // Ciberseguridad missions
+  {
+    id: 'reportar_odio',
+    categoryId: 'zona_cero_odio',
+    title: 'Reportar y Actuar',
+    subtitle: 'Zona Cero Odio',
+    description: 'Aprende cuándo y cómo reportar contenido de odio.',
+    iconName: 'flag',
+    type: 'trueFalse',
+    order: 3,
+  },
+  // Ciberseguridad missions (3 misiones - ya completas)
   {
     id: 'q1_phishing',
     categoryId: 'ciberseguridad',

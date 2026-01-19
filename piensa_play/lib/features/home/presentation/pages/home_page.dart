@@ -5,6 +5,10 @@ import 'package:piensa_play/core/services/logger_service.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/app_animations.dart';
 import '../../../../core/services/user_id_provider.dart';
+import '../../../../core/services/daily_question_service.dart';
+import '../../../../core/services/app_data_service.dart';
+import '../../../daily_question/presentation/pages/daily_question_page.dart';
+import '../../../missions/domain/entities/unified_question.dart';
 import '../../domain/entities/dashboard_stats.dart';
 import '../../domain/entities/user_progress.dart';
 import '../../domain/usecases/get_dashboard_stats.dart';
@@ -27,6 +31,7 @@ class _HomePageState extends State<HomePage> {
   final GetDashboardStats _getDashboardStats = GetDashboardStats();
   final GetUserProgress _getUserProgress = GetUserProgress();
   final GetUserProfile _getUserProfile = GetUserProfile();
+  final DailyQuestionService _dailyService = DailyQuestionService();
 
   // Use Firebase Anonymous Auth UID instead of hardcoded ID
   String get userId => UserIdProvider.currentUserId;
@@ -37,10 +42,52 @@ class _HomePageState extends State<HomePage> {
   String? _userName;
   bool _isLoading = true;
 
+  // Daily Question state
+  bool _dailyAnswered = false;
+  int _dailyStreak = 0;
+  UnifiedQuestion? _dailyQuestion;
+
   @override
   void initState() {
     super.initState();
-    _loadData();
+    _loadFromCacheFirst();
+  }
+
+  Future<void> _loadFromCacheFirst() async {
+    // Primero intenta cargar desde caché (instantáneo, sin loading)
+    final cachedProfile = AppDataService.instance.userProfile;
+
+    if (cachedProfile != null) {
+      // Ya hay datos en caché - mostrar inmediatamente sin loading
+      setState(() {
+        _userName = cachedProfile.name;
+        _avatarId = cachedProfile.avatarId;
+        _dailyStreak = AppDataService.instance.dailyStreak;
+        _isLoading = false;
+      });
+
+      // Cargar datos adicionales en background (sin bloquear UI)
+      _loadDailyQuestionData();
+    } else {
+      // No hay caché - hacer carga completa con loading
+      await _loadData();
+    }
+  }
+
+  Future<void> _loadDailyQuestionData() async {
+    try {
+      final dailyAnswered = await _dailyService.hasAnsweredToday();
+      final dailyQuestion = await _dailyService.getTodaysQuestion();
+
+      if (mounted) {
+        setState(() {
+          _dailyAnswered = dailyAnswered;
+          _dailyQuestion = dailyQuestion;
+        });
+      }
+    } catch (e) {
+      AppLogger.warning('HOME: Error loading daily question: $e');
+    }
   }
 
   Future<void> _loadData() async {
@@ -53,8 +100,16 @@ class _HomePageState extends State<HomePage> {
       final stats = await _getDashboardStats.execute(userId);
       final progress = await _getUserProgress.execute(userId);
 
+      // Cargar estado de pregunta diaria
+      final dailyAnswered = await _dailyService.hasAnsweredToday();
+      final dailyStreak = await _dailyService.getStreak();
+      final dailyQuestion = await _dailyService.getTodaysQuestion();
+
       AppLogger.log('HOME: Perfil recuperado: $profile');
       AppLogger.log('HOME: AvatarId: ${profile?.avatarId}');
+      AppLogger.log(
+        'HOME: Daily answered: $dailyAnswered, streak: $dailyStreak',
+      );
 
       // Actualiza el estado con los datos cargados
       setState(() {
@@ -62,6 +117,9 @@ class _HomePageState extends State<HomePage> {
         _avatarId = profile?.avatarId;
         _stats = stats;
         _progress = progress;
+        _dailyAnswered = dailyAnswered;
+        _dailyStreak = dailyStreak;
+        _dailyQuestion = dailyQuestion;
         _isLoading = false;
       });
 
@@ -79,13 +137,63 @@ class _HomePageState extends State<HomePage> {
 
   String _getAvatarPath(String? avatarId) {
     if (avatarId == null || avatarId.isEmpty) {
-      return 'assets/avatars/mascot.png';
+      return 'assets/avatars/cocodrilo.png';
     }
-    final validIds = ['cocodrilo', 'pajaro', 'leopardo', 'tortuga'];
+    final validIds = ['cocodrilo', 'jaguar', 'pajaro', 'tortuga'];
     if (!validIds.contains(avatarId)) {
       return 'assets/avatars/cocodrilo.png';
     }
     return 'assets/avatars/$avatarId.png';
+  }
+
+  String _getMissionsSubtitle() {
+    final categories = AppDataService.instance.missionCategories;
+    int totalMissions = 0;
+    int completedMissions = 0;
+
+    for (final category in categories) {
+      totalMissions += category.missions.length;
+      completedMissions += category.missions.where((m) => m.isCompleted).length;
+    }
+
+    if (completedMissions == totalMissions && totalMissions > 0) {
+      return '¡Todas completas!';
+    }
+    return '$completedMissions de $totalMissions';
+  }
+
+  double _calculateMissionProgress() {
+    final categories = AppDataService.instance.missionCategories;
+    int totalMissions = 0;
+    int completedMissions = 0;
+
+    for (final category in categories) {
+      totalMissions += category.missions.length;
+      completedMissions += category.missions.where((m) => m.isCompleted).length;
+    }
+
+    if (totalMissions == 0) return 0.0;
+    return completedMissions / totalMissions;
+  }
+
+  Future<void> _onDailyBannerTap() async {
+    if (_dailyAnswered) {
+      // Ya respondió, ir a logros
+      Navigator.pushNamed(context, '/achievements');
+    } else if (_dailyQuestion != null) {
+      // Abrir pregunta diaria
+      final result = await Navigator.push<bool>(
+        context,
+        MaterialPageRoute(
+          builder: (context) => DailyQuestionPage(question: _dailyQuestion!),
+        ),
+      );
+
+      // Si respondió, recargar datos
+      if (result == true) {
+        _loadData();
+      }
+    }
   }
 
   @override
@@ -109,7 +217,14 @@ class _HomePageState extends State<HomePage> {
                     child: Column(
                       children: [
                         MissionBanner(
-                          onPressed: () {},
+                          isAvailable:
+                              !_dailyAnswered && _dailyQuestion != null,
+                          isCompleted: _dailyAnswered,
+                          streak: _dailyStreak,
+                          timeRemaining: _dailyAnswered
+                              ? _dailyService.getTimeUntilNextQuestion()
+                              : null,
+                          onPressed: () => _onDailyBannerTap(),
                         ).fadeInSlide(delay: const Duration(milliseconds: 200)),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -123,7 +238,7 @@ class _HomePageState extends State<HomePage> {
                             children: [
                               DashboardCard(
                                 title: 'Aprende',
-                                subtitle: '${_stats?.newGames ?? 0} nuevos',
+                                subtitle: 'Videos y tips',
                                 icon: Icons.videogame_asset,
                                 color: AppTheme.accentGreen,
                                 borderColor: AppTheme.accentGreen,
@@ -134,7 +249,7 @@ class _HomePageState extends State<HomePage> {
                               DashboardCard(
                                 title: 'Glosario',
                                 subtitle:
-                                    '${_stats?.pendingGlossary ?? 0} por completar',
+                                    '${AppDataService.instance.glossaryTerms.length} términos',
                                 icon: Icons.book,
                                 color: AppTheme.accentBlue,
                                 borderColor: AppTheme.accentBlue,
@@ -145,7 +260,7 @@ class _HomePageState extends State<HomePage> {
                               DashboardCard(
                                 title: 'Logros',
                                 subtitle:
-                                    '${_stats?.achievements ?? 0} obtenidos',
+                                    'Nivel ${AppDataService.instance.achievement.currentLevel}',
                                 icon: Icons.emoji_events,
                                 color: AppTheme.accentYellow,
                                 borderColor: AppTheme.accentYellow,
@@ -155,8 +270,7 @@ class _HomePageState extends State<HomePage> {
                               ).staggeredEntry(index: 2),
                               DashboardCard(
                                 title: 'Misiones',
-                                subtitle:
-                                    '${_stats?.activeMissions ?? 0} activas',
+                                subtitle: _getMissionsSubtitle(),
                                 icon: Icons.star,
                                 color: AppTheme.accentPink,
                                 borderColor: AppTheme.accentPink,
@@ -168,7 +282,7 @@ class _HomePageState extends State<HomePage> {
                           ),
                         ),
                         ProgressCircle(
-                          progress: _progress?.generalProgress ?? 0.0,
+                          progress: _calculateMissionProgress(),
                           monthlyProgress: _progress?.monthlyProgress ?? {},
                         ).scaleIn(delay: const Duration(milliseconds: 500)),
                         const SizedBox(height: 80),

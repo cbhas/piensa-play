@@ -17,44 +17,47 @@ class CustomBottomNavBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Container(
-      height: 75,
-      decoration: BoxDecoration(
-        color: isDark ? AppTheme.surfaceDark : AppTheme.tertiaryDark,
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(30),
-          topRight: Radius.circular(30),
+    return SafeArea(
+      top: false, // No afecta arriba
+      child: Container(
+        height: 75,
+        decoration: BoxDecoration(
+          color: isDark ? AppTheme.surfaceDark : AppTheme.tertiaryDark,
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(30),
+            topRight: Radius.circular(30),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.3),
+              blurRadius: 15,
+              offset: const Offset(0, -5),
+            ),
+          ],
         ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.3),
-            blurRadius: 15,
-            offset: const Offset(0, -5),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          _NavBarItem(
-            icon: Icons.home,
-            label: 'Inicio',
-            isSelected: currentIndex == 0,
-            onTap: () => onTap(0),
-          ),
-          _NavBarItem(
-            icon: Icons.book,
-            label: 'Glosario',
-            isSelected: currentIndex == 1,
-            onTap: () => onTap(1),
-          ),
-          _NavBarItem(
-            icon: Icons.settings,
-            label: 'Ajustes',
-            isSelected: currentIndex == 2,
-            onTap: () => onTap(2),
-          ),
-        ],
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            _NavBarItem(
+              icon: Icons.home,
+              label: 'Inicio',
+              isSelected: currentIndex == 0,
+              onTap: () => onTap(0),
+            ),
+            _NavBarItem(
+              icon: Icons.book,
+              label: 'Glosario',
+              isSelected: currentIndex == 1,
+              onTap: () => onTap(1),
+            ),
+            _NavBarItem(
+              icon: Icons.settings,
+              label: 'Ajustes',
+              isSelected: currentIndex == 2,
+              onTap: () => onTap(2),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -76,7 +79,10 @@ class _NavBarItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onTap,
+      onTap: () {
+        Feedback.forTap(context);
+        onTap();
+      },
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [

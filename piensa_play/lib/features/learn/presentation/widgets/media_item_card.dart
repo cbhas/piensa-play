@@ -115,141 +115,149 @@ class _MediaItemCardState extends State<MediaItemCard>
                     ),
                   ),
 
-                  // Main content
-                  Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        // Thumbnail with play icon
-                        AnimatedBuilder(
-                          animation:
-                              _bounceController ??
-                              AnimationController(
-                                vsync: this,
-                                duration: Duration.zero,
-                              ),
-                          builder: (context, child) {
-                            final bounceValue = _bounceController?.value ?? 0.0;
-                            return Transform.translate(
-                              offset: Offset(0, -5 * bounceValue),
-                              child: Container(
-                                width: 80,
-                                height: 80,
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  shape: BoxShape.circle,
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withValues(
-                                        alpha: 0.15,
-                                      ),
-                                      blurRadius: 10,
-                                      offset: Offset(0, 5 + (5 * bounceValue)),
-                                    ),
-                                  ],
+                  // Main content - fully centered
+                  Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // Thumbnail with play icon
+                          AnimatedBuilder(
+                            animation:
+                                _bounceController ??
+                                AnimationController(
+                                  vsync: this,
+                                  duration: Duration.zero,
                                 ),
-                                child: Stack(
-                                  alignment: Alignment.center,
-                                  children: [
-                                    // Thumbnail (if YouTube video)
-                                    if (widget.item.youtubeId != null)
-                                      ClipOval(
-                                        child: Image.network(
-                                          widget.item.youtubeThumbnail,
-                                          width: 80,
-                                          height: 80,
-                                          fit: BoxFit.cover,
-                                          errorBuilder: (_, __, ___) => Icon(
-                                            widget.item.type == MediaType.video
-                                                ? Icons.play_circle_filled
-                                                : Icons.headphones,
-                                            size: 42,
-                                            color: color,
+                            builder: (context, child) {
+                              final bounceValue =
+                                  _bounceController?.value ?? 0.0;
+                              return Transform.translate(
+                                offset: Offset(0, -5 * bounceValue),
+                                child: Container(
+                                  width: 70,
+                                  height: 70,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    shape: BoxShape.circle,
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withValues(
+                                          alpha: 0.15,
+                                        ),
+                                        blurRadius: 10,
+                                        offset: Offset(
+                                          0,
+                                          5 + (5 * bounceValue),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Stack(
+                                    alignment: Alignment.center,
+                                    children: [
+                                      // Thumbnail (if YouTube video)
+                                      if (widget.item.youtubeId != null)
+                                        ClipOval(
+                                          child: Image.network(
+                                            widget.item.youtubeThumbnail,
+                                            width: 70,
+                                            height: 70,
+                                            fit: BoxFit.cover,
+                                            errorBuilder: (_, __, ___) => Icon(
+                                              widget.item.type ==
+                                                      MediaType.video
+                                                  ? Icons.play_circle_filled
+                                                  : Icons.headphones,
+                                              size: 36,
+                                              color: color,
+                                            ),
                                           ),
                                         ),
-                                      ),
-                                    // Play overlay
-                                    Container(
-                                      width: 80,
-                                      height: 80,
-                                      decoration: BoxDecoration(
-                                        color: Colors.black.withValues(
-                                          alpha: 0.3,
+                                      // Play overlay
+                                      Container(
+                                        width: 70,
+                                        height: 70,
+                                        decoration: BoxDecoration(
+                                          color: Colors.black.withValues(
+                                            alpha: 0.3,
+                                          ),
+                                          shape: BoxShape.circle,
                                         ),
-                                        shape: BoxShape.circle,
+                                        child: Icon(
+                                          widget.item.type == MediaType.video
+                                              ? Icons.play_arrow_rounded
+                                              : Icons.headphones,
+                                          size: 36,
+                                          color: Colors.white,
+                                        ),
                                       ),
-                                      child: Icon(
-                                        widget.item.type == MediaType.video
-                                            ? Icons.play_arrow_rounded
-                                            : Icons.headphones,
-                                        size: 42,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
-                              ),
-                            );
-                          },
-                        ),
-                        const SizedBox(height: 16),
+                              );
+                            },
+                          ),
+                          const SizedBox(height: 12),
 
-                        // Title
-                        Text(
-                          widget.item.title,
-                          textAlign: TextAlign.center,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                            height: 1.3,
-                            shadows: [
-                              Shadow(
-                                color: Colors.black26,
-                                offset: Offset(0, 1),
-                                blurRadius: 2,
-                              ),
-                            ],
+                          // Title
+                          Text(
+                            widget.item.title,
+                            textAlign: TextAlign.center,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                              height: 1.2,
+                              shadows: [
+                                Shadow(
+                                  color: Colors.black26,
+                                  offset: Offset(0, 1),
+                                  blurRadius: 2,
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 8),
+                          const SizedBox(height: 6),
 
-                        // Duration badge
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.25),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                widget.item.type == MediaType.video
-                                    ? Icons.videocam
-                                    : Icons.mic,
-                                size: 14,
-                                color: Colors.white,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                widget.item.formattedDuration,
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
+                          // Duration badge
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.25),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  widget.item.type == MediaType.video
+                                      ? Icons.videocam
+                                      : Icons.mic,
+                                  size: 12,
                                   color: Colors.white,
                                 ),
-                              ),
-                            ],
+                                const SizedBox(width: 4),
+                                Text(
+                                  widget.item.formattedDuration,
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
 

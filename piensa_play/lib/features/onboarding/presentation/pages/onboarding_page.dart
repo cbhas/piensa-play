@@ -72,14 +72,18 @@ class _OnboardingPageState extends State<OnboardingPage> {
         return;
       }
 
+      // Generar código de estudiante único
+      final studentCode = UserProfile.generateStudentCode();
+
       final profile = UserProfile(
         name: _nameController.text,
         age: _selectedAge!,
         avatarId: _selectedAvatarId!,
+        studentCode: studentCode,
       );
 
       AppLogger.log(
-        'Guardando perfil: nombre=${profile.name}, edad=${profile.age}, avatarId=${profile.avatarId}',
+        'Guardando perfil: nombre=${profile.name}, edad=${profile.age}, avatarId=${profile.avatarId}, studentCode=${profile.studentCode}',
       );
 
       await _saveUserProfile.execute(profile);
@@ -371,6 +375,24 @@ class _OnboardingPageState extends State<OnboardingPage> {
                       ),
 
                       const SizedBox(height: 20),
+
+                      // Link de recuperación
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pushNamed(context, '/recover');
+                        },
+                        child: Text(
+                          '¿Tienes un código de recuperación?',
+                          style: TextStyle(
+                            color: AppTheme.primaryDark,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            decoration: TextDecoration.underline,
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 30),
                     ],
                   ),
                 ),

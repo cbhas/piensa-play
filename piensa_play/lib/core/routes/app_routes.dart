@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:piensa_play/features/splash/presentation/pages/splash_page.dart';
 import 'package:piensa_play/features/welcome/presentation/pages/welcome_page.dart';
 import 'package:piensa_play/features/onboarding/presentation/pages/onboarding_page.dart';
+import 'package:piensa_play/features/onboarding/presentation/pages/recover_account_page.dart';
 import 'package:piensa_play/features/home/presentation/pages/home_page.dart';
 import 'package:piensa_play/features/achievements/presentation/pages/achievements_page.dart';
 import 'package:piensa_play/features/missions/presentation/pages/missions_page.dart';
@@ -15,6 +16,7 @@ class AppRoutes {
   static const String welcome = '/welcome';
   static const String tutorial = '/tutorial';
   static const String onboarding = '/onboarding';
+  static const String recover = '/recover';
   static const String home = '/home';
   static const String achievements = '/achievements';
   static const String missions = '/missions';
@@ -28,6 +30,7 @@ class AppRoutes {
       splash: (context) => const SplashPage(),
       welcome: (context) => const WelcomePage(),
       onboarding: (context) => const OnboardingPage(),
+      recover: (context) => const RecoverAccountPage(),
       home: (context) => const HomePage(),
       achievements: (context) => const AchievementsPage(),
       missions: (context) => const MissionsPage(),

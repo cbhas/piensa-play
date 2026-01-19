@@ -13,6 +13,7 @@ class MediaItem {
   final String? audioUrl;
   final int durationSeconds;
   final int order;
+  final bool isVertical; // Para videos verticales (Shorts, TikTok style)
 
   const MediaItem({
     required this.id,
@@ -25,6 +26,7 @@ class MediaItem {
     this.audioUrl,
     required this.durationSeconds,
     required this.order,
+    this.isVertical = false, // Por defecto horizontal
   });
 
   /// Get formatted duration string (e.g., "2:30")
@@ -42,6 +44,9 @@ class MediaItem {
     return thumbnailUrl;
   }
 
+  /// Check if this is a vertical video (uses isVertical field)
+  bool get isShort => isVertical;
+
   Map<String, dynamic> toJson() => {
     'id': id,
     'title': title,
@@ -53,6 +58,7 @@ class MediaItem {
     'audioUrl': audioUrl,
     'durationSeconds': durationSeconds,
     'order': order,
+    'isVertical': isVertical,
   };
 
   factory MediaItem.fromJson(Map<String, dynamic> json) => MediaItem(
@@ -66,6 +72,7 @@ class MediaItem {
     audioUrl: json['audioUrl'],
     durationSeconds: json['durationSeconds'] ?? 0,
     order: json['order'] ?? 0,
+    isVertical: json['isVertical'] ?? false,
   );
 
   MediaItem copyWith({
@@ -79,6 +86,7 @@ class MediaItem {
     String? audioUrl,
     int? durationSeconds,
     int? order,
+    bool? isVertical,
   }) {
     return MediaItem(
       id: id ?? this.id,
@@ -91,6 +99,7 @@ class MediaItem {
       audioUrl: audioUrl ?? this.audioUrl,
       durationSeconds: durationSeconds ?? this.durationSeconds,
       order: order ?? this.order,
+      isVertical: isVertical ?? this.isVertical,
     );
   }
 }

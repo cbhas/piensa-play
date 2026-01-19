@@ -269,6 +269,22 @@ class _ZonaCeroMapPageState extends State<ZonaCeroMapPage> {
             if (!missionData.containsKey(mission.id)) return;
             _selectMission(mission.id);
           },
+          // onPlay navega directamente a la misión
+          onPlay: () {
+            if (mission.type == MissionNodeType.locked) return;
+            if (mission.type == MissionNodeType.chest) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('¡Sorpresa guardada para más tarde!'),
+                  duration: Duration(seconds: 2),
+                ),
+              );
+              return;
+            }
+            if (missionData.containsKey(mission.id)) {
+              _selectMission(mission.id);
+            }
+          },
         ),
       );
     }).toList();

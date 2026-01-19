@@ -59,36 +59,38 @@ class _AchievementsPageState extends State<AchievementsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.backgroundLight,
-      body: Column(
-        children: [
-          const ProgressHeader().slideFromTop(),
-          Expanded(
-            child: RefreshIndicator(
-              onRefresh: _refreshData,
-              color: AppTheme.primaryDark,
-              child: _isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : SingleChildScrollView(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      child: Column(
-                        children: [
-                          if (_achievement != null)
-                            OverallProgressCard(
-                              achievement: _achievement!,
-                            ).fadeInSlide(
-                              delay: const Duration(milliseconds: 200),
+      body: SafeArea(
+        child: Column(
+          children: [
+            const ProgressHeader().slideFromTop(),
+            Expanded(
+              child: RefreshIndicator(
+                onRefresh: _refreshData,
+                color: AppTheme.primaryDark,
+                child: _isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : SingleChildScrollView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        child: Column(
+                          children: [
+                            if (_achievement != null)
+                              OverallProgressCard(
+                                achievement: _achievement!,
+                              ).fadeInSlide(
+                                delay: const Duration(milliseconds: 200),
+                              ),
+                            const SizedBox(height: 16),
+                            BadgeGrid(badges: _badges).fadeInSlide(
+                              delay: const Duration(milliseconds: 300),
                             ),
-                          const SizedBox(height: 16),
-                          BadgeGrid(badges: _badges).fadeInSlide(
-                            delay: const Duration(milliseconds: 300),
-                          ),
-                          const SizedBox(height: 20),
-                        ],
+                            const SizedBox(height: 20),
+                          ],
+                        ),
                       ),
-                    ),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

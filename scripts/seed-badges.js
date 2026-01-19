@@ -1,163 +1,226 @@
 /**
- * Script para poblar Firebase con badges para cada misión y categoría
+ * Firebase Seed Script - Badges para las 9 Misiones
  * 
- * Badges de misión: Se desbloquean al completar una misión
- * Badges de categoría: Se desbloquean al completar todas las misiones de una categoría
+ * Este script actualiza los badges correspondientes a cada misión.
+ * Los IDs de badges DEBEN seguir el formato: mission_{missionId}
+ * El sistema de gamificación busca badges con este patrón.
  * 
- * Ejecutar con: npm run seed-badges
+ * Usage:
+ *   npm run seed:badges
  */
 
-import admin from 'firebase-admin';
-import { readFileSync } from 'fs';
+import { initializeApp, cert } from 'firebase-admin/app';
+import { getFirestore } from 'firebase-admin/firestore';
+import { readFileSync, existsSync } from 'fs';
 
-const serviceAccount = JSON.parse(
-    readFileSync('./serviceAccountKey.json', 'utf8')
-);
+// ============================================================================
+// CONFIGURATION
+// ============================================================================
 
-admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount)
+const SERVICE_ACCOUNT_PATH = './serviceAccountKey.json';
+
+if (!existsSync(SERVICE_ACCOUNT_PATH)) {
+    console.error('❌ Error: serviceAccountKey.json not found!');
+    process.exit(1);
+}
+
+const serviceAccount = JSON.parse(readFileSync(SERVICE_ACCOUNT_PATH, 'utf8'));
+
+initializeApp({
+    credential: cert(serviceAccount)
 });
 
-const db = admin.firestore();
+const db = getFirestore();
 
+// ============================================================================
+// BADGES - Formato: mission_{missionId} (requerido por GamificationService)
+// ============================================================================
 
-// Badges para misiones (basado en missions_local_datasource.dart)
-const missionBadges = [
-    // Veracidadville
+const badges = [
+    // =========================================================================
+    // VERACIDADVILLE - 3 Badges
+    // =========================================================================
     {
-        id: 'mission_fake_news',
+        id: 'mission_fake_news',  // DEBE coincidir con missionId
+        missionId: 'fake_news',
+        categoryId: 'veracidadville',
         title: 'Cazador de\nFake News',
-        description: 'Completaste la misión Cazadores de Fake News',
-        iconName: 'search',
+        description: 'Completaste la misión de detectar noticias falsas.',
+        iconName: 'fact_check',
+        colorHex: '0xFF6EC6FF',
         order: 1,
-        type: 'mission',
     },
     {
         id: 'mission_titular',
+        missionId: 'titular',
+        categoryId: 'veracidadville',
         title: 'Descifrador\nde Titulares',
-        description: 'Completaste la misión El Enigma del Titular',
-        iconName: 'text_snippet',
+        description: 'Dominaste el arte de analizar titulares engañosos.',
+        iconName: 'newspaper',
+        colorHex: '0xFF6EC6FF',
         order: 2,
-        type: 'mission',
     },
-    // Zona Cero Odio
+    {
+        id: 'mission_fuentes_confiables',
+        missionId: 'fuentes_confiables',
+        categoryId: 'veracidadville',
+        title: 'Verificador\nde Fuentes',
+        description: 'Aprendiste a identificar fuentes de información confiables.',
+        iconName: 'verified',
+        colorHex: '0xFF6EC6FF',
+        order: 3,
+    },
+    // =========================================================================
+    // ZONA CERO ODIO - 3 Badges
+    // =========================================================================
     {
         id: 'mission_mensaje_escondido',
-        title: 'Guardián de\nlas Palabras',
-        description: 'Completaste El Mensaje Escondido',
-        iconName: 'chat',
-        order: 3,
-        type: 'mission',
-    },
-    {
-        id: 'mission_stereotypes',
-        title: 'Rompe\nEstereotipos',
-        description: 'Completaste Rompe Estereotipos',
-        iconName: 'diversity_3',
+        missionId: 'mensaje_escondido',
+        categoryId: 'zona_cero_odio',
+        title: 'Detective del\nMensaje Oculto',
+        description: 'Identificaste palabras y frases que promueven el odio.',
+        iconName: 'search',
+        colorHex: '0xFFA4D65E',
         order: 4,
-        type: 'mission',
     },
-    // Fortaleza Privacidad
     {
-        id: 'mission_navegacion_segura',
-        title: 'Navegante\nSeguro',
-        description: 'Completaste Navegación Segura',
-        iconName: 'security',
+        id: 'mission_empatia_digital',
+        missionId: 'empatia_digital',
+        categoryId: 'zona_cero_odio',
+        title: 'Embajador de\nla Empatía',
+        description: 'Aprendiste a responder con empatía en línea.',
+        iconName: 'favorite',
+        colorHex: '0xFFA4D65E',
         order: 5,
-        type: 'mission',
     },
-    // Ciberseguridad
+    {
+        id: 'mission_reportar_odio',
+        missionId: 'reportar_odio',
+        categoryId: 'zona_cero_odio',
+        title: 'Guardián del\nRespeto',
+        description: 'Sabes cuándo y cómo reportar contenido de odio.',
+        iconName: 'shield',
+        colorHex: '0xFFA4D65E',
+        order: 6,
+    },
+    // =========================================================================
+    // CIBERSEGURIDAD - 3 Badges
+    // =========================================================================
     {
         id: 'mission_q1_phishing',
-        title: 'Detector de\nPhishing',
-        description: 'Completaste El Ataque Phishing',
-        iconName: 'email',
-        order: 6,
-        type: 'mission',
+        missionId: 'q1_phishing',
+        categoryId: 'ciberseguridad',
+        title: 'Escudo\nAnti-Phishing',
+        description: 'Detectas correos y mensajes fraudulentos como un experto.',
+        iconName: 'security',
+        colorHex: '0xFFFF6B6B',
+        order: 7,
     },
     {
         id: 'mission_q2_malware',
+        missionId: 'q2_malware',
+        categoryId: 'ciberseguridad',
         title: 'Cazador de\nMalware',
-        description: 'Completaste La Amenaza Oculta',
+        description: 'Identificas software malicioso y sabes cómo protegerte.',
         iconName: 'bug_report',
-        order: 7,
-        type: 'mission',
+        colorHex: '0xFFFF6B6B',
+        order: 8,
     },
     {
         id: 'mission_q3_passwords',
+        missionId: 'q3_passwords',
+        categoryId: 'ciberseguridad',
         title: 'Maestro de\nContraseñas',
-        description: 'Completaste Fortaleza de Contraseñas',
+        description: 'Creas contraseñas seguras y robustas.',
         iconName: 'lock',
-        order: 8,
-        type: 'mission',
+        colorHex: '0xFFFF6B6B',
+        order: 9,
     },
 ];
 
-// Badges para categorías completas
+// También necesitamos badges para categorías completas
 const categoryBadges = [
     {
         id: 'category_veracidadville',
-        title: 'Héroe de\nVeracidadville',
+        categoryId: 'veracidadville',
+        title: 'Maestro de\nVeracidadville',
         description: '¡Completaste todas las misiones de Veracidadville!',
-        iconName: 'shield',
-        order: 100,
-        type: 'category',
+        iconName: 'workspace_premium',
+        colorHex: '0xFF6EC6FF',
+        order: 10,
     },
     {
         id: 'category_zona_cero_odio',
-        title: 'Campeón\nZona Cero',
+        categoryId: 'zona_cero_odio',
+        title: 'Campeón\nZona Cero Odio',
         description: '¡Completaste todas las misiones de Zona Cero Odio!',
-        iconName: 'favorite',
-        order: 101,
-        type: 'category',
-    },
-    {
-        id: 'category_fortaleza_privacidad',
-        title: 'Guardian de\nla Privacidad',
-        description: '¡Completaste todas las misiones de Fortaleza Privacidad!',
-        iconName: 'privacy_tip',
-        order: 102,
-        type: 'category',
+        iconName: 'workspace_premium',
+        colorHex: '0xFFA4D65E',
+        order: 11,
     },
     {
         id: 'category_ciberseguridad',
+        categoryId: 'ciberseguridad',
         title: 'Experto en\nCiberseguridad',
         description: '¡Completaste todas las misiones de Ciberseguridad!',
-        iconName: 'verified_user',
-        order: 103,
-        type: 'category',
+        iconName: 'workspace_premium',
+        colorHex: '0xFFFF6B6B',
+        order: 12,
     },
 ];
 
-async function seedBadges() {
-    console.log('🚀 Iniciando seed de badges...\n');
+// ============================================================================
+// SEED FUNCTION
+// ============================================================================
 
-    const allBadges = [...missionBadges, ...categoryBadges];
+async function seedBadges() {
+    console.log('\n🏆 Actualizando Badges para Misiones...\n');
+
     const batch = db.batch();
 
-    for (const badge of allBadges) {
-        const docRef = db.collection('badges').doc(badge.id);
-        batch.set(docRef, {
-            title: badge.title,
-            description: badge.description,
-            iconName: badge.iconName,
-            order: badge.order,
-            type: badge.type,
-            createdAt: admin.firestore.FieldValue.serverTimestamp(),
-        });
-        console.log(`📛 Preparando badge: ${badge.id} - ${badge.title.replace('\n', ' ')}`);
+    // Badges de misiones
+    for (const badge of badges) {
+        const ref = db.collection('badges').doc(badge.id);
+        console.log(`  ✓ [${badge.categoryId}] ${badge.id} → "${badge.title.replace('\n', ' ')}"`);
+        batch.set(ref, {
+            ...badge,
+            updatedAt: new Date(),
+        }, { merge: true });
+    }
+
+    console.log('');
+
+    // Badges de categorías
+    for (const badge of categoryBadges) {
+        const ref = db.collection('badges').doc(badge.id);
+        console.log(`  ✓ [CATEGORY] ${badge.id} → "${badge.title.replace('\n', ' ')}"`);
+        batch.set(ref, {
+            ...badge,
+            updatedAt: new Date(),
+        }, { merge: true });
     }
 
     await batch.commit();
-
-    console.log(`\n✅ ¡Seed completado! ${allBadges.length} badges creados.`);
-    console.log(`   - ${missionBadges.length} badges de misión`);
-    console.log(`   - ${categoryBadges.length} badges de categoría`);
-
-    process.exit(0);
+    console.log(`\n✅ ${badges.length + categoryBadges.length} badges actualizados\n`);
 }
 
-seedBadges().catch((error) => {
-    console.error('❌ Error:', error);
-    process.exit(1);
-});
+// ============================================================================
+// MAIN
+// ============================================================================
+
+async function main() {
+    console.log('');
+    console.log('='.repeat(60));
+    console.log('  PiensaPlay - Seed Badges para Misiones');
+    console.log('='.repeat(60));
+
+    try {
+        await seedBadges();
+        console.log('🎉 ¡Badges actualizados correctamente!\n');
+    } catch (error) {
+        console.error('❌ Error:', error);
+        process.exit(1);
+    }
+}
+
+main();

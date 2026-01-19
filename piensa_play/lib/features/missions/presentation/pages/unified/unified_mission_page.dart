@@ -11,6 +11,9 @@ import '../../widgets/mission_feedback_overlay.dart';
 import '../../widgets/question_types/quiz_question_widget.dart';
 import '../../widgets/question_types/true_false_widget.dart';
 import '../../widgets/question_types/word_selection_widget.dart';
+import '../../widgets/question_types/classify_widget.dart';
+import '../../widgets/question_types/fill_blank_widget.dart';
+import '../../widgets/question_types/match_pairs_widget.dart';
 import '../shared/mission_results_page.dart';
 import 'explanation_page.dart';
 
@@ -45,6 +48,9 @@ class _UnifiedMissionPageState extends State<UnifiedMissionPage> {
   Set<String> _selectedOptionIds = {};
   bool? _selectedBoolAnswer;
   Set<String> _selectedWords = {};
+  Map<String, String> _userClassification = {}; // Para classify
+  List<String> _userBlanks = []; // Para fillBlank
+  Map<String, String> _userMatches = {}; // Para matchPairs
 
   List<UnifiedQuestion> get questions => widget.questions;
   UnifiedQuestion get currentQuestion => questions[_currentQuestionIndex];
@@ -76,81 +82,84 @@ class _UnifiedMissionPageState extends State<UnifiedMissionPage> {
     );
   }
 
-  /// Pantalla de introducción a la misión (mejorada)
+  /// Pantalla de introducción a la misión (diseño limpio)
   Widget _buildIntroScreen() {
-    // Obtener color de la categoría (con fallback)
     final categoryColor = _getCategoryColor();
 
-    return Column(
-      children: [
-        // Header con color de categoría (vibrante)
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.only(
-            top: 50,
-            bottom: 20,
-            left: 8,
-            right: 20,
-          ),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [categoryColor, categoryColor.withOpacity(0.85)],
+    return Container(
+      decoration: const BoxDecoration(
+        // Fondo neutro claro para mejor legibilidad
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            Color(0xFFF8F9FA), // Gris muy claro
+            Colors.white,
+          ],
+        ),
+      ),
+      child: Column(
+        children: [
+          // Header compacto con acento de color
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.only(
+              top: 50,
+              bottom: 16,
+              left: 8,
+              right: 20,
             ),
-          ),
-          child: Row(
-            children: [
-              IconButton(
-                icon: const Icon(Icons.arrow_back, color: Colors.white),
-                onPressed: () => Navigator.pop(context),
-              ),
-              const Expanded(
-                child: Text(
-                  'Misión',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                IconButton(
+                  icon: Icon(Icons.arrow_back, color: categoryColor),
+                  onPressed: () => Navigator.pop(context),
+                ),
+                Expanded(
+                  child: Text(
+                    widget.category.title,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: categoryColor,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 48),
-            ],
-          ),
-        ),
-
-        // Contenido principal - gradiente vibrante
-        Expanded(
-          child: Container(
-            width: double.infinity,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  categoryColor,
-                  categoryColor.withOpacity(0.8),
-                  Colors.white,
-                ],
-                stops: const [0.0, 0.4, 1.0],
-              ),
+                const SizedBox(width: 48),
+              ],
             ),
+          ),
+
+          // Contenido principal
+          Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
               child: Column(
                 children: [
                   const SizedBox(height: 20),
 
-                  // Ícono de la misión con color de categoría
+                  // Ícono circular con borde de color de categoría
                   Container(
-                    width: 120,
-                    height: 120,
+                    width: 130,
+                    height: 130,
                     decoration: BoxDecoration(
                       color: Colors.white,
                       shape: BoxShape.circle,
+                      border: Border.all(color: categoryColor, width: 4),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.2),
+                          color: categoryColor.withValues(alpha: 0.25),
                           blurRadius: 20,
                           offset: const Offset(0, 8),
                         ),
@@ -170,10 +179,10 @@ class _UnifiedMissionPageState extends State<UnifiedMissionPage> {
                   Text(
                     widget.mission.title,
                     textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontSize: 28,
+                    style: TextStyle(
+                      fontSize: 26,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: AppTheme.primaryDark,
                     ),
                   ).animate().fadeIn(delay: 200.ms),
 
@@ -185,24 +194,31 @@ class _UnifiedMissionPageState extends State<UnifiedMissionPage> {
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 16,
-                      color: Colors.white.withOpacity(0.95),
+                      color: Colors.grey.shade600,
                       height: 1.5,
                     ),
                   ).animate().fadeIn(delay: 300.ms),
 
-                  const SizedBox(height: 28),
+                  const SizedBox(height: 32),
 
-                  // Card de información
+                  // Card de información con borde de color
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.15),
+                      color: Colors.white,
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                        color: Colors.white.withOpacity(0.3),
-                        width: 1,
+                        color: categoryColor.withValues(alpha: 0.3),
+                        width: 2,
                       ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.05),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
                     ),
                     child: Column(
                       children: [
@@ -210,17 +226,17 @@ class _UnifiedMissionPageState extends State<UnifiedMissionPage> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(
+                            Icon(
                               Icons.quiz_outlined,
-                              color: Colors.white,
-                              size: 22,
+                              color: categoryColor,
+                              size: 24,
                             ),
                             const SizedBox(width: 10),
                             Text(
                               '${questions.length} preguntas',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
+                              style: TextStyle(
+                                color: AppTheme.primaryDark,
+                                fontSize: 18,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
@@ -229,25 +245,25 @@ class _UnifiedMissionPageState extends State<UnifiedMissionPage> {
                         const SizedBox(height: 16),
                         // Tip
                         Container(
-                          padding: const EdgeInsets.all(12),
+                          padding: const EdgeInsets.all(14),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(10),
+                            color: categoryColor.withValues(alpha: 0.08),
+                            borderRadius: BorderRadius.circular(12),
                           ),
                           child: Row(
                             children: [
-                              const Icon(
+                              Icon(
                                 Icons.lightbulb_outline,
-                                color: Colors.amber,
-                                size: 20,
+                                color: categoryColor,
+                                size: 22,
                               ),
-                              const SizedBox(width: 10),
+                              const SizedBox(width: 12),
                               Expanded(
                                 child: Text(
                                   _getTipForMission(),
                                   style: TextStyle(
-                                    color: Colors.white.withOpacity(0.9),
-                                    fontSize: 13,
+                                    color: Colors.grey.shade700,
+                                    fontSize: 14,
                                     height: 1.4,
                                   ),
                                 ),
@@ -261,25 +277,27 @@ class _UnifiedMissionPageState extends State<UnifiedMissionPage> {
 
                   const SizedBox(height: 40),
 
-                  // Botón comenzar
+                  // Botón comenzar con color de categoría
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: _startMission,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white,
-                        foregroundColor: categoryColor,
+                        backgroundColor: categoryColor,
+                        foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 18),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(14),
                         ),
                         elevation: 4,
+                        shadowColor: categoryColor.withValues(alpha: 0.4),
                       ),
                       child: const Text(
                         '¡Comenzar!',
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
+                          letterSpacing: 0.5,
                         ),
                       ),
                     ),
@@ -290,8 +308,8 @@ class _UnifiedMissionPageState extends State<UnifiedMissionPage> {
               ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -421,6 +439,33 @@ class _UnifiedMissionPageState extends State<UnifiedMissionPage> {
           selectedOptionIds: _selectedOptionIds,
           onVerify: _onVerifyQuiz,
         );
+
+      case QuestionType.classify:
+        return ClassifyWidget(
+          question: currentQuestion,
+          isAnswered: _showFeedback,
+          userClassification: _userClassification,
+          onItemClassified: _onItemClassified,
+          onVerify: _onVerifyClassify,
+        );
+
+      case QuestionType.fillBlank:
+        return FillBlankWidget(
+          question: currentQuestion,
+          isAnswered: _showFeedback,
+          userAnswers: _userBlanks,
+          onWordPlaced: _onWordPlaced,
+          onVerify: _onVerifyFillBlank,
+        );
+
+      case QuestionType.matchPairs:
+        return MatchPairsWidget(
+          question: currentQuestion,
+          isAnswered: _showFeedback,
+          userMatches: _userMatches,
+          onMatch: _onMatch,
+          onVerify: _onVerifyMatchPairs,
+        );
     }
   }
 
@@ -447,6 +492,11 @@ class _UnifiedMissionPageState extends State<UnifiedMissionPage> {
         return currentQuestion.options
             .where((o) => _selectedWords.contains(o.text))
             .toList();
+      case QuestionType.classify:
+      case QuestionType.fillBlank:
+      case QuestionType.matchPairs:
+        // Estos tipos no usan opciones tradicionales
+        return [];
     }
   }
 
@@ -522,6 +572,62 @@ class _UnifiedMissionPageState extends State<UnifiedMissionPage> {
     _showAnswerFeedback(isCorrect);
   }
 
+  /// Clasificar un item en una categoría
+  void _onItemClassified(String itemId, String category) {
+    setState(() {
+      if (category.isEmpty) {
+        // Remover de la clasificación
+        _userClassification.remove(itemId);
+      } else {
+        // Agregar a la categoría
+        _userClassification[itemId] = category;
+      }
+    });
+  }
+
+  /// Verificar clasificación
+  void _onVerifyClassify() {
+    final isCorrect = currentQuestion.isClassificationCorrect(
+      _userClassification,
+    );
+    _showAnswerFeedback(isCorrect);
+  }
+
+  /// Colocar palabra en un espacio en blanco
+  void _onWordPlaced(int blankIndex, String word) {
+    setState(() {
+      // Asegurar que la lista sea lo suficientemente grande
+      while (_userBlanks.length <= blankIndex) {
+        _userBlanks.add('');
+      }
+      _userBlanks[blankIndex] = word;
+    });
+  }
+
+  /// Verificar espacios en blanco
+  void _onVerifyFillBlank() {
+    final isCorrect = currentQuestion.areBlanksCorrect(_userBlanks);
+    _showAnswerFeedback(isCorrect);
+  }
+
+  /// Conectar pareja (left -> right)
+  void _onMatch(String left, String right) {
+    setState(() {
+      if (right.isEmpty) {
+        // Deshacer match
+        _userMatches.remove(left);
+      } else {
+        _userMatches[left] = right;
+      }
+    });
+  }
+
+  /// Verificar parejas
+  void _onVerifyMatchPairs() {
+    final isCorrect = currentQuestion.areMatchesCorrect(_userMatches);
+    _showAnswerFeedback(isCorrect);
+  }
+
   /// Mostrar feedback de respuesta
   void _showAnswerFeedback(bool isCorrect) {
     // Reproducir sonido de acierto o error
@@ -553,6 +659,9 @@ class _UnifiedMissionPageState extends State<UnifiedMissionPage> {
         _selectedOptionIds = {};
         _selectedBoolAnswer = null;
         _selectedWords = {};
+        _userClassification = {};
+        _userBlanks = [];
+        _userMatches = {};
       });
     }
   }

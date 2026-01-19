@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/services/app_data_service.dart';
 
 class ProgressHeader extends StatelessWidget {
   const ProgressHeader({super.key});
@@ -7,6 +8,7 @@ class ProgressHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final userName = AppDataService.instance.userProfile?.name;
 
     return Container(
       width: double.infinity,
@@ -18,7 +20,10 @@ class ProgressHeader extends StatelessWidget {
         children: [
           // Botón de retroceso
           GestureDetector(
-            onTap: () => Navigator.pop(context),
+            onTap: () {
+              Feedback.forTap(context);
+              Navigator.pop(context);
+            },
             child: Container(
               width: 40,
               height: 40,
@@ -35,10 +40,10 @@ class ProgressHeader extends StatelessWidget {
           ),
           const SizedBox(width: 16),
           // Título
-          const Column(
+          Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
+              const Text(
                 'Mi Progreso',
                 style: TextStyle(
                   color: Colors.white,
@@ -47,8 +52,10 @@ class ProgressHeader extends StatelessWidget {
                 ),
               ),
               Text(
-                '¡Hola!',
-                style: TextStyle(color: Colors.white70, fontSize: 14),
+                userName != null && userName.isNotEmpty
+                    ? '¡Hola, $userName!'
+                    : '¡Hola!',
+                style: const TextStyle(color: Colors.white70, fontSize: 14),
               ),
             ],
           ),

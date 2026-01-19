@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:piensa_play/features/missions/domain/entities/mission_category.dart';
 import 'package:piensa_play/features/missions/domain/usecases/get_mission_categories.dart';
 import 'package:piensa_play/features/achievements/domain/entities/achievement.dart';
@@ -42,6 +43,11 @@ class AppDataService {
   DashboardStats? _dashboardStats;
   UserProgress? _userProgress;
 
+  // Daily progress cache
+  int _dailyStreak = 0;
+  int _dailyBestStreak = 0;
+  int _dailyTotalAnswered = 0;
+
   // Loading state
   bool _isLoading = false;
   bool _isLoaded = false;
@@ -54,6 +60,11 @@ class AppDataService {
   UserProfile? get userProfile => _userProfile;
   DashboardStats? get dashboardStats => _dashboardStats;
   UserProgress? get userProgress => _userProgress;
+
+  // Daily progress getters
+  int get dailyStreak => _dailyStreak;
+  int get dailyBestStreak => _dailyBestStreak;
+  int get dailyTotalAnswered => _dailyTotalAnswered;
 
   bool get isLoading => _isLoading;
   bool get isLoaded => _isLoaded;
@@ -75,6 +86,7 @@ class AppDataService {
         _loadGlossary(),
         _loadProfile(),
         _loadDashboard(),
+        _loadDailyProgress(),
       ]);
 
       _isLoaded = true;
@@ -172,6 +184,27 @@ class AppDataService {
     }
   }
 
+  Future<void> _loadDailyProgress() async {
+    try {
+      final doc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(_userId)
+          .collection('daily_progress')
+          .doc('current')
+          .get();
+
+      if (doc.exists) {
+        final data = doc.data()!;
+        _dailyStreak = data['streak'] ?? 0;
+        _dailyBestStreak = data['bestStreak'] ?? 0;
+        _dailyTotalAnswered = data['totalAnswered'] ?? 0;
+        AppLogger.success('Daily progress loaded - streak: $_dailyStreak');
+      }
+    } catch (e) {
+      AppLogger.warning('Failed to load daily progress: $e');
+    }
+  }
+
   /// Update cached achievements (after completing a mission)
   void updateAchievement(Achievement newAchievement) {
     _achievement = newAchievement;
@@ -196,5 +229,53 @@ class AppDataService {
         );
       }
     }
+  }
+
+  /// Mark a mission as completed in the cache (no Firebase call)
+  void markMissionCompleted(String missionId) {
+    if (_missionCategories == null) return;
+
+    for (int i = 0; i < _missionCategories!.length; i++) {
+      final category = _missionCategories![i];
+      final missionIndex = category.missions.indexWhere(
+        (m) => m.id == missionId,
+      );
+
+      if (missionIndex != -1) {
+        // Crear nueva lista de misiones con la misión actualizada
+        final updatedMissions = category.missions.map((m) {
+          if (m.id == missionId) {
+            return m.copyWith(isCompleted: true);
+          }
+          return m;
+        }).toList();
+
+        // Actualizar la categoría con las misiones actualizadas
+        _missionCategories![i] = MissionCategory(
+          id: category.id,
+          title: category.title,
+          description: category.description,
+          iconName: category.iconName,
+          colorHex: category.colorHex,
+          missions: updatedMissions,
+          isExpanded: category.isExpanded,
+        );
+
+        AppLogger.success('CACHE: Mission $missionId marked as completed');
+        return;
+      }
+    }
+  }
+
+  /// Update daily progress cache (streak, best streak, total answered)
+  void updateDailyProgress({
+    required int streak,
+    required int bestStreak,
+    required int totalAnswered,
+  }) {
+    _dailyStreak = streak;
+    _dailyBestStreak = bestStreak;
+    _dailyTotalAnswered = totalAnswered;
+    AppLogger.success('CACHE: Daily progress updated - streak: $streak');
   }
 }

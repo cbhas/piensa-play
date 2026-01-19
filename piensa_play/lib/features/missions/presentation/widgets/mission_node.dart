@@ -30,71 +30,23 @@ class MissionNodeWidget extends StatelessWidget {
       return _buildChestNode();
     }
 
-    return GestureDetector(
-          onTap: type != MissionNodeType.locked ? onTap : null,
-          child: SizedBox(
-            width: 80,
-            height: 80,
-            child: Stack(
-              alignment: Alignment.center,
-              clipBehavior: Clip.none,
-              children: [
-                // "JUGAR" button - Clickeable para iniciar misión
-                if (isSelected && type == MissionNodeType.unlocked)
-                  Positioned(
-                    top: -35,
-                    child: GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onTap:
-                          onPlay ?? onTap, // Usar onPlay si existe, sino onTap
-                      child:
-                          Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 14,
-                                  vertical: 6,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(18),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withValues(
-                                        alpha: 0.15,
-                                      ),
-                                      blurRadius: 8,
-                                      offset: const Offset(0, 2),
-                                    ),
-                                  ],
-                                ),
-                                child: const Text(
-                                  'JUGAR',
-                                  style: TextStyle(
-                                    color: Color(0xFF7FA891),
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                    letterSpacing: 0.5,
-                                  ),
-                                ),
-                              )
-                              .animate()
-                              .fadeIn(duration: 250.ms, curve: Curves.easeOut)
-                              .slideY(
-                                begin: 0.5,
-                                end: 0,
-                                duration: 350.ms,
-                                curve: Curves.easeOutBack,
-                              )
-                              .scale(
-                                begin: const Offset(0.8, 0.8),
-                                end: const Offset(1.0, 1.0),
-                                duration: 350.ms,
-                                curve: Curves.easeOutBack,
-                              ),
-                    ),
-                  ),
-
-                // Node with 3D effect
-                SizedBox(
+    // Usar Stack para separar el botón JUGAR del GestureDetector del nodo
+    return SizedBox(
+          width: 80,
+          height: 120, // Más alto para incluir el botón JUGAR
+          child: Stack(
+            alignment: Alignment.bottomCenter, // Nodo en la parte inferior
+            clipBehavior: Clip.none,
+            children: [
+              // Nodo principal con su propio GestureDetector
+              GestureDetector(
+                onTap: type != MissionNodeType.locked
+                    ? () {
+                        Feedback.forTap(context);
+                        onTap?.call();
+                      }
+                    : null,
+                child: SizedBox(
                   width: 75,
                   height: 75,
                   child: Stack(
@@ -185,8 +137,66 @@ class MissionNodeWidget extends StatelessWidget {
                     ],
                   ),
                 ),
-              ],
-            ),
+              ),
+
+              // "JUGAR" button - FUERA del GestureDetector del nodo
+              if (isSelected && type == MissionNodeType.unlocked)
+                Positioned(
+                  top: 0, // Ahora está dentro del SizedBox
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () {
+                      Feedback.forTap(context);
+                      if (onPlay != null) {
+                        onPlay!();
+                      } else if (onTap != null) {
+                        onTap!();
+                      }
+                    },
+                    child:
+                        Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(18),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.15),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: const Text(
+                                'JUGAR',
+                                style: TextStyle(
+                                  color: Color(0xFF7FA891),
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                            )
+                            .animate()
+                            .fadeIn(duration: 250.ms, curve: Curves.easeOut)
+                            .slideY(
+                              begin: 0.5,
+                              end: 0,
+                              duration: 350.ms,
+                              curve: Curves.easeOutBack,
+                            )
+                            .scale(
+                              begin: const Offset(0.8, 0.8),
+                              end: const Offset(1.0, 1.0),
+                              duration: 350.ms,
+                              curve: Curves.easeOutBack,
+                            ),
+                  ),
+                ),
+            ],
           ),
         )
         .animate()

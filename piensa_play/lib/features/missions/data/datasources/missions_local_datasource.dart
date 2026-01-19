@@ -1,6 +1,5 @@
 import '../../domain/entities/mission.dart';
 import '../../domain/entities/mission_category.dart';
-import '../datasources/ciberseguridad/ciberseguridad_quiz_data.dart';
 
 class MissionsLocalDatasource {
   Future<List<MissionCategory>> getMissionCategories(String userId) async {
@@ -8,6 +7,9 @@ class MissionsLocalDatasource {
     await Future.delayed(const Duration(milliseconds: 500));
 
     return [
+      // =========================================================================
+      // VERACIDADVILLE - 3 Misiones
+      // =========================================================================
       MissionCategory(
         id: 'veracidadville',
         title: 'Veracidadville',
@@ -20,7 +22,7 @@ class MissionsLocalDatasource {
             title: 'Cazadores de Fake News',
             subtitle: 'Veracidadville',
             description: 'Aprende a identificar noticias engañosas',
-            isCompleted: true,
+            isCompleted: false,
             iconName: 'check',
             type: MissionType.quiz,
             questions: [],
@@ -35,8 +37,22 @@ class MissionsLocalDatasource {
             type: MissionType.trueFalse,
             questions: [],
           ),
+          Mission(
+            id: 'fuentes_confiables',
+            title: 'Fuentes Confiables',
+            subtitle: 'Veracidadville',
+            description:
+                'Aprende a identificar fuentes de información confiables.',
+            isCompleted: false,
+            iconName: 'search',
+            type: MissionType.quiz,
+            questions: [],
+          ),
         ],
       ),
+      // =========================================================================
+      // ZONA CERO ODIO - 3 Misiones
+      // =========================================================================
       MissionCategory(
         id: 'zona_cero_odio',
         title: 'Zona Cero Odio',
@@ -45,8 +61,8 @@ class MissionsLocalDatasource {
         colorHex: '0xFFA4D65E',
         missions: [
           Mission(
-            id: 'words',
-            title: 'El Sendero de las Palabras',
+            id: 'mensaje_escondido',
+            title: 'El Mensaje Escondido',
             subtitle: 'Zona Cero Odio',
             description: 'Identifica palabras y frases que promueven el odio.',
             isCompleted: false,
@@ -55,36 +71,30 @@ class MissionsLocalDatasource {
             questions: [],
           ),
           Mission(
-            id: 'stereotypes',
-            title: 'Rompe Estereotipos',
+            id: 'empatia_digital',
+            title: 'Empatía Digital',
             subtitle: 'Zona Cero Odio',
-            description: 'Cambia ideas injustas por mensajes amables.',
+            description: 'Aprende a responder con empatía en línea.',
             isCompleted: false,
-            iconName: 'lock',
-            type: MissionType.stereotype,
-            questions: [],
-          ),
-        ],
-      ),
-      MissionCategory(
-        id: 'fortaleza_privacidad',
-        title: 'Fortaleza Privacidad',
-        description: 'Protege tu identidad digital y navega seguro.',
-        iconName: 'lock',
-        colorHex: '0xFFF4D03F',
-        missions: [
-          Mission(
-            id: 'navegacion_segura',
-            title: 'Navegación Segura',
-            subtitle: 'Fortaleza Privacidad',
-            description: 'Aprende a proteger tus datos al navegar.',
-            isCompleted: false,
-            iconName: 'diamond',
+            iconName: 'favorite',
             type: MissionType.quiz,
             questions: [],
           ),
+          Mission(
+            id: 'reportar_odio',
+            title: 'Reportar y Actuar',
+            subtitle: 'Zona Cero Odio',
+            description: 'Aprende cuándo y cómo reportar contenido de odio.',
+            isCompleted: false,
+            iconName: 'flag',
+            type: MissionType.trueFalse,
+            questions: [],
+          ),
         ],
       ),
+      // =========================================================================
+      // CIBERSEGURIDAD - 3 Misiones
+      // =========================================================================
       MissionCategory(
         id: 'ciberseguridad',
         title: 'Misión Ciberseguridad',
@@ -100,7 +110,7 @@ class MissionsLocalDatasource {
             isCompleted: false,
             iconName: 'flag',
             type: MissionType.quiz,
-            questions: CiberseguridadQuizData.getQuestions(),
+            questions: [],
           ),
           Mission(
             id: 'q2_malware',
@@ -110,7 +120,7 @@ class MissionsLocalDatasource {
             isCompleted: false,
             iconName: 'flag',
             type: MissionType.quiz,
-            questions: CiberseguridadQuizData.getQuestions(),
+            questions: [],
           ),
           Mission(
             id: 'q3_passwords',
@@ -120,7 +130,7 @@ class MissionsLocalDatasource {
             isCompleted: false,
             iconName: 'flag',
             type: MissionType.quiz,
-            questions: CiberseguridadQuizData.getQuestions(),
+            questions: [],
           ),
         ],
       ),

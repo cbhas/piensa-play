@@ -133,7 +133,7 @@ class _MissionMapPageState extends State<MissionMapPage> {
 
     if (!mounted) return;
 
-    // Navegar a página unificada
+    // Navegar a página unificada y recargar progreso al volver
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -143,7 +143,10 @@ class _MissionMapPageState extends State<MissionMapPage> {
           questions: questions,
         ),
       ),
-    );
+    ).then((_) {
+      // Recargar progreso cuando se vuelve de la misión
+      _loadProgress();
+    });
   }
 
   /// Fallback para misiones que aún no tienen preguntas unificadas
