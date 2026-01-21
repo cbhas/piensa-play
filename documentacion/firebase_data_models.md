@@ -1,6 +1,6 @@
-# 📚 PiensaPlay - Modelos de Datos de Firebase
+# 📚 PiensaPlay - Modelos de Datos Firebase
 
-Este documento describe todos los modelos de datos que se comunican y almacenan en Firebase Firestore para la aplicación PiensaPlay.
+Documentación técnica para construir la interfaz de administración.
 
 ---
 
@@ -8,73 +8,70 @@ Este documento describe todos los modelos de datos que se comunican y almacenan 
 
 | Colección | Descripción | Tipo |
 |-----------|-------------|------|
-| `badges` | Catálogo global de insignias | Global |
+| `badges` | Catálogo de insignias | Global |
 | `mission_categories` | Categorías de misiones | Global |
 | `missions` | Misiones individuales | Global |
 | `unified_questions` | Preguntas de misiones | Global |
+| `daily_questions` | Pool de preguntas diarias (30+) | Global |
 | `glossary` | Términos del glosario | Global |
-| `learn_content` | Videos y podcasts educativos | Global |
-| `users/{userId}/achievements` | Logros del usuario | Por Usuario |
+| `learn_content` | Videos y podcasts | Global |
+| `recovery_codes` | Índice de códigos de estudiante | Global |
+| `users/{userId}/achievements` | Logros y nivel del usuario | Por Usuario |
 | `users/{userId}/unlockedBadges` | Insignias desbloqueadas | Por Usuario |
-| `users/{userId}/recent_activities` | Actividades recientes | Por Usuario |
+| `users/{userId}/daily_progress` | Progreso en preguntas diarias | Por Usuario |
+| `users/{userId}/mission_progress` | Progreso en misiones | Por Usuario |
+| `users/{userId}/recovery` | Código de recuperación del estudiante | Por Usuario |
+| `users/{userId}/profile` | Perfil del usuario | Por Usuario |
 
 ---
 
-## 🏆 Colecciones Globales
+## 🎯 Tipos de Preguntas
+
+La app soporta **7 tipos de preguntas**:
+
+| Tipo | Descripción | Campos Requeridos |
+|------|-------------|-------------------|
+| `quiz` | Selección múltiple | `options` (con `isCorrect`) |
+| `trueFalse` | Verdadero/Falso | `correctBoolAnswer` |
+| `wordSelection` | Seleccionar palabras correctas | `options`, `correctWords` |
+| `stereotype` | Rompe estereotipos | `options` |
+| `classify` | Arrastrar items a categorías | `categories`, `classifyItems` |
+| `fillBlank` | Completar espacios en texto | `textWithBlanks`, `blankAnswers`, `wordBank` |
+| `matchPairs` | Conectar parejas | `matchPairs` |
+
+---
+
+## 📝 Colecciones Globales
 
 ### 1. `badges` - Catálogo de Insignias
 
-Catálogo global de todas las insignias disponibles en la aplicación.
-
 **Ruta:** `badges/{badgeId}`
 
-```dart
-class Badge {
-  final String id;
-  final String title;
-  final String? description;
-  final String iconName;
-  final bool isUnlocked;  // Calculado al combinar con unlockedBadges del usuario
-}
-```
-
-**Estructura en Firestore:**
 ```json
 {
   "title": "Cazador de\nFake News",
   "description": "Completaste la misión Cazadores de Fake News",
   "iconName": "search",
   "order": 1,
-  "type": "mission",  // "mission" | "category"
-  "createdAt": Timestamp
+  "type": "mission",
+  "createdAt": "Timestamp"
 }
 ```
 
-**Tipos de Badge:**
-- `mission` - Se desbloquea al completar una misión específica
-- `category` - Se desbloquea al completar todas las misiones de una categoría
+| Campo | Tipo | Descripción |
+|-------|------|-------------|
+| `title` | string | Nombre (usa `\n` para salto de línea) |
+| `description` | string | Descripción del logro |
+| `iconName` | string | Nombre del icono Material |
+| `order` | number | Orden de visualización |
+| `type` | string | `"mission"` o `"category"` |
 
 ---
 
-### 2. `mission_categories` - Categorías de Misiones
-
-Agrupa las misiones por temática educativa.
+### 2. `mission_categories` - Categorías
 
 **Ruta:** `mission_categories/{categoryId}`
 
-```dart
-class MissionCategory {
-  final String id;
-  final String title;
-  final String description;
-  final String iconName;
-  final String colorHex;
-  final List<Mission> missions;
-  bool isExpanded;
-}
-```
-
-**Estructura en Firestore:**
 ```json
 {
   "title": "Veracidadville",
@@ -85,43 +82,18 @@ class MissionCategory {
 }
 ```
 
-**Categorías disponibles:**
-| ID | Título | Color |
-|----|--------|-------|
-| `veracidadville` | Veracidadville | Azul `#6EC6FF` |
-| `zona_cero_odio` | Zona Cero Odio | Verde `#A4D65E` |
-| `fortaleza_privacidad` | Fortaleza Privacidad | Amarillo `#F4D03F` |
-| `ciberseguridad` | Misión Ciberseguridad | Rojo `#FF6B6B` |
+**Categorías actuales:**
+- `veracidadville` - Azul `#6EC6FF`
+- `zona_cero_odio` - Verde `#A4D65E`
+- `fortaleza_privacidad` - Amarillo `#F4D03F`
+- `ciberseguridad` - Rojo `#FF6B6B`
 
 ---
 
 ### 3. `missions` - Misiones
 
-Misiones individuales dentro de cada categoría.
-
 **Ruta:** `missions/{missionId}`
 
-```dart
-enum MissionType {
-  quiz,           // Selección múltiple
-  trueFalse,      // Verdadero/Falso
-  wordSelection,  // Selección de palabras
-  stereotype,     // Rompe estereotipos
-}
-
-class Mission {
-  final String id;
-  final String title;
-  final String subtitle;
-  final String description;
-  final bool isCompleted;
-  final String iconName;
-  final MissionType type;
-  final List<QuizQuestion>? questions;
-}
-```
-
-**Estructura en Firestore:**
 ```json
 {
   "categoryId": "veracidadville",
@@ -138,45 +110,9 @@ class Mission {
 
 ### 4. `unified_questions` - Preguntas de Misiones
 
-Formato de preguntas que soporta todos los tipos de misión con feedback por opción.
-
 **Ruta:** `unified_questions/{questionId}`
 
-```dart
-enum QuestionType {
-  quiz,           // Selección múltiple
-  trueFalse,      // Verdadero/Falso
-  wordSelection,  // Selección de palabras
-  stereotype,     // Rompe estereotipos
-}
-
-class AnswerOption {
-  final String id;
-  final String text;
-  final bool isCorrect;
-  final String? imageUrl;
-  final String? feedback;  // Retroalimentación específica de esta opción
-}
-
-class UnifiedQuestion {
-  final String id;
-  final QuestionType type;
-  final String title;           // Pregunta principal
-  final String? subtitle;       // Instrucción adicional
-  final String? content;        // Contenido (ej: texto de noticia falsa)
-  final String? imageUrl;
-  final List<AnswerOption> options;
-  final String explanation;           // Explicación correcta
-  final String? incorrectExplanation; // Explicación incorrecta
-  // Campos específicos por tipo:
-  final bool? correctBoolAnswer;      // Para trueFalse
-  final List<String>? correctWords;   // Para wordSelection
-  final String? source;               // Fuente de noticia
-  final String? date;                 // Fecha de publicación
-}
-```
-
-**Estructura en Firestore:**
+Estructura base (todos los tipos):
 ```json
 {
   "id": "q1_zanahoria",
@@ -184,53 +120,100 @@ class UnifiedQuestion {
   "type": "quiz",
   "title": "¿Cuáles son las señales de que esta noticia es falsa?",
   "subtitle": "Selecciona todos los elementos sospechosos",
-  "content": "Científicos descubren que beber jugo de zanahoria...",
+  "content": "Texto de la noticia...",
   "imageUrl": null,
-  "source": "ElNoticiero.com",
-  "date": "Publicado: Hoy",
-  "options": [
-    {
-      "id": "author",
-      "text": "Autor no es un experto real",
-      "isCorrect": true,
-      "feedback": "El 'Dr. Inventado' no es un experto verificable"
-    },
-    {
-      "id": "source",
-      "text": "Fuente no confiable",
-      "isCorrect": true,
-      "feedback": "ElNoticiero.com no es una fuente verificada"
-    }
-  ],
-  "explanation": "¡Excelente! Identificaste correctamente las señales...",
-  "incorrectExplanation": "Esta noticia es falsa porque...",
+  "explanation": "Explicación cuando responde correctamente",
+  "incorrectExplanation": "Explicación cuando falla",
   "order": 1,
-  "createdAt": Timestamp,
-  "updatedAt": Timestamp
+  "createdAt": "Timestamp"
+}
+```
+
+#### Campos por Tipo:
+
+**Quiz / Stereotype:**
+```json
+{
+  "options": [
+    { "id": "opt1", "text": "Opción A", "isCorrect": true, "feedback": "Retroalimentación" },
+    { "id": "opt2", "text": "Opción B", "isCorrect": false, "feedback": "..." }
+  ],
+  "source": "ElNoticiero.com",
+  "date": "Publicado: Hoy"
+}
+```
+
+**TrueFalse:**
+```json
+{
+  "correctBoolAnswer": false,
+  "options": [
+    { "id": "true", "text": "Verdadero", "isCorrect": false },
+    { "id": "false", "text": "Falso", "isCorrect": true }
+  ]
+}
+```
+
+**WordSelection:**
+```json
+{
+  "options": [
+    { "id": "w1", "text": "Respeto", "isCorrect": false },
+    { "id": "w2", "text": "Discriminar", "isCorrect": true }
+  ],
+  "correctWords": ["Discriminar", "Odio", "Insultar"]
+}
+```
+
+**Classify:**
+```json
+{
+  "categories": ["Confiable", "No Confiable"],
+  "classifyItems": [
+    { "id": "item1", "text": "Wikipedia", "correctCategory": "No Confiable" },
+    { "id": "item2", "text": "Estudio científico", "correctCategory": "Confiable" }
+  ]
+}
+```
+
+**FillBlank:**
+```json
+{
+  "textWithBlanks": "Las noticias falsas buscan generar _____ y confundir a la _____.",
+  "blankAnswers": ["miedo", "audiencia"],
+  "wordBank": ["miedo", "audiencia", "verdad", "alegría"]
+}
+```
+
+**MatchPairs:**
+```json
+{
+  "matchPairs": [
+    { "id": "p1", "left": "Phishing", "right": "Correo fraudulento" },
+    { "id": "p2", "left": "Malware", "right": "Software malicioso" }
+  ]
 }
 ```
 
 ---
 
-### 5. `glossary` - Glosario
+### 5. `daily_questions` - Pool de Preguntas Diarias
 
-Términos educativos con definiciones.
+**Ruta:** `daily_questions/{questionId}`
+
+Usa el mismo formato que `unified_questions`. El sistema selecciona automáticamente una pregunta por día basándose en la fecha (todos los usuarios ven la misma pregunta cada día).
+
+**Algoritmo de selección:**
+```javascript
+index = (año * 10000 + mes * 100 + día) % totalPreguntas
+```
+
+---
+
+### 6. `glossary` - Glosario
 
 **Ruta:** `glossary/{termId}`
 
-```dart
-class GlossaryTerm {
-  final String id;
-  final String term;
-  final String category;
-  final String definition;
-  final String icon;
-  final int order;
-  final String question;
-}
-```
-
-**Estructura en Firestore:**
 ```json
 {
   "term": "Fake News",
@@ -244,9 +227,7 @@ class GlossaryTerm {
 
 ---
 
-### 6. `learn_content` - Contenido Educativo
-
-Videos y podcasts para la sección de aprendizaje.
+### 7. `learn_content` - Contenido Educativo
 
 **Ruta:** `learn_content/{contentId}`
 
@@ -266,283 +247,295 @@ Videos y podcasts para la sección de aprendizaje.
 
 ---
 
-## 👤 Colecciones por Usuario
+### 8. `recovery_codes` - Índice de Códigos de Estudiante
 
-### 7. `users/{userId}/achievements` - Logros del Usuario
+**Ruta:** `recovery_codes/{CODE}`
 
-Almacena el progreso de gamificación del usuario.
-
-**Ruta:** `users/{userId}/achievements/current`
-
-```dart
-class Achievement {
-  final int currentLevel;
-  final int totalXP;
-  final int coins;
-}
-
-class GamificationConfig {
-  static const int xpPerMission = 100;
-  static const int xpPerCategory = 250;
-  static const int coinsPerMission = 50;
-  static const int xpToLevelUp = 300;
+```json
+{
+  "userId": "abc123...",
+  "createdAt": "Timestamp"
 }
 ```
 
-**Estructura en Firestore:**
+> Este es un **índice inverso** para búsqueda rápida de usuarios por código.
+
+---
+
+## 👤 Colecciones por Usuario
+
+### 9. `users/{userId}/achievements`
+
+**Ruta:** `users/{userId}/achievements/current`
+
 ```json
 {
   "currentLevel": 3,
   "totalXP": 950,
   "coins": 350,
-  "lastUpdated": Timestamp
+  "lastUpdated": "Timestamp"
+}
+```
+
+**Sistema de Niveles:**
+- 300 XP = 1 nivel
+- Misión completada = +100 XP, +50 monedas
+- Categoría completa = +250 XP bonus
+- Pregunta diaria correcta = +50 XP, +30 monedas
+- Pregunta diaria incorrecta = +10 XP, +5 monedas
+
+---
+
+### 10. `users/{userId}/daily_progress`
+
+**Ruta:** `users/{userId}/daily_progress/current`
+
+```json
+{
+  "lastAnsweredDate": "2026-01-20",
+  "streak": 5,
+  "bestStreak": 12,
+  "totalAnswered": 45,
+  "totalCorrect": 38,
+  "lastUpdated": "Timestamp"
 }
 ```
 
 ---
 
-### 8. `users/{userId}/unlockedBadges` - Insignias Desbloqueadas
+### 11. `users/{userId}/mission_progress`
 
-Registro de insignias que el usuario ha desbloqueado.
+**Ruta:** `users/{userId}/mission_progress/{missionId}`
+
+```json
+{
+  "isCompleted": true,
+  "completedAt": "Timestamp"
+}
+```
+
+---
+
+### 12. `users/{userId}/unlockedBadges`
 
 **Ruta:** `users/{userId}/unlockedBadges/{badgeId}`
 
 ```json
 {
-  "unlockedAt": Timestamp
+  "unlockedAt": "Timestamp"
 }
 ```
 
-> **Nota:** Solo se almacena el ID del badge y la fecha de desbloqueo. Los detalles del badge se obtienen de la colección global `badges`.
+> Solo almacena el ID y fecha. Los detalles se obtienen de `badges`.
 
 ---
 
-### 9. `users/{userId}/recent_activities` - Actividades Recientes
+### 13. `users/{userId}/recovery`
 
-Historial de actividades recientes del usuario.
+**Ruta:** `users/{userId}/recovery/code`
 
-**Ruta:** `users/{userId}/recent_activities/{activityId}`
-
-```dart
-class RecentActivity {
-  final String id;
-  final String description;
-  final int xpReward;
-  final String iconName;
-  final bool isCompleted;
-}
-```
-
-**Estructura en Firestore:**
 ```json
 {
-  "description": "Completaste Cazadores de Fake News",
-  "xpReward": 100,
-  "iconName": "check",
-  "isCompleted": true,
-  "lastUpdated": Timestamp
+  "code": "A3B5C7D9",
+  "createdAt": "Timestamp"
 }
 ```
 
 ---
 
-## 📱 Modelos Adicionales (Solo Cliente)
+### 14. `users/{userId}/profile`
 
-Estos modelos se usan en la aplicación pero **no se almacenan directamente en Firebase**:
+**Ruta:** `users/{userId}/profile/data`
 
-### UserProfile
-
-Perfil del usuario (almacenamiento local via SharedPreferences o Firebase Auth).
-
-```dart
-class UserProfile {
-  final String name;
-  final int age;
-  final String avatarId;
+```json
+{
+  "name": "Juan",
+  "age": 12,
+  "avatarId": "avatar_01",
+  "studentCode": "PP-A1B2C3"
 }
 ```
 
-### DashboardStats
+| Campo | Tipo | Descripción |
+|-------|------|-------------|
+| `name` | string | Nombre del estudiante |
+| `age` | number | Edad |
+| `avatarId` | string | ID del avatar seleccionado |
+| `studentCode` | string | Código único para profesores (`PP-XXXXXX`) |
 
-Estadísticas calculadas para el dashboard.
+---
 
-```dart
-class DashboardStats {
-  final int newGames;
-  final int pendingGlossary;
-  final int achievements;
-  final int activeMissions;
+## 🔑 Sistemas de Códigos
+
+PiensaPlay tiene **dos sistemas de códigos** diferentes:
+
+| Sistema | Formato | Propósito | Almacenamiento |
+|---------|---------|-----------|----------------|
+| **Código de Estudiante** | `PP-XXXXXX` | Profesores acceden al progreso | `users/{userId}/profile/data.studentCode` |
+| **Código de Recuperación** | `XXXXXXXX` | Restaurar cuenta en otro dispositivo | `users/{userId}/recovery/code` + `recovery_codes/{CODE}` |
+
+---
+
+### 🎓 Código de Estudiante (`studentCode`)
+
+**Propósito:** Permite a los profesores introducir el código en la interfaz de administración para acceder al progreso del estudiante.
+
+**Formato:** `PP-XXXXXX` (PP = PiensaPlay + 6 caracteres)
+- Caracteres: `ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789`
+- Ejemplo: `PP-A1B2C3`, `PP-XK7N4M`, `PP-Q2R5TW`
+
+**¿Cuándo se genera?**
+- Al crear el perfil durante el onboarding
+- Si un usuario existente no tiene código, se genera automáticamente
+
+**Almacenamiento:**
+```
+users/{userId}/profile/data
+{
+  "name": "Juan",
+  "age": 12,
+  "avatarId": "avatar_01",
+  "studentCode": "PP-A1B2C3"  ← Aquí
 }
 ```
 
-### UserProgress
+**Uso para Profesores:**
+1. Estudiante comparte su código `PP-XXXXXX` con el profesor
+2. Profesor introduce el código en la interfaz de administración
+3. Sistema busca en Firestore: `collectionGroup('profile').where('studentCode', '==', 'PP-A1B2C3')`
+4. Profesor obtiene acceso de lectura al progreso del estudiante
 
-Progreso general del usuario.
-
+**Algoritmo de generación:**
 ```dart
-class UserProgress {
-  final double generalProgress;
-  final Map<String, double> monthlyProgress;
-}
-```
-
-### MissionConfig / MapCategoryConfig
-
-Configuración de UI para el mapa de misiones (solo cliente).
-
-```dart
-class MissionConfig {
-  final String id;
-  final String title;
-  final String description;
-  final Offset position;
-  final Widget Function(BuildContext) pageBuilder;
-  final bool isCompleted;
-  final bool isLocked;
-}
-
-class MapCategoryConfig {
-  final String categoryId;
-  final String categoryTitle;
-  final Color categoryColor;
-  final Color bannerColor;
-  final Color nodeColor;
-  final String backgroundImage;
-  final bool useSequentialUnlock;
+static String generateStudentCode() {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  final random = Random.secure();
+  final code = List.generate(6, (_) => chars[random.nextInt(chars.length)]).join();
+  return 'PP-$code';  // PP = PiensaPlay
 }
 ```
 
 ---
 
-## 🔗 Diagrama de Relaciones
+### 🔐 Código de Recuperación (`recovery code`)
+
+**Propósito:** Permite al estudiante recuperar su cuenta al cambiar de dispositivo o reinstalar la app.
+
+**Formato:** `XXXXXXXX` (8 caracteres)
+- Caracteres: `ABCDEFGHJKLMNPQRSTUVWXYZ23456789`
+- **Excluye:** O, 0, I, 1 (para evitar confusión visual)
+- Ejemplo: `A3B5C7D9`, `XKJH2N4M`
+
+**¿Cuándo se genera?**
+- Cuando el usuario lo solicita manualmente desde Configuración
+
+**Almacenamiento:**
+```
+users/{userId}/recovery/code
+{
+  "code": "A3B5C7D9",
+  "createdAt": "Timestamp"
+}
+
+recovery_codes/A3B5C7D9  ← Índice inverso
+{
+  "userId": "abc123...",
+  "createdAt": "Timestamp"
+}
+```
+
+**Flujo de recuperación:**
+```
+1. Usuario ingresa código en nuevo dispositivo
+2. Sistema busca en recovery_codes/{CODE}
+3. Obtiene userId original
+4. Copia subcolecciones al nuevo userId:
+   - profile, achievements, mission_progress, daily_progress
+```
+
+---
+
+## 📊 Diagrama de Relaciones
 
 ```mermaid
 erDiagram
     MISSION_CATEGORIES ||--o{ MISSIONS : contains
     MISSIONS ||--o{ UNIFIED_QUESTIONS : has
     BADGES ||--o{ UNLOCKED_BADGES : referenced_by
+    DAILY_QUESTIONS }o--|| UNIFIED_QUESTIONS : "same format"
     
-    USERS ||--o{ ACHIEVEMENTS : has
+    USERS ||--|| PROFILE : has
+    USERS ||--|| ACHIEVEMENTS : has
     USERS ||--o{ UNLOCKED_BADGES : owns
-    USERS ||--o{ RECENT_ACTIVITIES : logs
-    
-    MISSION_CATEGORIES {
-        string id PK
-        string title
-        string description
-        string iconName
-        string colorHex
-        int order
-    }
-    
-    MISSIONS {
-        string id PK
-        string categoryId FK
-        string title
-        string subtitle
-        string description
-        string iconName
-        string type
-        int order
-    }
+    USERS ||--o{ MISSION_PROGRESS : tracks
+    USERS ||--|| DAILY_PROGRESS : has
+    USERS ||--|| RECOVERY : has
+    RECOVERY_CODES }o--|| USERS : points_to
     
     UNIFIED_QUESTIONS {
         string id PK
         string missionId FK
         string type
         string title
-        string content
         array options
         string explanation
-        int order
     }
     
     BADGES {
         string id PK
         string title
-        string description
-        string iconName
         string type
         int order
-    }
-    
-    USERS {
-        string id PK
     }
     
     ACHIEVEMENTS {
         int currentLevel
         int totalXP
         int coins
-        timestamp lastUpdated
     }
     
-    UNLOCKED_BADGES {
-        string badgeId PK
-        timestamp unlockedAt
+    DAILY_PROGRESS {
+        string lastAnsweredDate
+        int streak
+        int bestStreak
+        int totalAnswered
     }
     
-    RECENT_ACTIVITIES {
-        string id PK
-        string description
-        int xpReward
-        string iconName
-        bool isCompleted
-    }
-    
-    GLOSSARY {
-        string id PK
-        string term
-        string category
-        string definition
-        string icon
-        int order
-    }
-    
-    LEARN_CONTENT {
-        string id PK
-        string title
-        string type
-        string youtubeId
-        int durationSeconds
+    RECOVERY {
+        string code
+        timestamp createdAt
     }
 ```
 
 ---
 
-## 🗂️ Archivos Fuente Relacionados
+## 📁 Archivos Fuente
 
-### Entidades (Domain Layer)
-- [achievement.dart](file:///c:/Users/Alex/Desktop/flutter/piensa-play/piensa_play/lib/features/achievements/domain/entities/achievement.dart)
-- [badge.dart](file:///c:/Users/Alex/Desktop/flutter/piensa-play/piensa_play/lib/features/achievements/domain/entities/badge.dart)
-- [recent_activity.dart](file:///c:/Users/Alex/Desktop/flutter/piensa-play/piensa_play/lib/features/achievements/domain/entities/recent_activity.dart)
-- [glossary_term.dart](file:///c:/Users/Alex/Desktop/flutter/piensa-play/piensa_play/lib/features/glossary/domain/entities/glossary_term.dart)
-- [mission.dart](file:///c:/Users/Alex/Desktop/flutter/piensa-play/piensa_play/lib/features/missions/domain/entities/mission.dart)
-- [mission_category.dart](file:///c:/Users/Alex/Desktop/flutter/piensa-play/piensa_play/lib/features/missions/domain/entities/mission_category.dart)
-- [unified_question.dart](file:///c:/Users/Alex/Desktop/flutter/piensa-play/piensa_play/lib/features/missions/domain/entities/unified_question.dart)
-- [user_profile.dart](file:///c:/Users/Alex/Desktop/flutter/piensa-play/piensa_play/lib/features/onboarding/domain/entities/user_profile.dart)
-- [user_progress.dart](file:///c:/Users/Alex/Desktop/flutter/piensa-play/piensa_play/lib/features/home/domain/entities/user_progress.dart)
-- [dashboard_stats.dart](file:///c:/Users/Alex/Desktop/flutter/piensa-play/piensa_play/lib/features/home/domain/entities/dashboard_stats.dart)
+### Entidades
+- [unified_question.dart](file:///c:/Users/Alex/Desktop/flutter/piensa-play/piensa_play/lib/features/missions/domain/entities/unified_question.dart) - Modelo de preguntas con 7 tipos
+- [achievement.dart](file:///c:/Users/Alex/Desktop/flutter/piensa-play/piensa_play/lib/features/achievements/domain/entities/achievement.dart) - Logros y configuración de gamificación
 
-### Servicios y Datasources
-- [unified_questions_service.dart](file:///c:/Users/Alex/Desktop/flutter/piensa-play/piensa_play/lib/core/services/unified_questions_service.dart)
-- [achievements_remote_datasource.dart](file:///c:/Users/Alex/Desktop/flutter/piensa-play/piensa_play/lib/features/achievements/data/datasources/achievements_remote_datasource.dart)
-- [glossary_remote_datasource.dart](file:///c:/Users/Alex/Desktop/flutter/piensa-play/piensa_play/lib/features/glossary/data/datasources/glossary_remote_datasource.dart)
-
-### Scripts de Seed
-- [seed-firebase.js](file:///c:/Users/Alex/Desktop/flutter/piensa-play/scripts/seed-firebase.js)
-- [seed-badges.js](file:///c:/Users/Alex/Desktop/flutter/piensa-play/scripts/seed-badges.js)
-- [seed-unified-questions.js](file:///c:/Users/Alex/Desktop/flutter/piensa-play/scripts/seed-unified-questions.js)
+### Servicios
+- [daily_question_service.dart](file:///c:/Users/Alex/Desktop/flutter/piensa-play/piensa_play/lib/core/services/daily_question_service.dart) - Sistema de pregunta diaria
+- [recovery_code_service.dart](file:///c:/Users/Alex/Desktop/flutter/piensa-play/piensa_play/lib/core/services/recovery_code_service.dart) - Generación de códigos de estudiante
+- [gamification_service.dart](file:///c:/Users/Alex/Desktop/flutter/piensa-play/piensa_play/lib/core/services/gamification_service.dart) - XP, niveles y badges
 
 ---
 
-## 📝 Notas Adicionales
+## ⚙️ Configuración de Gamificación
 
-1. **Almacenamiento Local**: El progreso de misiones (`MissionProgressService`) usa SharedPreferences, no Firebase.
+```dart
+class GamificationConfig {
+  // Misiones
+  static const int xpPerMission = 100;
+  static const int xpPerCategory = 250;
+  static const int coinsPerMission = 50;
+  static const int xpToLevelUp = 300;
 
-2. **Badges**: 
-   - La colección `badges` es el catálogo global
-   - `users/{userId}/unlockedBadges` solo almacena los IDs desbloqueados
-   - El estado `isUnlocked` se calcula al combinar ambas fuentes
-
-3. **IDs de Usuario**: Se obtienen via `UserIdProvider.currentUserId`
+  // Pregunta Diaria
+  static const int xpPerDailyCorrect = 50;
+  static const int xpPerDailyIncorrect = 10;
+  static const int coinsPerDailyCorrect = 30;
+  static const int coinsPerDailyIncorrect = 5;
+}
+```

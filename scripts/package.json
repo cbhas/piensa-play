@@ -8,6 +8,8 @@
         "seed:missions": "node seed-missions.js",
         "seed:questions": "node seed-unified-questions.js",
         "seed:badges": "node seed-badges.js",
+        "seed:huella-digital": "node seed-huella-digital.js",
+        "reset:huella-digital": "node reset-huella-digital.js",
         "seed:dry": "node seed-firebase.js --dry-run"
     },
     "dependencies": {

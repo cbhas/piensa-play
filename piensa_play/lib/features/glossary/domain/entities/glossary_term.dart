@@ -8,6 +8,8 @@ class GlossaryTerm {
   final String icon;
   final int order;
   final String question;
+  final String?
+  audioFileName; // Nombre del archivo de audio (ej: "fake_news.mp3")
 
   const GlossaryTerm({
     required this.id,
@@ -17,7 +19,32 @@ class GlossaryTerm {
     required this.icon,
     required this.order,
     required this.question,
+    this.audioFileName,
   });
+
+  /// Genera el nombre del archivo de audio basado en el término
+  /// Si hay audioFileName explícito lo usa, sino lo genera del término
+  String get effectiveAudioFileName {
+    if (audioFileName != null && audioFileName!.isNotEmpty) {
+      return audioFileName!;
+    }
+    // Generar nombre del término
+    return '${_sanitizeTermName(term)}.mp3';
+  }
+
+  /// Sanitiza el nombre del término para coincidir con archivo de audio
+  static String _sanitizeTermName(String termName) {
+    return termName
+        .toLowerCase()
+        .replaceAll(' ', '_')
+        .replaceAll('á', 'a')
+        .replaceAll('é', 'e')
+        .replaceAll('í', 'i')
+        .replaceAll('ó', 'o')
+        .replaceAll('ú', 'u')
+        .replaceAll('ñ', 'n')
+        .replaceAll(RegExp(r'[^\w_]'), '');
+  }
 
   Map<String, dynamic> toJson() => {
     'id': id,
@@ -27,6 +54,7 @@ class GlossaryTerm {
     'icon': icon,
     'order': order,
     'question': question,
+    'audioFileName': audioFileName,
   };
 
   factory GlossaryTerm.fromJson(Map<String, dynamic> json) => GlossaryTerm(
@@ -37,6 +65,7 @@ class GlossaryTerm {
     icon: json['icon'] ?? '📖',
     order: json['order'] ?? 0,
     question: json['question'] ?? '',
+    audioFileName: json['audioFileName'],
   );
 
   GlossaryTerm copyWith({
@@ -47,6 +76,7 @@ class GlossaryTerm {
     String? icon,
     int? order,
     String? question,
+    String? audioFileName,
   }) {
     return GlossaryTerm(
       id: id ?? this.id,
@@ -56,6 +86,7 @@ class GlossaryTerm {
       icon: icon ?? this.icon,
       order: order ?? this.order,
       question: question ?? this.question,
+      audioFileName: audioFileName ?? this.audioFileName,
     );
   }
 }

@@ -112,8 +112,7 @@ class _GlossaryTermDialogState extends State<GlossaryTermDialog> {
                         ),
                         // Mascot audio button for this term
                         MascotAudioButton(
-                          audioFileName:
-                              '${_sanitizeTermName(widget.term.term)}.mp3',
+                          audioFileName: widget.term.effectiveAudioFileName,
                           size: 40,
                         ),
                         const SizedBox(width: 8),
@@ -246,14 +245,5 @@ class _GlossaryTermDialogState extends State<GlossaryTermDialog> {
         ),
       );
     });
-  }
-
-  /// Sanitize term name to match audio file naming
-  /// Converts to lowercase and removes special characters
-  static String _sanitizeTermName(String termName) {
-    return termName
-        .toLowerCase()
-        .replaceAll(' ', '_')
-        .replaceAll(RegExp(r'[^\w_]'), '');
   }
 }
