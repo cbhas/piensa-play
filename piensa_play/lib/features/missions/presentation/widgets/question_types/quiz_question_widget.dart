@@ -61,7 +61,7 @@ class QuizQuestionWidget extends BaseQuestionWidget {
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: Text(
-                        _shortenText(question.content!, 120),
+                        _shortenText(question.content!, 200),
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 15,

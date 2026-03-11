@@ -3,6 +3,7 @@ import 'package:piensa_play/core/services/logger_service.dart';
 import 'package:piensa_play/core/services/user_id_provider.dart';
 import 'package:piensa_play/core/services/gamification_service.dart';
 import 'package:piensa_play/core/services/app_data_service.dart';
+import 'package:piensa_play/core/services/widget_service.dart';
 import 'package:piensa_play/features/achievements/domain/entities/achievement.dart';
 import 'package:piensa_play/features/missions/domain/entities/unified_question.dart';
 
@@ -198,6 +199,9 @@ class DailyQuestionService {
         bestStreak: newBestStreak,
         totalAnswered: totalAnswered + 1,
       );
+
+      // Actualizar widget de pantalla de inicio con el nuevo streak
+      await WidgetService().markAsCompleted(newStreak);
 
       AppLogger.success(
         'DAILY: Rewards granted - XP: +$xp, Coins: +$coins, Streak: $newStreak',

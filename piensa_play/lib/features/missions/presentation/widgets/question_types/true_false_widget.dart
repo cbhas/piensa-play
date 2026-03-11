@@ -70,7 +70,7 @@ class TrueFalseWidget extends BaseQuestionWidget {
                           const Text('📰', style: TextStyle(fontSize: 28)),
                           const SizedBox(height: 12),
                           Text(
-                            _shortenText(question.content!, 150),
+                            _shortenText(question.content!, 220),
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 16,

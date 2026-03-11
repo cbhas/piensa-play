@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:piensa_play/core/routes/app_routes.dart';
 import 'package:piensa_play/core/theme/app_theme.dart';
 import 'package:piensa_play/core/services/app_data_service.dart';
 import 'package:piensa_play/core/services/logger_service.dart';
+import 'package:piensa_play/core/services/widget_service.dart';
 import 'package:piensa_play/features/splash/domain/usecases/get_splash_config.dart';
 import 'package:piensa_play/features/splash/domain/entities/splash_config.dart';
 
@@ -52,15 +54,21 @@ class _SplashPageState extends State<SplashPage>
 
   Future<void> _loadDataAndNavigate() async {
     // Start loading data immediately
-    final dataLoadFuture = _loadAppData();
+    final dataLoaded = await _loadAppData();
 
     // Wait for minimum splash duration
     await Future.delayed(Duration(seconds: _config.durationSeconds));
 
-    // Wait for data to finish loading (if not already done)
-    await dataLoadFuture;
-
     if (!mounted) return;
+
+    // Si la carga falló y no hay datos cacheados, mostrar diálogo de reintento
+    if (!dataLoaded && !AppDataService.instance.isLoaded) {
+      final shouldRetry = await _showRetryDialog();
+      if (shouldRetry && mounted) {
+        _loadDataAndNavigate(); // Reintentar
+        return;
+      }
+    }
 
     // Check if user has completed onboarding
     final prefs = await SharedPreferences.getInstance();
@@ -81,12 +89,46 @@ class _SplashPageState extends State<SplashPage>
     }
   }
 
-  Future<void> _loadAppData() async {
+  /// Returns true if data loaded successfully, false otherwise
+  Future<bool> _loadAppData() async {
     try {
       await AppDataService.instance.loadAllData();
+
+      // Actualizar widget con datos cargados
+      if (AppDataService.instance.isLoaded && !kIsWeb) {
+        await WidgetService().updateWidget();
+      }
+
+      return AppDataService.instance.isLoaded;
     } catch (e) {
       AppLogger.warning('SPLASH: Error loading data: $e');
+      return false;
     }
+  }
+
+  Future<bool> _showRetryDialog() async {
+    return await showDialog<bool>(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => AlertDialog(
+            title: const Text('Error de conexión'),
+            content: const Text(
+              'No se pudieron cargar los datos. '
+              'Verifica tu conexión a internet e intenta de nuevo.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Continuar sin datos'),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('Reintentar'),
+              ),
+            ],
+          ),
+        ) ??
+        false;
   }
 
   @override

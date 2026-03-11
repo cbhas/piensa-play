@@ -11,7 +11,6 @@ import '../../domain/entities/glossary_term.dart';
 import '../../domain/usecases/get_glossary_terms.dart';
 import '../widgets/glossary_term_card.dart';
 import '../widgets/glossary_term_dialog.dart';
-import '../../../home/presentation/widgets/custom_bottom_nav_bar.dart';
 
 class GlossaryPage extends StatefulWidget {
   const GlossaryPage({super.key});
@@ -317,17 +316,6 @@ class _GlossaryPageState extends State<GlossaryPage> {
             ),
           ),
         ],
-      ),
-      bottomNavigationBar: CustomBottomNavBar(
-        currentIndex: 1,
-        onTap: (index) {
-          if (index == 0) {
-            Navigator.pushReplacementNamed(context, '/home');
-          } else if (index == 2) {
-            Navigator.pushReplacementNamed(context, '/settings');
-          }
-          // index == 1 is already on glossary
-        },
       ),
     );
   }

@@ -35,8 +35,14 @@ class _OnboardingPageState extends State<OnboardingPage> {
     super.initState();
     _avatars = _getAvatars.execute();
 
+    _nameController.addListener(_onNameChanged);
+
     // Auto-play profile audio
     _playProfileAudio();
+  }
+
+  void _onNameChanged() {
+    setState(() {});
   }
 
   Future<void> _playProfileAudio() async {
@@ -49,9 +55,15 @@ class _OnboardingPageState extends State<OnboardingPage> {
 
   @override
   void dispose() {
+    _nameController.removeListener(_onNameChanged);
     _nameController.dispose();
     super.dispose();
   }
+
+  bool get _isFormValid =>
+      _nameController.text.isNotEmpty &&
+      _selectedAge != null &&
+      _selectedAvatarId != null;
 
   void _handleAvatarSelection(String avatarId) {
     setState(() {
@@ -340,10 +352,12 @@ class _OnboardingPageState extends State<OnboardingPage> {
                         width: double.infinity,
                         height: 54,
                         child: ElevatedButton(
-                          onPressed: _handleSubmit,
+                          onPressed: _isFormValid ? _handleSubmit : null,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFFA0E69D),
                             foregroundColor: AppTheme.tertiaryDark,
+                            disabledBackgroundColor: Colors.grey.shade300,
+                            disabledForegroundColor: Colors.grey.shade500,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(30),
                             ),
@@ -354,7 +368,9 @@ class _OnboardingPageState extends State<OnboardingPage> {
                             style: TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
-                              color: AppTheme.tertiaryDark,
+                              color: _isFormValid
+                                  ? AppTheme.tertiaryDark
+                                  : Colors.grey.shade500,
                               letterSpacing: 0.5,
                             ),
                           ),
