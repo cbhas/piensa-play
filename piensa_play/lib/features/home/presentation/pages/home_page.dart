@@ -1,12 +1,14 @@
 // lib/features/home/presentation/pages/home_page.dart
 
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:piensa_play/core/services/logger_service.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/app_animations.dart';
 import '../../../../core/services/user_id_provider.dart';
 import '../../../../core/services/daily_question_service.dart';
 import '../../../../core/services/app_data_service.dart';
+import '../../../../core/services/audio_service.dart';
 import '../../../daily_question/presentation/pages/daily_question_page.dart';
 import '../../../missions/domain/entities/unified_question.dart';
 import '../../domain/entities/dashboard_stats.dart';
@@ -39,6 +41,7 @@ class _HomePageState extends State<HomePage> {
   DashboardStats? _stats;
   UserProgress? _progress;
   String? _avatarId;
+  String? _avatarPath;
   String? _userName;
   bool _isLoading = true;
 
@@ -196,6 +199,31 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  Future<void> _onAvatarChanged(String avatarId, String assetPath) async {
+    // Actualizar UI inmediatamente
+    setState(() {
+      _avatarId = avatarId;
+      _avatarPath = assetPath;
+    });
+
+    // Guardar en Firebase
+    try {
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .collection('profile')
+          .doc('data')
+          .update({'avatarId': avatarId, 'avatarPath': assetPath});
+
+      // Reproducir sonido de confirmación
+      AudioService().playCorrect();
+
+      AppLogger.success('HOME: Avatar changed to $avatarId');
+    } catch (e) {
+      AppLogger.error('HOME: Error saving avatar: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -209,8 +237,10 @@ class _HomePageState extends State<HomePage> {
           : Column(
               children: [
                 DashboardHeader(
-                  avatarPath: _getAvatarPath(_avatarId),
+                  avatarPath: _avatarPath ?? _getAvatarPath(_avatarId),
                   userName: _userName,
+                  currentAvatarId: _avatarId ?? 'cocodrilo',
+                  onAvatarChanged: _onAvatarChanged,
                 ).slideFromTop(duration: const Duration(milliseconds: 400)),
                 Expanded(
                   child: SingleChildScrollView(
@@ -296,7 +326,7 @@ class _HomePageState extends State<HomePage> {
         currentIndex: 0,
         onTap: (index) {
           if (index == 1) {
-            Navigator.pushReplacementNamed(context, '/glossary');
+            Navigator.pushReplacementNamed(context, '/shop');
           } else if (index == 2) {
             Navigator.pushReplacementNamed(context, '/settings');
           }

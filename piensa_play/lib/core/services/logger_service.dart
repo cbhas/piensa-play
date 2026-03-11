@@ -8,14 +8,14 @@ import 'package:flutter/foundation.dart';
 class AppLogger {
   /// Log a general message (blue icon)
   static void log(String message) {
-    if (kDebugMode) {
+    if (kDebugMode || kIsWeb) {
       print('🔵 $message');
     }
   }
 
   /// Log a success message (green icon)
   static void success(String message) {
-    if (kDebugMode) {
+    if (kDebugMode || kIsWeb) {
       print('🟢 $message');
     }
   }
@@ -29,7 +29,7 @@ class AppLogger {
 
   /// Log an error message (red icon)
   static void error(String message) {
-    if (kDebugMode) {
+    if (kDebugMode || kIsWeb) {
       print('❌ $message');
     }
   }

@@ -13,6 +13,9 @@ import 'package:piensa_play/features/home/domain/entities/user_progress.dart';
 import 'package:piensa_play/features/home/domain/usecases/get_dashboard_stats.dart';
 import 'package:piensa_play/features/home/domain/usecases/get_user_progress.dart';
 import 'package:piensa_play/core/services/logger_service.dart';
+import 'package:piensa_play/features/shop/domain/entities/shop_item.dart';
+import 'package:piensa_play/core/services/unified_questions_service.dart';
+import 'package:piensa_play/features/missions/domain/entities/unified_question.dart';
 import 'user_id_provider.dart';
 
 /// Singleton service that manages all app data.
@@ -43,10 +46,18 @@ class AppDataService {
   DashboardStats? _dashboardStats;
   UserProgress? _userProgress;
 
+  // Shop cache
+  List<ShopItem>? _shopItems;
+  Set<String>? _purchasedItemIds;
+  int _streakFreezeCount = 0;
+
   // Daily progress cache
   int _dailyStreak = 0;
   int _dailyBestStreak = 0;
   int _dailyTotalAnswered = 0;
+
+  // Questions cache (missionId -> questions)
+  Map<String, List<UnifiedQuestion>>? _questionsByMission;
 
   // Loading state
   bool _isLoading = false;
@@ -61,10 +72,20 @@ class AppDataService {
   DashboardStats? get dashboardStats => _dashboardStats;
   UserProgress? get userProgress => _userProgress;
 
+  // Shop getters
+  List<ShopItem> get shopItems => _shopItems ?? [];
+  Set<String> get purchasedItemIds => _purchasedItemIds ?? {};
+  int get streakFreezeCount => _streakFreezeCount;
+
   // Daily progress getters
   int get dailyStreak => _dailyStreak;
   int get dailyBestStreak => _dailyBestStreak;
   int get dailyTotalAnswered => _dailyTotalAnswered;
+
+  /// Get questions for a specific mission (from memory, instant)
+  List<UnifiedQuestion> getQuestionsForMission(String missionId) {
+    return _questionsByMission?[missionId] ?? [];
+  }
 
   bool get isLoading => _isLoading;
   bool get isLoaded => _isLoaded;
@@ -87,6 +108,8 @@ class AppDataService {
         _loadProfile(),
         _loadDashboard(),
         _loadDailyProgress(),
+        _loadShopItems(),
+        _loadQuestions(), // Load questions into memory
       ]);
 
       _isLoaded = true;
@@ -198,11 +221,95 @@ class AppDataService {
         _dailyStreak = data['streak'] ?? 0;
         _dailyBestStreak = data['bestStreak'] ?? 0;
         _dailyTotalAnswered = data['totalAnswered'] ?? 0;
+
+        final lastAnsweredDate = data['lastAnsweredDate'] as String?;
+
+        // Verificar si la racha debe perderse
+        if (_dailyStreak > 0 && lastAnsweredDate != null) {
+          final shouldResetStreak = await _checkAndHandleStreakReset(
+            lastAnsweredDate,
+          );
+          if (shouldResetStreak) {
+            _dailyStreak = 0;
+          }
+        }
+
         AppLogger.success('Daily progress loaded - streak: $_dailyStreak');
       }
     } catch (e) {
       AppLogger.warning('Failed to load daily progress: $e');
     }
+  }
+
+  /// Verifica si la racha debe resetearse
+  /// Retorna true si se debe resetear, false si se protegió con freeze streak
+  Future<bool> _checkAndHandleStreakReset(String lastAnsweredDate) async {
+    final now = DateTime.now();
+    final todayString =
+        '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+    final yesterday = now.subtract(const Duration(days: 1));
+    final yesterdayString =
+        '${yesterday.year}-${yesterday.month.toString().padLeft(2, '0')}-${yesterday.day.toString().padLeft(2, '0')}';
+
+    // Si respondió hoy o ayer, la racha está bien
+    if (lastAnsweredDate == todayString ||
+        lastAnsweredDate == yesterdayString) {
+      return false;
+    }
+
+    // La racha debería perderse, verificar si hay freeze streak disponible
+    AppLogger.warning(
+      'STREAK: Missed day(s). Last answered: $lastAnsweredDate',
+    );
+
+    try {
+      // Verificar freeze streak en inventario
+      final freezeDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(_userId)
+          .collection('inventory')
+          .doc('streak_freeze')
+          .get();
+
+      final freezeCount = freezeDoc.data()?['count'] ?? 0;
+
+      if (freezeCount > 0) {
+        // Usar freeze streak para proteger la racha
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(_userId)
+            .collection('inventory')
+            .doc('streak_freeze')
+            .update({'count': FieldValue.increment(-1)});
+
+        // Actualizar lastAnsweredDate para mantener la racha
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(_userId)
+            .collection('daily_progress')
+            .doc('current')
+            .update({'lastAnsweredDate': yesterdayString});
+
+        AppLogger.success(
+          'STREAK: Used freeze streak to protect streak! Remaining: ${freezeCount - 1}',
+        );
+        return false; // Racha protegida
+      }
+    } catch (e) {
+      AppLogger.error('STREAK: Error checking freeze streak: $e');
+    }
+
+    // No hay freeze streak, resetear la racha
+    AppLogger.warning('STREAK: No freeze streak available, resetting streak');
+
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(_userId)
+        .collection('daily_progress')
+        .doc('current')
+        .update({'streak': 0});
+
+    return true; // Debe resetearse
   }
 
   /// Update cached achievements (after completing a mission)
@@ -213,6 +320,83 @@ class AppDataService {
   /// Update cached badges (after unlocking a badge)
   void updateBadges(List<Badge> newBadges) {
     _badges = newBadges;
+  }
+
+  /// Load shop items from Firestore
+  Future<void> _loadShopItems() async {
+    try {
+      // Load items catalog
+      final snapshot = await FirebaseFirestore.instance
+          .collection('shop_items')
+          .orderBy('price')
+          .get();
+
+      // Load purchased items
+      final purchasedSnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(_userId)
+          .collection('purchased_items')
+          .get();
+
+      _purchasedItemIds = purchasedSnapshot.docs.map((d) => d.id).toSet();
+
+      // Load streak freeze count
+      final freezeDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(_userId)
+          .collection('inventory')
+          .doc('streak_freeze')
+          .get();
+
+      _streakFreezeCount = freezeDoc.data()?['count'] ?? 0;
+
+      // Map shop items with purchased status
+      _shopItems = snapshot.docs.map((doc) {
+        final item = ShopItem.fromJson({'id': doc.id, ...doc.data()});
+        return item.copyWith(isPurchased: _purchasedItemIds!.contains(item.id));
+      }).toList();
+
+      AppLogger.success('Shop items loaded: ${_shopItems?.length ?? 0} items');
+    } catch (e) {
+      AppLogger.warning('Failed to load shop items: $e');
+      _shopItems = [];
+    }
+  }
+
+  /// Load all questions into memory (called during splash)
+  Future<void> _loadQuestions() async {
+    try {
+      final questionsService = UnifiedQuestionsService();
+      _questionsByMission = await questionsService.getAllQuestions();
+      AppLogger.success(
+        'Questions loaded: ${_questionsByMission?.length ?? 0} missions cached',
+      );
+    } catch (e) {
+      AppLogger.warning('Failed to load questions: $e');
+      _questionsByMission = {};
+    }
+  }
+
+  /// Refresh shop items from Firestore
+  Future<void> refreshShop() async {
+    AppLogger.refresh('APP DATA SERVICE: Refreshing shop...');
+    await _loadShopItems();
+  }
+
+  /// Mark item as purchased in cache
+  void markItemAsPurchased(String itemId) {
+    _purchasedItemIds?.add(itemId);
+    if (_shopItems != null) {
+      final index = _shopItems!.indexWhere((i) => i.id == itemId);
+      if (index != -1) {
+        _shopItems![index] = _shopItems![index].copyWith(isPurchased: true);
+      }
+    }
+  }
+
+  /// Update streak freeze count in cache
+  void updateStreakFreezeCount(int count) {
+    _streakFreezeCount = count;
   }
 
   /// Update a single badge as unlocked

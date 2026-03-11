@@ -10,6 +10,7 @@ import 'package:piensa_play/features/missions/presentation/pages/missions_page.d
 import 'package:piensa_play/features/glossary/presentation/pages/glossary_page.dart';
 import 'package:piensa_play/features/settings/presentation/pages/settings_page.dart';
 import 'package:piensa_play/features/learn/presentation/pages/learn_page.dart';
+import 'package:piensa_play/features/shop/presentation/pages/shop_page.dart';
 
 class AppRoutes {
   static const String splash = '/';
@@ -24,6 +25,7 @@ class AppRoutes {
   static const String glossary = '/glossary';
   static const String settings = '/settings';
   static const String learn = '/learn';
+  static const String shop = '/shop';
 
   static Map<String, WidgetBuilder> get routes {
     return {
@@ -37,6 +39,7 @@ class AppRoutes {
       glossary: (context) => const GlossaryPage(),
       settings: (context) => const SettingsPage(),
       learn: (context) => const LearnPage(),
+      shop: (context) => const ShopPage(),
     };
   }
 }

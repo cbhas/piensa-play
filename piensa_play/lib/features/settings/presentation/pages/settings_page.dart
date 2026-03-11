@@ -8,6 +8,7 @@ import '../../../../core/theme/theme_provider.dart';
 import '../../../../core/theme/app_animations.dart';
 import '../../../../core/services/recovery_code_service.dart';
 import '../../../../core/services/app_data_service.dart';
+import '../../../../core/services/notification_service.dart';
 import '../../../home/presentation/widgets/custom_bottom_nav_bar.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -21,10 +22,28 @@ class _SettingsPageState extends State<SettingsPage> {
   String? _recoveryCode;
   bool _isLoadingCode = false;
 
+  // Notification state
+  bool _notificationsEnabled = false;
+  int _reminderHour = 18;
+  int _reminderMinute = 0;
+
   @override
   void initState() {
     super.initState();
     _loadRecoveryCode();
+    _loadNotificationSettings();
+  }
+
+  Future<void> _loadNotificationSettings() async {
+    final enabled = await NotificationService().isEnabled();
+    final time = await NotificationService().getReminderTime();
+    if (mounted) {
+      setState(() {
+        _notificationsEnabled = enabled;
+        _reminderHour = time.hour;
+        _reminderMinute = time.minute;
+      });
+    }
   }
 
   Future<void> _loadRecoveryCode() async {
@@ -143,6 +162,24 @@ class _SettingsPageState extends State<SettingsPage> {
 
                     const SizedBox(height: 32),
 
+                    // Notifications Section
+                    Text(
+                      'Notificaciones',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: isDark
+                            ? AppTheme.textPrimaryDark
+                            : AppTheme.primaryDark,
+                      ),
+                    ).fadeInSlide(delay: const Duration(milliseconds: 100)),
+
+                    const SizedBox(height: 12),
+
+                    _buildNotificationsCard(isDark),
+
+                    const SizedBox(height: 32),
+
                     // Appearance Section
                     Text(
                       'Apariencia',
@@ -153,7 +190,7 @@ class _SettingsPageState extends State<SettingsPage> {
                             ? AppTheme.textPrimaryDark
                             : AppTheme.primaryDark,
                       ),
-                    ).fadeInSlide(delay: const Duration(milliseconds: 100)),
+                    ).fadeInSlide(delay: const Duration(milliseconds: 150)),
 
                     const SizedBox(height: 12),
 
@@ -298,12 +335,203 @@ class _SettingsPageState extends State<SettingsPage> {
           if (index == 0) {
             Navigator.pushReplacementNamed(context, '/home');
           } else if (index == 1) {
-            Navigator.pushReplacementNamed(context, '/glossary');
+            Navigator.pushReplacementNamed(context, '/shop');
           }
           // index == 2 is already on settings
         },
       ),
     );
+  }
+
+  Widget _buildNotificationsCard(bool isDark) {
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? AppTheme.cardDark : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          // Toggle de notificaciones
+          SwitchListTile(
+            title: Text(
+              'Recordatorio Diario',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                color: isDark ? AppTheme.textPrimaryDark : AppTheme.primaryDark,
+              ),
+            ),
+            subtitle: Text(
+              _notificationsEnabled
+                  ? 'Te recordaremos la pregunta del día'
+                  : 'Desactivado',
+              style: TextStyle(
+                fontSize: 14,
+                color: isDark
+                    ? AppTheme.textSecondaryDark
+                    : Colors.grey.shade600,
+              ),
+            ),
+            value: _notificationsEnabled,
+            onChanged: (value) async {
+              await NotificationService().setEnabled(value);
+              setState(() => _notificationsEnabled = value);
+              if (mounted && value) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('¡Notificaciones activadas! 🔔'),
+                    backgroundColor: AppTheme.accentGreen,
+                  ),
+                );
+              }
+            },
+            activeThumbColor: AppTheme.accentGreen,
+            secondary: Icon(
+              _notificationsEnabled
+                  ? Icons.notifications_active
+                  : Icons.notifications_off,
+              color: _notificationsEnabled ? AppTheme.accentGreen : Colors.grey,
+            ),
+          ),
+
+          // Selector de hora (solo si está habilitado)
+          if (_notificationsEnabled) ...[
+            Divider(
+              height: 1,
+              color: isDark ? Colors.grey.shade800 : Colors.grey.shade300,
+            ),
+            ListTile(
+              leading: Icon(
+                Icons.access_time,
+                color: isDark ? AppTheme.accentYellow : AppTheme.primaryDark,
+              ),
+              title: Text(
+                'Hora del recordatorio',
+                style: TextStyle(
+                  color: isDark
+                      ? AppTheme.textPrimaryDark
+                      : AppTheme.primaryDark,
+                ),
+              ),
+              trailing: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: AppTheme.accentYellow.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  '${_reminderHour.toString().padLeft(2, '0')}:${_reminderMinute.toString().padLeft(2, '0')}',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: isDark
+                        ? AppTheme.accentYellow
+                        : AppTheme.primaryDark,
+                  ),
+                ),
+              ),
+              onTap: () async {
+                final time = await showTimePicker(
+                  context: context,
+                  initialTime: TimeOfDay(
+                    hour: _reminderHour,
+                    minute: _reminderMinute,
+                  ),
+                );
+                if (time != null) {
+                  await NotificationService().setReminderTime(
+                    time.hour,
+                    time.minute,
+                  );
+                  setState(() {
+                    _reminderHour = time.hour;
+                    _reminderMinute = time.minute;
+                  });
+                }
+              },
+            ),
+            const SizedBox(height: 8),
+            // Botones de demo
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () async {
+                        await NotificationService().showDailyReminderNow();
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('¡Notificación enviada! 📚'),
+                              backgroundColor: AppTheme.accentBlue,
+                            ),
+                          );
+                        }
+                      },
+                      icon: const Icon(Icons.notifications, size: 16),
+                      label: const Text(
+                        'Probar\nRecordatorio',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 11),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: isDark
+                            ? Colors.white
+                            : AppTheme.primaryDark,
+                        side: BorderSide(
+                          color: isDark
+                              ? Colors.grey.shade600
+                              : Colors.grey.shade400,
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () async {
+                        await NotificationService().showStreakRiskNow();
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('¡Alerta de racha enviada! 🔥'),
+                              backgroundColor: AppTheme.accentRed,
+                            ),
+                          );
+                        }
+                      },
+                      icon: const Icon(Icons.local_fire_department, size: 16),
+                      label: const Text(
+                        'Probar\nRacha',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 11),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppTheme.accentRed,
+                        side: const BorderSide(color: AppTheme.accentRed),
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+    ).fadeInSlide(delay: const Duration(milliseconds: 125));
   }
 
   Widget _buildRecoveryCodeCard(bool isDark) {

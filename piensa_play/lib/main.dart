@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
@@ -6,6 +7,8 @@ import 'firebase_options.dart'; // generado por flutterfire configure
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_provider.dart';
 import 'core/services/auth_service.dart';
+import 'core/services/notification_service.dart';
+import 'core/services/widget_service.dart';
 import 'core/routes/app_routes.dart';
 import 'features/missions/presentation/pages/missions_page.dart';
 
@@ -14,14 +17,28 @@ void main() async {
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-  // Configure Firestore with offline persistence
-  FirebaseFirestore.instance.settings = const Settings(
-    persistenceEnabled: true, // Enable offline persistence (default on mobile)
-    cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED, // Unlimited cache size
-  );
+  // Configure Firestore
+  if (kIsWeb) {
+    FirebaseFirestore.instance.settings = const Settings(
+      cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
+    );
+  } else {
+    FirebaseFirestore.instance.settings = const Settings(
+      persistenceEnabled: true,
+      cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
+    );
+  }
 
   final authService = AuthService();
   await authService.ensureSignedIn();
+
+  if (!kIsWeb) {
+    // Initialize notifications (Mobile only)
+    await NotificationService().initialize();
+
+    // Initialize home screen widget (Mobile only)
+    await WidgetService().initialize();
+  }
 
   runApp(const PiensaPlayApp());
 }

@@ -16,12 +16,15 @@ Documentación técnica para construir la interfaz de administración.
 | `glossary` | Términos del glosario | Global |
 | `learn_content` | Videos y podcasts | Global |
 | `recovery_codes` | Índice de códigos de estudiante | Global |
+| `notifications` | Configuración de notificaciones | Global |
+| `shop_items` | Items de la tienda | Global |
 | `users/{userId}/achievements` | Logros y nivel del usuario | Por Usuario |
 | `users/{userId}/unlockedBadges` | Insignias desbloqueadas | Por Usuario |
 | `users/{userId}/daily_progress` | Progreso en preguntas diarias | Por Usuario |
 | `users/{userId}/mission_progress` | Progreso en misiones | Por Usuario |
 | `users/{userId}/recovery` | Código de recuperación del estudiante | Por Usuario |
 | `users/{userId}/profile` | Perfil del usuario | Por Usuario |
+| `users/{userId}/inventory` | Items comprados (freeze streak) | Por Usuario |
 
 ---
 
@@ -262,6 +265,60 @@ index = (año * 10000 + mes * 100 + día) % totalPreguntas
 
 ---
 
+### 9. `shop_items` - Catálogo de la Tienda
+
+**Ruta:** `shop_items/{itemId}`
+
+```json
+{
+  "name": "Congelar Racha",
+  "description": "Protege tu racha por un día si olvidas practicar",
+  "price": 200,
+  "category": "powerup",
+  "assetPath": "assets/images/items/streak_freeze.png"
+}
+```
+
+| Campo | Tipo | Descripción |
+|-------|------|-------------|
+| `name` | string | Nombre del item |
+| `description` | string | Descripción del item |
+| `price` | number | Precio en monedas |
+| `category` | string | `"avatar"` o `"powerup"` |
+| `assetPath` | string | Ruta del asset de imagen |
+
+**Categorías disponibles:**
+- `avatar` - Avatares desbloqueables para el perfil
+- `powerup` - Power-ups como "Congelar Racha"
+
+---
+
+### 10. `notifications` - Configuración de Notificaciones
+
+**Ruta:** `notifications/{notificationId}`
+
+```json
+{
+  "type": "daily_reminder",
+  "title": "¡La pregunta del día te espera! 📚",
+  "body": "¿Estás listo para aprender algo nuevo hoy?",
+  "defaultHour": 19,
+  "defaultMinute": 0,
+  "isActive": true
+}
+```
+
+| Campo | Tipo | Descripción |
+|-------|------|-------------|
+| `type` | string | `"daily_reminder"` o `"streak_risk"` |
+| `title` | string | Título de la notificación |
+| `body` | string | Mensaje de la notificación |
+| `defaultHour` | number | Hora por defecto (0-23) |
+| `defaultMinute` | number | Minuto por defecto (0-59) |
+| `isActive` | boolean | Si está activo por defecto |
+
+---
+
 ## 👤 Colecciones por Usuario
 
 ### 9. `users/{userId}/achievements`
@@ -362,6 +419,40 @@ index = (año * 10000 + mes * 100 + día) % totalPreguntas
 | `age` | number | Edad |
 | `avatarId` | string | ID del avatar seleccionado |
 | `studentCode` | string | Código único para profesores (`PP-XXXXXX`) |
+
+---
+
+### 15. `users/{userId}/purchased_items` - Items Comprados
+
+**Ruta:** `users/{userId}/purchased_items/{itemId}`
+
+```json
+{
+  "purchasedAt": "Timestamp"
+}
+```
+
+> Almacena los IDs de items comprados en la tienda. Los detalles se obtienen de `shop_items`.
+
+---
+
+### 16. `users/{userId}/inventory` - Inventario (Streak Freezes)
+
+**Ruta:** `users/{userId}/inventory/streak_freezes`
+
+```json
+{
+  "count": 3,
+  "lastUpdated": "Timestamp"
+}
+```
+
+| Campo | Tipo | Descripción |
+|-------|------|-------------|
+| `count` | number | Cantidad de "congelar racha" disponibles |
+| `lastUpdated` | timestamp | Última actualización |
+
+**Uso:** Cuando el usuario compra "Congelar Racha", se incrementa `count`. Cuando se usa para proteger la racha, se decrementa.
 
 ---
 

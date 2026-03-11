@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    
+    <!-- Gradiente rojo/oscuro para estado en riesgo (urgente!) -->
+    <gradient
+        android:startColor="#8B0000"
+        android:centerColor="#DC143C"
+        android:endColor="#FF4444"
+        android:angle="135" />
+    
+    <corners android:radius="16dp" />
+    
+</shape>

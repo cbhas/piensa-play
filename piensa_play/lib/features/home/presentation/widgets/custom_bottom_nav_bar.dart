@@ -45,8 +45,8 @@ class CustomBottomNavBar extends StatelessWidget {
               onTap: () => onTap(0),
             ),
             _NavBarItem(
-              icon: Icons.book,
-              label: 'Glosario',
+              icon: Icons.shopping_bag,
+              label: 'Tienda',
               isSelected: currentIndex == 1,
               onTap: () => onTap(1),
             ),
@@ -79,34 +79,37 @@ class _NavBarItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTap: () {
         Feedback.forTap(context);
         onTap();
       },
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            icon,
-            size: 28,
-            color: isSelected
-                ? AppTheme
-                      .accentYellow // CORRECTO
-                : Colors.white.withValues(alpha: 0.6),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+      child: Container(
+        // Área de toque expandida
+        constraints: const BoxConstraints(minWidth: 80, minHeight: 60),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              size: 28,
               color: isSelected
-                  ? AppTheme
-                        .accentYellow // CORRECTO
+                  ? AppTheme.accentYellow
                   : Colors.white.withValues(alpha: 0.6),
             ),
-          ),
-        ],
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                color: isSelected
+                    ? AppTheme.accentYellow
+                    : Colors.white.withValues(alpha: 0.6),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

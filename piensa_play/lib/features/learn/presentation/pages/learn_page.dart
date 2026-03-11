@@ -9,7 +9,6 @@ import '../../data/repositories/learn_repository.dart';
 import '../../domain/entities/media_item.dart';
 import '../widgets/media_item_card.dart';
 import 'video_player_page.dart';
-import '../../../home/presentation/widgets/custom_bottom_nav_bar.dart';
 
 class LearnPage extends StatefulWidget {
   const LearnPage({super.key});
@@ -301,18 +300,6 @@ class _LearnPageState extends State<LearnPage> {
             ),
           ),
         ],
-      ),
-      bottomNavigationBar: CustomBottomNavBar(
-        currentIndex: 0, // Since this is accessed from home
-        onTap: (index) {
-          if (index == 0) {
-            Navigator.pushReplacementNamed(context, '/home');
-          } else if (index == 1) {
-            Navigator.pushReplacementNamed(context, '/glossary');
-          } else if (index == 2) {
-            Navigator.pushReplacementNamed(context, '/settings');
-          }
-        },
       ),
     );
   }
