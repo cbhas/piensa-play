@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:piensa_play/core/services/firestore_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:piensa_play/core/services/logger_service.dart';
 import 'package:piensa_play/core/services/user_id_provider.dart';
@@ -7,7 +8,7 @@ import '../../domain/entities/user_profile.dart';
 
 class OnboardingRepositoryImpl {
   static const String _profileKey = 'user_profile';
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseFirestore _firestore = FirestoreProvider.instance;
 
   String get _userId => UserIdProvider.currentUserId;
 

@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:piensa_play/core/services/firestore_provider.dart';
 import 'package:piensa_play/core/services/logger_service.dart';
 import '../../domain/entities/mission.dart';
 import '../../domain/entities/mission_category.dart';
@@ -7,7 +8,7 @@ import '../../domain/entities/veracidadville/quiz_element.dart';
 import '../../domain/entities/veracidadville/question_type.dart';
 
 class MissionsRemoteDatasource {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseFirestore _firestore = FirestoreProvider.instance;
 
   // =========================================================================
   // READ METHODS (from global collections)

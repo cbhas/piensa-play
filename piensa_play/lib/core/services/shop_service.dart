@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:piensa_play/core/services/firestore_provider.dart';
 import 'package:piensa_play/core/services/logger_service.dart';
 import 'package:piensa_play/core/services/user_id_provider.dart';
 import 'package:piensa_play/core/services/app_data_service.dart';
@@ -11,7 +12,7 @@ class ShopService {
   factory ShopService() => _instance;
   ShopService._internal();
 
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseFirestore _firestore = FirestoreProvider.instance;
 
   /// Obtiene todos los items de la tienda (desde cache de AppDataService)
   Future<List<ShopItem>> getShopItems() async {
@@ -76,11 +77,27 @@ class ShopService {
 
       // Descontar monedas
       final newCoins = achievement.coins - item.price;
+      final isStreakFreeze =
+          item.category == ShopItemCategory.powerup &&
+          item.id == 'streak_freeze';
 
-      // Transacción atómica
+      // 1. Actualizar caché primero -> UI inmediata, online u offline.
+      AppDataService.instance.markItemAsPurchased(item.id);
+      AppDataService.instance.updateAchievement(
+        achievement.copyWith(coins: newCoins),
+      );
+      if (isStreakFreeze) {
+        AppDataService.instance.updateStreakFreezeCount(
+          AppDataService.instance.streakFreezeCount + 1,
+        );
+      }
+
+      // 2. Persistir en Firestore como batch atómico, en segundo plano.
+      //    No se hace `await` del commit: con la persistencia activada ese
+      //    Future no resuelve offline; el batch queda en cola y se sincroniza
+      //    de forma atómica al reconectar.
       final batch = _firestore.batch();
 
-      // 1. Actualizar monedas
       batch.update(
         _firestore
             .collection('users')
@@ -90,7 +107,6 @@ class ShopService {
         {'coins': newCoins},
       );
 
-      // 2. Registrar compra
       batch.set(
         _firestore
             .collection('users')
@@ -100,9 +116,7 @@ class ShopService {
         {'purchasedAt': FieldValue.serverTimestamp(), 'price': item.price},
       );
 
-      // 3. Si es streak freeze, agregar al inventario
-      if (item.category == ShopItemCategory.powerup &&
-          item.id == 'streak_freeze') {
+      if (isStreakFreeze) {
         batch.set(
           _firestore
               .collection('users')
@@ -114,21 +128,9 @@ class ShopService {
         );
       }
 
-      await batch.commit();
-
-      // Actualizar cache en AppDataService
-      AppDataService.instance.markItemAsPurchased(item.id);
-      AppDataService.instance.updateAchievement(
-        achievement.copyWith(coins: newCoins),
-      );
-
-      // Actualizar streak freeze count si aplica
-      if (item.category == ShopItemCategory.powerup &&
-          item.id == 'streak_freeze') {
-        AppDataService.instance.updateStreakFreezeCount(
-          AppDataService.instance.streakFreezeCount + 1,
-        );
-      }
+      batch.commit().catchError((e) {
+        AppLogger.error('SHOP: Error persisting purchase: $e');
+      });
 
       AppLogger.success('SHOP: Purchased ${item.name} for ${item.price} coins');
       return true;
@@ -161,15 +163,19 @@ class ShopService {
       }
 
       final userId = UserIdProvider.currentUserId;
-      await _firestore
+
+      // Caché primero (offline-ok), persistencia en segundo plano.
+      AppDataService.instance.updateStreakFreezeCount(count - 1);
+
+      _firestore
           .collection('users')
           .doc(userId)
           .collection('inventory')
           .doc('streak_freeze')
-          .update({'count': FieldValue.increment(-1)});
-
-      // Actualizar cache
-      AppDataService.instance.updateStreakFreezeCount(count - 1);
+          .update({'count': FieldValue.increment(-1)})
+          .catchError((e) {
+            AppLogger.error('SHOP: Error persisting streak freeze use: $e');
+          });
 
       AppLogger.success('SHOP: Used streak freeze');
       return true;

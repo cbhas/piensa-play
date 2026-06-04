@@ -1,10 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:piensa_play/core/services/firestore_provider.dart';
 import 'package:piensa_play/core/services/app_data_service.dart';
 import '../../features/missions/domain/entities/unified_question.dart';
 
 /// Service to load UnifiedQuestions from Firebase with offline support
 class UnifiedQuestionsService {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseFirestore _firestore = FirestoreProvider.instance;
 
   /// Load all questions for a specific mission
   /// SINGLETON-FIRST: Las preguntas ya están en memoria desde el splash

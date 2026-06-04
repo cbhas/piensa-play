@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:piensa_play/core/services/firestore_provider.dart';
 import 'package:piensa_play/core/services/logger_service.dart';
 import 'package:piensa_play/core/services/user_id_provider.dart';
 import 'package:piensa_play/core/services/gamification_service.dart';
@@ -15,7 +16,7 @@ class DailyQuestionService {
   factory DailyQuestionService() => _instance;
   DailyQuestionService._internal();
 
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseFirestore _firestore = FirestoreProvider.instance;
   final GamificationService _gamificationService = GamificationService();
 
   // Cache local
@@ -156,24 +157,42 @@ class DailyQuestionService {
 
       final newBestStreak = newStreak > bestStreak ? newStreak : bestStreak;
 
-      // Guardar progreso diario en subcolección del usuario
-      await _dailyProgressRef(userId).set({
-        'lastAnsweredDate': _todayString,
-        'streak': newStreak,
-        'bestStreak': newBestStreak,
-        'totalAnswered': totalAnswered + 1,
-        'totalCorrect': totalCorrect + (isCorrect ? 1 : 0),
-        'lastUpdated': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true));
-
-      // Usar GamificationService para actualizar XP y monedas
+      // Leer XP/monedas actuales (lectura: offline-ok vía caché de Firestore)
       final achievement = await _gamificationService.getAchievement();
       final newTotalXP = achievement.totalXP + xp;
       final newCoins = achievement.coins + coins;
-
-      // Guardar en la misma estructura que usa GamificationService
       final newLevel = Achievement.calculateLevel(newTotalXP);
-      await _firestore
+
+      // 1. Actualizar caché de AppDataService primero -> UI inmediata, offline-ok
+      AppDataService.instance.updateAchievement(
+        achievement.copyWith(
+          totalXP: newTotalXP,
+          coins: newCoins,
+          currentLevel: newLevel,
+        ),
+      );
+      AppDataService.instance.updateDailyProgress(
+        streak: newStreak,
+        bestStreak: newBestStreak,
+        totalAnswered: totalAnswered + 1,
+      );
+
+      // 2. Persistir en segundo plano (se sincroniza al reconectar, sin
+      //    bloquear: con persistencia activada el Future no resuelve offline).
+      _dailyProgressRef(userId)
+          .set({
+            'lastAnsweredDate': _todayString,
+            'streak': newStreak,
+            'bestStreak': newBestStreak,
+            'totalAnswered': totalAnswered + 1,
+            'totalCorrect': totalCorrect + (isCorrect ? 1 : 0),
+            'lastUpdated': FieldValue.serverTimestamp(),
+          }, SetOptions(merge: true))
+          .catchError((e) {
+            AppLogger.error('DAILY: Error persisting daily progress: $e');
+          });
+
+      _firestore
           .collection('users')
           .doc(userId)
           .collection('achievements')
@@ -183,24 +202,12 @@ class DailyQuestionService {
             'coins': newCoins,
             'currentLevel': newLevel,
             'lastUpdated': FieldValue.serverTimestamp(),
-          }, SetOptions(merge: true));
+          }, SetOptions(merge: true))
+          .catchError((e) {
+            AppLogger.error('DAILY: Error persisting achievement: $e');
+          });
 
-      // IMPORTANTE: Actualizar caché de AppDataService para sincronizar UI
-      final updatedAchievement = achievement.copyWith(
-        totalXP: newTotalXP,
-        coins: newCoins,
-        currentLevel: newLevel,
-      );
-      AppDataService.instance.updateAchievement(updatedAchievement);
-
-      // Actualizar caché de daily progress
-      AppDataService.instance.updateDailyProgress(
-        streak: newStreak,
-        bestStreak: newBestStreak,
-        totalAnswered: totalAnswered + 1,
-      );
-
-      // Actualizar widget de pantalla de inicio con el nuevo streak
+      // 3. Actualizar widget de pantalla de inicio (local, no bloqueante de red)
       await WidgetService().markAsCompleted(newStreak);
 
       AppLogger.success(

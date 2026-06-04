@@ -13,8 +13,7 @@ import 'zona_cero/word_trail_page.dart';
 import 'zona_cero/stereotype_breaker_page.dart';
 import '../../domain/entities/mission.dart';
 import '../../domain/entities/mission_category.dart';
-import '../../domain/entities/unified_question.dart';
-import '../../../../core/services/mission_progress_service.dart';
+import '../../../../core/services/app_data_service.dart';
 
 class MissionMapPage extends StatefulWidget {
   final MissionCategory category; // Ahora recibe la categoría completa
@@ -40,7 +39,6 @@ class _MissionMapPageState extends State<MissionMapPage> {
   String selectedMissionDescription = 'Toca una misión para comenzar';
 
   Map<String, bool> missionCompletionStatus = {};
-  final _progressService = MissionProgressService();
 
   // Get missions directly from category
   List<Mission> get _categoryMissions => widget.category.missions;
@@ -79,9 +77,19 @@ class _MissionMapPageState extends State<MissionMapPage> {
     });
   }
 
-  Future<void> _loadProgress() async {
-    final missionIds = _categoryMissions.map((m) => m.id).toList();
-    final progress = await _progressService.getCategoryProgress(missionIds);
+  /// Carga el estado de completado desde la fuente única (AppDataService,
+  /// respaldada por Firestore). Es instantáneo y funciona offline porque la
+  /// caché ya está en memoria y se actualiza al completar una misión.
+  void _loadProgress() {
+    final categories = AppDataService.instance.missionCategories;
+    final category = categories.firstWhere(
+      (c) => c.id == widget.category.id,
+      orElse: () => widget.category,
+    );
+
+    final progress = <String, bool>{
+      for (final m in category.missions) m.id: m.isCompleted,
+    };
 
     if (mounted) {
       setState(() {

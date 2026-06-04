@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:piensa_play/core/services/logger_service.dart';
 import '../../../../../core/theme/app_theme.dart';
-import '../../../../../core/services/mission_progress_service.dart';
 import '../../../../../core/services/gamification_service.dart';
 import '../../../../../core/services/user_id_provider.dart';
 import '../../../../achievements/presentation/widgets/badge_unlock_dialog.dart';
@@ -64,7 +63,6 @@ class MissionResultsPage extends StatefulWidget {
 }
 
 class _MissionResultsPageState extends State<MissionResultsPage> {
-  final _progressService = MissionProgressService();
   final _gamificationService = GamificationService();
   final _missionsRepository = MissionsRepository();
 
@@ -76,9 +74,8 @@ class _MissionResultsPageState extends State<MissionResultsPage> {
   }
 
   Future<void> _completeMission() async {
-    // Marcar misión como completada
-    await _progressService.completeMission(widget.missionId);
-
+    // El progreso se persiste a través de GamificationService.completeMission
+    // (fuente única: caché de AppDataService + Firestore en segundo plano).
     Mission? mission = widget.mission;
     MissionCategory? category = widget.category;
 

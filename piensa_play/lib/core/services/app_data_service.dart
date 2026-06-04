@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:piensa_play/core/services/firestore_provider.dart';
 import 'package:piensa_play/features/missions/domain/entities/mission_category.dart';
 import 'package:piensa_play/features/missions/domain/usecases/get_mission_categories.dart';
 import 'package:piensa_play/features/achievements/domain/entities/achievement.dart';
@@ -209,7 +210,7 @@ class AppDataService {
 
   Future<void> _loadDailyProgress() async {
     try {
-      final doc = await FirebaseFirestore.instance
+      final doc = await FirestoreProvider.instance
           .collection('users')
           .doc(_userId)
           .collection('daily_progress')
@@ -264,7 +265,7 @@ class AppDataService {
 
     try {
       // Verificar freeze streak en inventario
-      final freezeDoc = await FirebaseFirestore.instance
+      final freezeDoc = await FirestoreProvider.instance
           .collection('users')
           .doc(_userId)
           .collection('inventory')
@@ -275,7 +276,7 @@ class AppDataService {
 
       if (freezeCount > 0) {
         // Usar freeze streak para proteger la racha
-        await FirebaseFirestore.instance
+        await FirestoreProvider.instance
             .collection('users')
             .doc(_userId)
             .collection('inventory')
@@ -283,12 +284,15 @@ class AppDataService {
             .update({'count': FieldValue.increment(-1)});
 
         // Actualizar lastAnsweredDate para mantener la racha
-        await FirebaseFirestore.instance
+        await FirestoreProvider.instance
             .collection('users')
             .doc(_userId)
             .collection('daily_progress')
             .doc('current')
             .update({'lastAnsweredDate': yesterdayString});
+
+        // Mantener la caché en memoria sincronizada con Firestore
+        _streakFreezeCount = freezeCount - 1;
 
         AppLogger.success(
           'STREAK: Used freeze streak to protect streak! Remaining: ${freezeCount - 1}',
@@ -302,7 +306,7 @@ class AppDataService {
     // No hay freeze streak, resetear la racha
     AppLogger.warning('STREAK: No freeze streak available, resetting streak');
 
-    await FirebaseFirestore.instance
+    await FirestoreProvider.instance
         .collection('users')
         .doc(_userId)
         .collection('daily_progress')
@@ -326,13 +330,13 @@ class AppDataService {
   Future<void> _loadShopItems() async {
     try {
       // Load items catalog
-      final snapshot = await FirebaseFirestore.instance
+      final snapshot = await FirestoreProvider.instance
           .collection('shop_items')
           .orderBy('price')
           .get();
 
       // Load purchased items
-      final purchasedSnapshot = await FirebaseFirestore.instance
+      final purchasedSnapshot = await FirestoreProvider.instance
           .collection('users')
           .doc(_userId)
           .collection('purchased_items')
@@ -341,7 +345,7 @@ class AppDataService {
       _purchasedItemIds = purchasedSnapshot.docs.map((d) => d.id).toSet();
 
       // Load streak freeze count
-      final freezeDoc = await FirebaseFirestore.instance
+      final freezeDoc = await FirestoreProvider.instance
           .collection('users')
           .doc(_userId)
           .collection('inventory')

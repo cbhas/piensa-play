@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:piensa_play/core/services/firestore_provider.dart';
 import 'package:piensa_play/core/services/logger_service.dart';
 import 'user_id_provider.dart';
 
@@ -8,7 +9,7 @@ class RecoveryCodeService {
   static final RecoveryCodeService instance = RecoveryCodeService._();
   RecoveryCodeService._();
 
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseFirestore _firestore = FirestoreProvider.instance;
 
   /// Caracteres permitidos en el código (sin O, 0, I, 1 para evitar confusión)
   static const _chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';

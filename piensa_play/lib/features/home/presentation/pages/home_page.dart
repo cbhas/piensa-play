@@ -1,7 +1,7 @@
 // lib/features/home/presentation/pages/home_page.dart
 
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:piensa_play/core/services/firestore_provider.dart';
 import 'package:piensa_play/core/services/logger_service.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/app_animations.dart';
@@ -208,7 +208,7 @@ class _HomePageState extends State<HomePage> {
 
     // Guardar en Firebase
     try {
-      await FirebaseFirestore.instance
+      await FirestoreProvider.instance
           .collection('users')
           .doc(userId)
           .collection('profile')

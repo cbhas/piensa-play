@@ -1,12 +1,13 @@
 // lib/features/home/data/datasources/home_remote_datasource.dart
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:piensa_play/core/services/firestore_provider.dart';
 import 'package:piensa_play/core/services/logger_service.dart';
 import '../../domain/entities/dashboard_stats.dart';
 import '../../domain/entities/user_progress.dart';
 
 class HomeRemoteDatasource {
-  final FirebaseFirestore firestore = FirebaseFirestore.instance;
+  final FirebaseFirestore firestore = FirestoreProvider.instance;
 
   // Guardar DashboardStats en Firestore
   Future<void> saveDashboardStats(String userId, DashboardStats stats) async {

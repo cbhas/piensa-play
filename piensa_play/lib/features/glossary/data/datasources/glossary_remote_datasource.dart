@@ -1,11 +1,12 @@
 // lib/features/glossary/data/datasources/glossary_remote_datasource.dart
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:piensa_play/core/services/firestore_provider.dart';
 import 'package:piensa_play/core/services/logger_service.dart';
 import '../../domain/entities/glossary_term.dart';
 
 class GlossaryRemoteDatasource {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseFirestore _firestore = FirestoreProvider.instance;
 
   /// Fetch all glossary terms from Firestore, ordered by 'order' field
   Future<List<GlossaryTerm>> getGlossaryTerms(String userId) async {
