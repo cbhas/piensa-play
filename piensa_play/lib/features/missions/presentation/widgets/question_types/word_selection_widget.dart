@@ -60,7 +60,7 @@ class WordSelectionWidget extends BaseQuestionWidget {
                       vertical: 10,
                     ),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF2196F3).withOpacity(0.1),
+                      color: const Color(0xFF2196F3).withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
@@ -163,7 +163,7 @@ class WordSelectionWidget extends BaseQuestionWidget {
               boxShadow: isSelected
                   ? [
                       BoxShadow(
-                        color: const Color(0xFF2196F3).withOpacity(0.4),
+                        color: const Color(0xFF2196F3).withValues(alpha: 0.4),
                         blurRadius: 8,
                         offset: const Offset(0, 3),
                       ),

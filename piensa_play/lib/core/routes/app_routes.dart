@@ -11,6 +11,8 @@ import 'package:piensa_play/features/glossary/presentation/pages/glossary_page.d
 import 'package:piensa_play/features/settings/presentation/pages/settings_page.dart';
 import 'package:piensa_play/features/learn/presentation/pages/learn_page.dart';
 import 'package:piensa_play/features/shop/presentation/pages/shop_page.dart';
+import 'package:piensa_play/features/flagship/presentation/pages/digital_city_page.dart';
+import 'package:piensa_play/features/flagship/presentation/pages/facilitator_guide_page.dart';
 
 class AppRoutes {
   static const String splash = '/';
@@ -21,6 +23,9 @@ class AppRoutes {
   static const String home = '/home';
   static const String achievements = '/achievements';
   static const String missions = '/missions';
+  static const String legacyMissions = '/legacy-missions';
+  static const String demo = '/demo';
+  static const String facilitator = '/facilitator';
   static const String missionMap = '/mission-map';
   static const String glossary = '/glossary';
   static const String settings = '/settings';
@@ -35,7 +40,10 @@ class AppRoutes {
       recover: (context) => const RecoverAccountPage(),
       home: (context) => const HomePage(),
       achievements: (context) => const AchievementsPage(),
-      missions: (context) => const MissionsPage(),
+      missions: (context) => const DigitalCityPage(),
+      legacyMissions: (context) => const MissionsPage(),
+      demo: (context) => const DigitalCityPage(demoMode: true),
+      facilitator: (context) => const FacilitatorGuidePage(),
       glossary: (context) => const GlossaryPage(),
       settings: (context) => const SettingsPage(),
       learn: (context) => const LearnPage(),

@@ -54,7 +54,10 @@ class _SplashPageState extends State<SplashPage>
 
   Future<void> _loadDataAndNavigate() async {
     // Start loading data immediately
-    final dataLoaded = await _loadAppData();
+    final dataLoaded = await _loadAppData().timeout(
+      const Duration(seconds: 2),
+      onTimeout: () => false,
+    );
 
     // Wait for minimum splash duration
     await Future.delayed(Duration(seconds: _config.durationSeconds));
@@ -62,12 +65,8 @@ class _SplashPageState extends State<SplashPage>
     if (!mounted) return;
 
     // Si la carga falló y no hay datos cacheados, mostrar diálogo de reintento
-    if (!dataLoaded && !AppDataService.instance.isLoaded) {
-      final shouldRetry = await _showRetryDialog();
-      if (shouldRetry && mounted) {
-        _loadDataAndNavigate(); // Reintentar
-        return;
-      }
+    if (!dataLoaded) {
+      AppLogger.warning('SPLASH: continuing with offline-ready content');
     }
 
     // Check if user has completed onboarding
@@ -106,6 +105,8 @@ class _SplashPageState extends State<SplashPage>
     }
   }
 
+  // Legacy retry dialog retained for future manual refresh entry points.
+  // ignore: unused_element
   Future<bool> _showRetryDialog() async {
     return await showDialog<bool>(
           context: context,

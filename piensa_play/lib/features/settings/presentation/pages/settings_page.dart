@@ -1,15 +1,16 @@
-// lib/features/settings/presentation/pages/settings_page.dart
-
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import '../../../../core/theme/app_theme.dart';
-import '../../../../core/theme/theme_provider.dart';
-import '../../../../core/theme/app_animations.dart';
-import '../../../../core/services/recovery_code_service.dart';
+
+import '../../../../core/accessibility/accessibility_controller.dart';
+import '../../../../core/localization/app_locale.dart';
 import '../../../../core/services/app_data_service.dart';
 import '../../../../core/services/notification_service.dart';
-import '../../../home/presentation/widgets/custom_bottom_nav_bar.dart';
+import '../../../../core/services/recovery_code_service.dart';
+import '../../../../core/theme/app_theme.dart';
+import '../../../../core/theme/theme_provider.dart';
+import '../../../onboarding/data/repositories/onboarding_repository_impl.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -19,752 +20,409 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
-  String? _recoveryCode;
-  bool _isLoadingCode = false;
-
-  // Notification state
+  final _notifications = NotificationService();
   bool _notificationsEnabled = false;
-  int _reminderHour = 18;
-  int _reminderMinute = 0;
+  TimeOfDay _reminder = const TimeOfDay(hour: 18, minute: 0);
+  String? _recoveryCode;
+  bool _creatingCode = false;
+
+  bool get _supportsNotifications =>
+      !kIsWeb &&
+      (defaultTargetPlatform == TargetPlatform.android ||
+          defaultTargetPlatform == TargetPlatform.iOS);
 
   @override
   void initState() {
     super.initState();
-    _loadRecoveryCode();
-    _loadNotificationSettings();
+    _load();
   }
 
-  Future<void> _loadNotificationSettings() async {
-    final enabled = await NotificationService().isEnabled();
-    final time = await NotificationService().getReminderTime();
-    if (mounted) {
-      setState(() {
-        _notificationsEnabled = enabled;
-        _reminderHour = time.hour;
-        _reminderMinute = time.minute;
-      });
-    }
-  }
-
-  Future<void> _loadRecoveryCode() async {
+  Future<void> _load() async {
+    final enabled = _supportsNotifications
+        ? await _notifications.isEnabled()
+        : false;
+    final time = await _notifications.getReminderTime();
     final code = await RecoveryCodeService.instance.getRecoveryCode();
-    if (mounted) {
-      setState(() => _recoveryCode = code);
-    }
+    if (!mounted) return;
+    setState(() {
+      _notificationsEnabled = enabled;
+      _reminder = TimeOfDay(hour: time.hour, minute: time.minute);
+      _recoveryCode = code;
+    });
   }
 
-  Future<void> _generateCode() async {
-    setState(() => _isLoadingCode = true);
+  Future<void> _createRecoveryCode() async {
+    setState(() => _creatingCode = true);
     final code = await RecoveryCodeService.instance.generateAndSaveCode();
-    if (mounted) {
-      setState(() {
-        _recoveryCode = code;
-        _isLoadingCode = false;
-      });
-      if (code != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('¡Código generado! Guárdalo en un lugar seguro.'),
-            backgroundColor: AppTheme.accentGreen,
-          ),
-        );
-      }
-    }
+    if (!mounted) return;
+    setState(() {
+      _creatingCode = false;
+      _recoveryCode = code;
+    });
   }
 
-  void _copyCode() {
-    if (_recoveryCode != null) {
-      Clipboard.setData(ClipboardData(text: _recoveryCode!));
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Código copiado al portapapeles'),
-          backgroundColor: AppTheme.accentBlue,
+  Future<void> _pickReminder() async {
+    final time = await showTimePicker(context: context, initialTime: _reminder);
+    if (time == null) return;
+    await _notifications.setReminderTime(time.hour, time.minute);
+    if (mounted) setState(() => _reminder = time);
+  }
+
+  Future<void> _editName() async {
+    final profile = AppDataService.instance.userProfile;
+    if (profile == null) return;
+    final controller = TextEditingController(text: profile.name);
+    final name = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Profile'),
+        content: TextField(
+          controller: controller,
+          maxLength: 30,
+          decoration: const InputDecoration(labelText: 'Name / Nombre'),
         ),
-      );
-    }
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, controller.text.trim()),
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+    controller.dispose();
+    if (name == null || name.isEmpty) return;
+    final updated = profile.copyWith(name: name);
+    await OnboardingRepositoryImpl().saveUserProfile(updated);
+    AppDataService.instance.updateUserProfile(updated);
+    if (mounted) setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
-    final themeProvider = Provider.of<ThemeProvider>(context);
-    final isDark = themeProvider.isDarkMode;
+    final locale = context.watch<AppLocaleController>();
+    final accessibility = context.watch<AccessibilityController>();
+    final theme = context.watch<ThemeProvider>();
+    final english = locale.isEnglish;
+    final profile = AppDataService.instance.userProfile;
 
     return Scaffold(
-      backgroundColor: isDark
-          ? AppTheme.backgroundDark
-          : AppTheme.backgroundLight,
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Header
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.only(
-                top: 20,
-                bottom: 20,
-                left: 20,
-                right: 20,
-              ),
-              decoration: BoxDecoration(
-                color: isDark ? AppTheme.surfaceDark : AppTheme.tertiaryDark,
-              ),
-              child: const Text(
-                'Ajustes',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
+      appBar: AppBar(title: Text(context.strings.t('settings'))),
+      body: ListView(
+        padding: const EdgeInsets.fromLTRB(20, 4, 20, 40),
+        children: [
+          _SettingsSection(
+            title: english ? 'Experience' : 'Experiencia',
+            children: [
+              ListTile(
+                leading: const _SettingIcon(
+                  Icons.language_rounded,
+                  AppTheme.accentBlue,
                 ),
-              ),
-            ).slideFromTop(),
-
-            // Content
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Recovery Code Section
-                    Text(
-                      'Código de Recuperación',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: isDark
-                            ? AppTheme.textPrimaryDark
-                            : AppTheme.primaryDark,
-                      ),
-                    ).fadeInSlide(delay: const Duration(milliseconds: 50)),
-
-                    const SizedBox(height: 12),
-
-                    _buildRecoveryCodeCard(isDark),
-
-                    const SizedBox(height: 24),
-
-                    // Student Code Section
-                    Text(
-                      'Código de Estudiante',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: isDark
-                            ? AppTheme.textPrimaryDark
-                            : AppTheme.primaryDark,
-                      ),
-                    ).fadeInSlide(delay: const Duration(milliseconds: 75)),
-
-                    const SizedBox(height: 12),
-
-                    _buildStudentCodeCard(isDark),
-
-                    const SizedBox(height: 32),
-
-                    // Notifications Section
-                    Text(
-                      'Notificaciones',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: isDark
-                            ? AppTheme.textPrimaryDark
-                            : AppTheme.primaryDark,
-                      ),
-                    ).fadeInSlide(delay: const Duration(milliseconds: 100)),
-
-                    const SizedBox(height: 12),
-
-                    _buildNotificationsCard(isDark),
-
-                    const SizedBox(height: 32),
-
-                    // Appearance Section
-                    Text(
-                      'Apariencia',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: isDark
-                            ? AppTheme.textPrimaryDark
-                            : AppTheme.primaryDark,
-                      ),
-                    ).fadeInSlide(delay: const Duration(milliseconds: 150)),
-
-                    const SizedBox(height: 12),
-
-                    // Dark Mode Toggle
-                    Container(
-                      decoration: BoxDecoration(
-                        color: isDark ? AppTheme.cardDark : Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.1),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: SwitchListTile(
-                        title: Text(
-                          'Modo Oscuro',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                            color: isDark
-                                ? AppTheme.textPrimaryDark
-                                : AppTheme.primaryDark,
-                          ),
-                        ),
-                        subtitle: Text(
-                          isDark ? 'Activado' : 'Desactivado',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: isDark
-                                ? AppTheme.textSecondaryDark
-                                : Colors.grey.shade600,
-                          ),
-                        ),
-                        value: isDark,
-                        onChanged: (_) => themeProvider.toggleTheme(),
-                        activeThumbColor: AppTheme.accentGreen,
-                        secondary: Icon(
-                          isDark ? Icons.dark_mode : Icons.light_mode,
-                          color: isDark
-                              ? AppTheme.accentYellow
-                              : AppTheme.accentBlue,
-                        ),
-                      ),
-                    ).fadeInSlide(delay: const Duration(milliseconds: 200)),
-
-                    const SizedBox(height: 32),
-
-                    // About Section
-                    Text(
-                      'Acerca de',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: isDark
-                            ? AppTheme.textPrimaryDark
-                            : AppTheme.primaryDark,
-                      ),
-                    ).fadeInSlide(delay: const Duration(milliseconds: 300)),
-
-                    const SizedBox(height: 12),
-
-                    Container(
-                      decoration: BoxDecoration(
-                        color: isDark ? AppTheme.cardDark : Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.1),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        children: [
-                          ListTile(
-                            leading: Icon(
-                              Icons.info,
-                              color: isDark
-                                  ? AppTheme.accentGreen
-                                  : AppTheme.primaryDark,
-                            ),
-                            title: Text(
-                              'Versión',
-                              style: TextStyle(
-                                color: isDark
-                                    ? AppTheme.textPrimaryDark
-                                    : AppTheme.primaryDark,
-                              ),
-                            ),
-                            trailing: Text(
-                              '1.0.0',
-                              style: TextStyle(
-                                color: isDark
-                                    ? AppTheme.textSecondaryDark
-                                    : Colors.grey.shade600,
-                              ),
-                            ),
-                          ),
-                          Divider(
-                            height: 1,
-                            color: isDark
-                                ? Colors.grey.shade800
-                                : Colors.grey.shade300,
-                          ),
-                          ListTile(
-                            leading: Icon(
-                              Icons.help,
-                              color: isDark
-                                  ? AppTheme.accentPink
-                                  : AppTheme.primaryDark,
-                            ),
-                            title: Text(
-                              'Ayuda',
-                              style: TextStyle(
-                                color: isDark
-                                    ? AppTheme.textPrimaryDark
-                                    : AppTheme.primaryDark,
-                              ),
-                            ),
-                            trailing: const Icon(Icons.chevron_right),
-                            onTap: () {
-                              // TODO: Navigate to help
-                            },
-                          ),
-                        ],
-                      ),
-                    ).fadeInSlide(delay: const Duration(milliseconds: 400)),
+                title: Text(context.strings.t('language')),
+                subtitle: Text(locale.isEnglish ? 'English' : 'Español'),
+                trailing: SegmentedButton<String>(
+                  showSelectedIcon: false,
+                  segments: const [
+                    ButtonSegment(value: 'es', label: Text('ES')),
+                    ButtonSegment(value: 'en', label: Text('EN')),
                   ],
+                  selected: {locale.locale.languageCode},
+                  onSelectionChanged: (value) =>
+                      locale.setLocale(Locale(value.first)),
                 ),
               ),
-            ),
-          ],
-        ),
-      ),
-      bottomNavigationBar: CustomBottomNavBar(
-        currentIndex: 2,
-        onTap: (index) {
-          if (index == 0) {
-            Navigator.pushReplacementNamed(context, '/home');
-          } else if (index == 1) {
-            Navigator.pushReplacementNamed(context, '/shop');
-          }
-          // index == 2 is already on settings
-        },
+              const Divider(height: 1),
+              SwitchListTile.adaptive(
+                secondary: const _SettingIcon(
+                  Icons.dark_mode_outlined,
+                  AppTheme.accentYellow,
+                ),
+                title: Text(english ? 'Dark mode' : 'Modo oscuro'),
+                value: theme.isDarkMode,
+                onChanged: (_) => theme.toggleTheme(),
+              ),
+              const Divider(height: 1),
+              SwitchListTile.adaptive(
+                secondary: const _SettingIcon(
+                  Icons.text_fields_rounded,
+                  AppTheme.accentGreen,
+                ),
+                title: Text(context.strings.t('largeText')),
+                value: accessibility.largeText,
+                onChanged: accessibility.setLargeText,
+              ),
+              const Divider(height: 1),
+              SwitchListTile.adaptive(
+                secondary: const _SettingIcon(
+                  Icons.motion_photos_off_outlined,
+                  AppTheme.accentPink,
+                ),
+                title: Text(context.strings.t('reducedMotion')),
+                value: accessibility.reducedMotion,
+                onChanged: accessibility.setReducedMotion,
+              ),
+            ],
+          ),
+          const SizedBox(height: 18),
+          _SettingsSection(
+            title: english ? 'Profile and reminders' : 'Perfil y recordatorios',
+            children: [
+              ListTile(
+                leading: const _SettingIcon(
+                  Icons.account_circle_outlined,
+                  AppTheme.accentGreen,
+                ),
+                title: Text(
+                  profile?.name ?? (english ? 'Explorer' : 'Explorador/a'),
+                ),
+                subtitle: Text(
+                  english ? 'Edit display name' : 'Editar nombre visible',
+                ),
+                trailing: const Icon(Icons.chevron_right_rounded),
+                onTap: _editName,
+              ),
+              if (_supportsNotifications) ...[
+                const Divider(height: 1),
+                SwitchListTile.adaptive(
+                  secondary: const _SettingIcon(
+                    Icons.notifications_outlined,
+                    AppTheme.accentYellow,
+                  ),
+                  title: Text(
+                    english ? 'Daily reminder' : 'Recordatorio diario',
+                  ),
+                  subtitle: Text(_reminder.format(context)),
+                  value: _notificationsEnabled,
+                  onChanged: (value) async {
+                    await _notifications.setEnabled(value);
+                    if (mounted) setState(() => _notificationsEnabled = value);
+                  },
+                ),
+                if (_notificationsEnabled)
+                  ListTile(
+                    leading: const SizedBox(width: 46),
+                    title: Text(
+                      english ? 'Reminder time' : 'Hora del recordatorio',
+                    ),
+                    trailing: Text(_reminder.format(context)),
+                    onTap: _pickReminder,
+                  ),
+              ],
+            ],
+          ),
+          const SizedBox(height: 18),
+          _RecoveryCard(
+            code: _recoveryCode,
+            loading: _creatingCode,
+            onGenerate: _createRecoveryCode,
+          ),
+          const SizedBox(height: 18),
+          _SettingsSection(
+            title: english ? 'Trust and safety' : 'Confianza y seguridad',
+            children: [
+              ListTile(
+                leading: const _SettingIcon(
+                  Icons.privacy_tip_outlined,
+                  AppTheme.accentGreen,
+                ),
+                title: Text(
+                  english ? 'Privacy for children' : 'Privacidad para menores',
+                ),
+                subtitle: Text(
+                  english
+                      ? 'What we collect and what we never collect'
+                      : 'Qué guardamos y qué nunca recopilamos',
+                ),
+                trailing: const Icon(Icons.chevron_right_rounded),
+                onTap: () => _showPolicy(context, privacy: true),
+              ),
+              const Divider(height: 1),
+              ListTile(
+                leading: const _SettingIcon(
+                  Icons.gavel_outlined,
+                  AppTheme.accentBlue,
+                ),
+                title: Text(english ? 'Responsible use' : 'Uso responsable'),
+                trailing: const Icon(Icons.chevron_right_rounded),
+                onTap: () => _showPolicy(context, privacy: false),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          Text(
+            'PiensaPlay 0.2.0 · UNESCO Youth Hackathon 2026',
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildNotificationsCard(bool isDark) {
-    return Container(
-      decoration: BoxDecoration(
-        color: isDark ? AppTheme.cardDark : Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+  void _showPolicy(BuildContext context, {required bool privacy}) {
+    final english = context.read<AppLocaleController>().isEnglish;
+    final title = privacy
+        ? (english ? 'Privacy for children' : 'Privacidad para menores')
+        : (english ? 'Responsible use' : 'Uso responsable');
+    final body = privacy
+        ? (english
+              ? 'PiensaPlay uses an anonymous account and stores only learning progress, a chosen display name, age range and avatar. It does not sell data, show ads, request contacts or record private messages. Classroom pilots must use adult consent and aggregate results.'
+              : 'PiensaPlay usa una cuenta anónima y guarda únicamente progreso educativo, nombre visible elegido, rango de edad y avatar. No vende datos, muestra anuncios, solicita contactos ni registra mensajes privados. Los pilotos de aula deben tener consentimiento adulto y resultados agregados.')
+        : (english
+              ? 'Use verification tools without harassing people or reposting harmful material. AI output and popularity are never proof. Protect privacy, cite sources and correct respectfully.'
+              : 'Usa herramientas de verificación sin acosar personas ni republicar material dañino. El contenido de IA y la popularidad nunca son pruebas. Protege la privacidad, cita fuentes y corrige con respeto.');
+    showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(title),
+        content: Text(body),
+        actions: [
+          FilledButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
           ),
         ],
       ),
-      child: Column(
-        children: [
-          // Toggle de notificaciones
-          SwitchListTile(
-            title: Text(
-              'Recordatorio Diario',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                color: isDark ? AppTheme.textPrimaryDark : AppTheme.primaryDark,
-              ),
-            ),
-            subtitle: Text(
-              _notificationsEnabled
-                  ? 'Te recordaremos la pregunta del día'
-                  : 'Desactivado',
-              style: TextStyle(
-                fontSize: 14,
-                color: isDark
-                    ? AppTheme.textSecondaryDark
-                    : Colors.grey.shade600,
-              ),
-            ),
-            value: _notificationsEnabled,
-            onChanged: (value) async {
-              await NotificationService().setEnabled(value);
-              setState(() => _notificationsEnabled = value);
-              if (mounted && value) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('¡Notificaciones activadas! 🔔'),
-                    backgroundColor: AppTheme.accentGreen,
-                  ),
-                );
-              }
-            },
-            activeThumbColor: AppTheme.accentGreen,
-            secondary: Icon(
-              _notificationsEnabled
-                  ? Icons.notifications_active
-                  : Icons.notifications_off,
-              color: _notificationsEnabled ? AppTheme.accentGreen : Colors.grey,
-            ),
-          ),
-
-          // Selector de hora (solo si está habilitado)
-          if (_notificationsEnabled) ...[
-            Divider(
-              height: 1,
-              color: isDark ? Colors.grey.shade800 : Colors.grey.shade300,
-            ),
-            ListTile(
-              leading: Icon(
-                Icons.access_time,
-                color: isDark ? AppTheme.accentYellow : AppTheme.primaryDark,
-              ),
-              title: Text(
-                'Hora del recordatorio',
-                style: TextStyle(
-                  color: isDark
-                      ? AppTheme.textPrimaryDark
-                      : AppTheme.primaryDark,
-                ),
-              ),
-              trailing: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: AppTheme.accentYellow.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  '${_reminderHour.toString().padLeft(2, '0')}:${_reminderMinute.toString().padLeft(2, '0')}',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: isDark
-                        ? AppTheme.accentYellow
-                        : AppTheme.primaryDark,
-                  ),
-                ),
-              ),
-              onTap: () async {
-                final time = await showTimePicker(
-                  context: context,
-                  initialTime: TimeOfDay(
-                    hour: _reminderHour,
-                    minute: _reminderMinute,
-                  ),
-                );
-                if (time != null) {
-                  await NotificationService().setReminderTime(
-                    time.hour,
-                    time.minute,
-                  );
-                  setState(() {
-                    _reminderHour = time.hour;
-                    _reminderMinute = time.minute;
-                  });
-                }
-              },
-            ),
-            const SizedBox(height: 8),
-            // Botones de demo
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: () async {
-                        await NotificationService().showDailyReminderNow();
-                        if (mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('¡Notificación enviada! 📚'),
-                              backgroundColor: AppTheme.accentBlue,
-                            ),
-                          );
-                        }
-                      },
-                      icon: const Icon(Icons.notifications, size: 16),
-                      label: const Text(
-                        'Probar\nRecordatorio',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 11),
-                      ),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: isDark
-                            ? Colors.white
-                            : AppTheme.primaryDark,
-                        side: BorderSide(
-                          color: isDark
-                              ? Colors.grey.shade600
-                              : Colors.grey.shade400,
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: () async {
-                        await NotificationService().showStreakRiskNow();
-                        if (mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('¡Alerta de racha enviada! 🔥'),
-                              backgroundColor: AppTheme.accentRed,
-                            ),
-                          );
-                        }
-                      },
-                      icon: const Icon(Icons.local_fire_department, size: 16),
-                      label: const Text(
-                        'Probar\nRacha',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 11),
-                      ),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: AppTheme.accentRed,
-                        side: const BorderSide(color: AppTheme.accentRed),
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ],
-      ),
-    ).fadeInSlide(delay: const Duration(milliseconds: 125));
+    );
   }
+}
 
-  Widget _buildRecoveryCodeCard(bool isDark) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            AppTheme.accentBlue,
-            AppTheme.accentBlue.withValues(alpha: 0.7),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+class _SettingsSection extends StatelessWidget {
+  final String title;
+  final List<Widget> children;
+  const _SettingsSection({required this.title, required this.children});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 4, bottom: 9),
+          child: Text(title, style: Theme.of(context).textTheme.titleMedium),
         ),
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: AppTheme.accentBlue.withValues(alpha: 0.3),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Icon(Icons.key, color: Colors.white, size: 28),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  _recoveryCode != null
-                      ? 'Tu código de recuperación'
-                      : 'Genera tu código',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
+        Card(child: Column(children: children)),
+      ],
+    );
+  }
+}
 
-          if (_recoveryCode != null) ...[
-            // Mostrar código
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    _recoveryCode!,
+class _SettingIcon extends StatelessWidget {
+  final IconData icon;
+  final Color color;
+  const _SettingIcon(this.icon, this.color);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 42,
+      height: 42,
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.25),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Icon(icon, color: AppTheme.primaryDark),
+    );
+  }
+}
+
+class _RecoveryCard extends StatelessWidget {
+  final String? code;
+  final bool loading;
+  final VoidCallback onGenerate;
+
+  const _RecoveryCard({
+    required this.code,
+    required this.loading,
+    required this.onGenerate,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final english = context.watch<AppLocaleController>().isEnglish;
+    return Card(
+      color: AppTheme.primaryDark,
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.key_rounded, color: AppTheme.accentYellow),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    english
+                        ? '30-day recovery code'
+                        : 'Código de recuperación por 30 días',
                     style: const TextStyle(
                       color: Colors.white,
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 4,
-                      fontFamily: 'monospace',
+                      fontWeight: FontWeight.w900,
+                      fontSize: 17,
                     ),
                   ),
-                  const SizedBox(width: 16),
-                  IconButton(
-                    onPressed: _copyCode,
-                    icon: const Icon(Icons.copy, color: Colors.white),
-                    tooltip: 'Copiar código',
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              'Guarda este código para recuperar tu cuenta en otro dispositivo',
-              style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.8),
-                fontSize: 12,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ] else ...[
-            // Botón para generar
-            Text(
-              'Genera un código único para poder recuperar tu cuenta en otro dispositivo.',
-              style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.9),
-                fontSize: 14,
-              ),
-            ),
-            const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _isLoadingCode ? null : _generateCode,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  foregroundColor: AppTheme.accentBlue,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
                 ),
-                child: _isLoadingCode
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Text(
-                        'Generar Código',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-              ),
+              ],
             ),
-          ],
-        ],
-      ),
-    ).fadeInSlide(delay: const Duration(milliseconds: 100));
-  }
-
-  Widget _buildStudentCodeCard(bool isDark) {
-    final studentCode = AppDataService.instance.userProfile?.studentCode;
-
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            AppTheme.accentGreen,
-            AppTheme.accentGreen.withValues(alpha: 0.7),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: AppTheme.accentGreen.withValues(alpha: 0.3),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Icon(Icons.badge, color: Colors.white, size: 28),
-              const SizedBox(width: 12),
-              const Expanded(
-                child: Text(
-                  'Tu código de estudiante',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
+            const SizedBox(height: 9),
+            Text(
+              english
+                  ? 'Generating a new code invalidates the previous one. Keep it private.'
+                  : 'Generar uno nuevo invalida el anterior. Guárdalo en privado.',
+              style: const TextStyle(color: Colors.white70),
+            ),
+            if (code != null) ...[
+              const SizedBox(height: 16),
+              SelectableText(
+                '${code!.substring(0, 4)}-${code!.substring(4, 8)}-${code!.substring(8, 12)}-${code!.substring(12)}',
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 1.5,
                 ),
+              ),
+              const SizedBox(height: 10),
+              OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Colors.white,
+                  side: const BorderSide(color: Colors.white54),
+                ),
+                onPressed: () => Clipboard.setData(ClipboardData(text: code!)),
+                icon: const Icon(Icons.copy_rounded),
+                label: Text(english ? 'Copy' : 'Copiar'),
               ),
             ],
-          ),
-          const SizedBox(height: 16),
-
-          if (studentCode != null && studentCode.isNotEmpty) ...[
-            // Mostrar código
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(12),
+            const SizedBox(height: 10),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.accentYellow,
+                foregroundColor: AppTheme.primaryDark,
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    studentCode,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 3,
-                      fontFamily: 'monospace',
+              onPressed: loading ? null : onGenerate,
+              child: loading
+                  ? const SizedBox(
+                      width: 22,
+                      height: 22,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : Text(
+                      code == null
+                          ? (english
+                                ? 'Create recovery code'
+                                : 'Crear código de recuperación')
+                          : (english ? 'Replace code' : 'Reemplazar código'),
                     ),
-                  ),
-                  const SizedBox(width: 16),
-                  IconButton(
-                    onPressed: () {
-                      Clipboard.setData(ClipboardData(text: studentCode));
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Código copiado al portapapeles'),
-                          backgroundColor: AppTheme.accentGreen,
-                        ),
-                      );
-                    },
-                    icon: const Icon(Icons.copy, color: Colors.white),
-                    tooltip: 'Copiar código',
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              'Comparte este código con tu profesor para vincular tu cuenta',
-              style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.8),
-                fontSize: 12,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ] else ...[
-            // No hay código (no debería pasar normalmente)
-            Text(
-              'Código no disponible. Reinicia la app para generar uno.',
-              style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.9),
-                fontSize: 14,
-              ),
             ),
           ],
-        ],
+        ),
       ),
-    ).fadeInSlide(delay: const Duration(milliseconds: 125));
+    );
   }
 }

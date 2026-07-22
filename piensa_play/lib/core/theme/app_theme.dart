@@ -1,135 +1,160 @@
 import 'package:flutter/material.dart';
 
+/// Sistema visual unico de PiensaPlay, alineado con el manual de marca.
 class AppTheme {
-  // ========== Primary Colors (Navy Blues) ==========
-  static const Color primaryDark = Color(0xFF4A5F7F); // Navy blue (main)
-  static const Color secondaryDark = Color(0xFF2C3E5F); // Darker navy
-  static const Color tertiaryDark = Color(0xFF1A2645); // Darkest navy
+  static const Color primaryDark = Color(0xFF132757);
+  static const Color secondaryDark = Color(0xFF243B72);
+  static const Color tertiaryDark = Color(0xFF081A3D);
 
-  // ========== Accent Colors (Feature Cards) ==========
-  static const Color accentGreen = Color(
-    0xFFA4D65E,
-  ); // Bright green (Juegos, Achievements)
-  static const Color accentBlue = Color(
-    0xFF6EC6FF,
-  ); // Light blue (Glosario, Progress)
-  static const Color accentYellow = Color(0xFFF4D03F); // Bright yellow (Logros)
-  static const Color accentPink = Color(0xFFE91E63); // Pink/Magenta (Misiones)
-  static const Color accentRed = Color(0xFFFF6B6B); // Red for Ciberseguridad
+  static const Color accentGreen = Color(0xFFBDD87B);
+  static const Color accentBlue = Color(0xFF75C9E8);
+  static const Color accentYellow = Color(0xFFF6E16B);
+  static const Color accentPink = Color(0xFFE86F9B);
+  static const Color accentRed = Color(0xFFE85D5D);
+  static const Color accentYellowAlt = Color(0xFFFFD447);
+  static const Color accentGreenSage = Color(0xFF78A88A);
 
-  // ========== Secondary Accent Colors ==========
-  static const Color accentYellowAlt = Color(
-    0xFFFDD835,
-  ); // Alternative yellow (icons)
-  static const Color accentGreenSage = Color(
-    0xFF7FA891,
-  ); // Sage green (alternative)
+  static const Color backgroundLight = Color(0xFFF7F8F2);
+  static const Color surfaceLight = Color(0xFFFFFFFF);
+  static const Color ink = Color(0xFF18223A);
+  static const Color muted = Color(0xFF667085);
+  static const Color mascotBackground = Color(0xFFDDEAB8);
 
-  // ========== Background Colors ==========
-  static const Color backgroundLight = Color(
-    0xFFF5F5F5,
-  ); // Light gray background
-  static const Color mascotBackground = Color(
-    0xFFCFE89C,
-  ); // Light green (mascot)
+  static const Color backgroundDark = Color(0xFF08132C);
+  static const Color surfaceDark = Color(0xFF122143);
+  static const Color cardDark = Color(0xFF1B2D57);
+  static const Color textPrimaryDark = Color(0xFFF8FAFF);
+  static const Color textSecondaryDark = Color(0xFFC7D1E8);
 
-  // ========== Dark Mode Colors ==========
-  static const Color backgroundDark = Color(0xFF1A1A1A); // Dark background
-  static const Color surfaceDark = Color(0xFF2D2D2D); // Dark surface
-  static const Color cardDark = Color(0xFF3A3A3A); // Dark cards
-  static const Color textPrimaryDark = Color(0xFFFFFFFF); // White text
-  static const Color textSecondaryDark = Color(0xFFB0B0B0); // Gray text
-
-  // ========== Light Theme ==========
   static ThemeData get lightTheme {
-    return ThemeData(
-      useMaterial3: true,
+    final scheme = ColorScheme.fromSeed(
+      seedColor: primaryDark,
       brightness: Brightness.light,
-      primaryColor: primaryDark,
-      scaffoldBackgroundColor: backgroundLight,
-      fontFamily: 'Roboto',
-
-      colorScheme: const ColorScheme.light(
-        primary: primaryDark,
-        secondary: accentYellow,
-        surface: Colors.white,
-      ),
-
-      appBarTheme: const AppBarTheme(
-        backgroundColor: tertiaryDark,
-        foregroundColor: Colors.white,
-        elevation: 0,
-      ),
-
-      cardTheme: CardThemeData(
-        color: Colors.white,
-        elevation: 2,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      ),
-
-      textTheme: const TextTheme(
-        bodyLarge: TextStyle(color: primaryDark),
-        bodyMedium: TextStyle(color: primaryDark),
-        titleLarge: TextStyle(color: primaryDark, fontWeight: FontWeight.bold),
-      ),
+      primary: primaryDark,
+      secondary: accentGreen,
+      surface: surfaceLight,
     );
+    return _theme(scheme, false);
   }
 
-  // ========== Dark Theme ==========
   static ThemeData get darkTheme {
+    final scheme = ColorScheme.fromSeed(
+      seedColor: accentGreen,
+      brightness: Brightness.dark,
+      primary: accentGreen,
+      secondary: accentYellow,
+      surface: surfaceDark,
+    );
+    return _theme(scheme, true);
+  }
+
+  static ThemeData _theme(ColorScheme scheme, bool dark) {
+    final foreground = dark ? textPrimaryDark : ink;
     return ThemeData(
       useMaterial3: true,
-      brightness: Brightness.dark,
-      primaryColor: accentGreen,
-      scaffoldBackgroundColor: backgroundDark,
+      brightness: dark ? Brightness.dark : Brightness.light,
+      colorScheme: scheme,
+      scaffoldBackgroundColor: dark ? backgroundDark : backgroundLight,
       fontFamily: 'Roboto',
-
-      colorScheme: const ColorScheme.dark(
-        primary: accentGreen,
-        secondary: accentYellow,
-        surface: surfaceDark,
-      ),
-
-      appBarTheme: const AppBarTheme(
-        backgroundColor: surfaceDark,
-        foregroundColor: textPrimaryDark,
+      appBarTheme: AppBarTheme(
+        backgroundColor: Colors.transparent,
+        foregroundColor: foreground,
         elevation: 0,
+        centerTitle: false,
+        titleTextStyle: TextStyle(
+          color: foreground,
+          fontSize: 22,
+          fontWeight: FontWeight.w800,
+        ),
       ),
-
       cardTheme: CardThemeData(
-        color: cardDark,
-        elevation: 2,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        color: dark ? cardDark : surfaceLight,
+        elevation: 0,
+        margin: EdgeInsets.zero,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(24),
+          side: BorderSide(
+            color: dark ? Colors.white12 : const Color(0xFFE5E9F0),
+          ),
+        ),
       ),
-
-      textTheme: const TextTheme(
-        bodyLarge: TextStyle(color: textPrimaryDark),
-        bodyMedium: TextStyle(color: textSecondaryDark),
-        titleLarge: TextStyle(
-          color: textPrimaryDark,
-          fontWeight: FontWeight.bold,
+      textTheme: TextTheme(
+        displaySmall: TextStyle(
+          color: foreground,
+          fontWeight: FontWeight.w900,
+          letterSpacing: -1,
+        ),
+        headlineMedium: TextStyle(
+          color: foreground,
+          fontWeight: FontWeight.w900,
+          letterSpacing: -0.5,
+        ),
+        titleLarge: TextStyle(color: foreground, fontWeight: FontWeight.w800),
+        titleMedium: TextStyle(color: foreground, fontWeight: FontWeight.w700),
+        bodyLarge: TextStyle(color: foreground, height: 1.45),
+        bodyMedium: TextStyle(
+          color: dark ? textSecondaryDark : muted,
+          height: 1.45,
+        ),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          minimumSize: const Size(48, 56),
+          backgroundColor: dark ? accentGreen : primaryDark,
+          foregroundColor: dark ? tertiaryDark : Colors.white,
+          elevation: 0,
+          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
+          ),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          minimumSize: const Size(48, 56),
+          foregroundColor: dark ? accentGreen : primaryDark,
+          side: BorderSide(color: dark ? accentGreen : primaryDark, width: 1.5),
+          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
+          ),
+        ),
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: dark ? cardDark : Colors.white,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 18,
+          vertical: 16,
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide.none,
+        ),
+      ),
+      navigationBarTheme: NavigationBarThemeData(
+        backgroundColor: dark ? surfaceDark : Colors.white,
+        indicatorColor: accentGreen.withValues(alpha: 0.45),
+        labelTextStyle: WidgetStateProperty.all(
+          TextStyle(color: foreground, fontWeight: FontWeight.w700),
         ),
       ),
     );
   }
 
-  static BoxDecoration get gradientBackground {
-    return const BoxDecoration(
-      gradient: LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: [primaryDark, secondaryDark, tertiaryDark],
-      ),
-    );
-  }
+  static BoxDecoration get gradientBackground => const BoxDecoration(
+    gradient: LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: [primaryDark, secondaryDark, tertiaryDark],
+    ),
+  );
 
-  static List<BoxShadow> get defaultShadow {
-    return [
-      BoxShadow(
-        color: Colors.black.withValues(alpha: 0.3),
-        blurRadius: 20,
-        offset: const Offset(0, 10),
-      ),
-    ];
-  }
+  static List<BoxShadow> get defaultShadow => [
+    BoxShadow(
+      color: primaryDark.withValues(alpha: 0.16),
+      blurRadius: 28,
+      offset: const Offset(0, 12),
+    ),
+  ];
 }

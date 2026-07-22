@@ -1,162 +1,211 @@
+import 'dart:convert';
 import 'dart:math';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:piensa_play/core/services/logger_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import 'logger_service.dart';
 import 'user_id_provider.dart';
 
-/// Servicio para gestionar códigos de recuperación de cuenta
+/// Recuperacion mediante una capsula de datos de alta entropia.
+///
+/// El codigo no expone el UID anterior, no permite listar cuentas, expira en
+/// 30 dias y se elimina al utilizarlo. Regenerarlo invalida el anterior.
 class RecoveryCodeService {
   static final RecoveryCodeService instance = RecoveryCodeService._();
   RecoveryCodeService._();
 
+  static const _chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  static const _codeLength = 16;
+  static const _subCollections = <String>[
+    'profile',
+    'achievements',
+    'mission_progress',
+    'daily_progress',
+    'unlockedBadges',
+    'purchased_items',
+    'inventory',
+    'recent_activities',
+    'reward_claims',
+  ];
+
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  /// Caracteres permitidos en el código (sin O, 0, I, 1 para evitar confusión)
-  static const _chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-
-  /// Genera un código aleatorio de 8 caracteres
   String _generateRandomCode() {
     final random = Random.secure();
     return List.generate(
-      8,
+      _codeLength,
       (_) => _chars[random.nextInt(_chars.length)],
     ).join();
   }
 
-  /// Obtiene el código de recuperación actual del usuario
+  String _normalize(String code) =>
+      code.toUpperCase().replaceAll(RegExp(r'[^A-Z2-9]'), '');
+
   Future<String?> getRecoveryCode() async {
     try {
-      final userId = UserIdProvider.currentUserId;
-      final doc = await _firestore
+      final snapshot = await _firestore
           .collection('users')
-          .doc(userId)
+          .doc(UserIdProvider.currentUserId)
           .collection('recovery')
           .doc('code')
           .get();
+      final data = snapshot.data();
+      final expiresAt = data?['expiresAt'] as Timestamp?;
+      if (expiresAt != null && expiresAt.toDate().isBefore(DateTime.now())) {
+        return null;
+      }
+      return data?['code'] as String?;
+    } catch (error) {
+      AppLogger.error('RECOVERY: code unavailable: $error');
+      return null;
+    }
+  }
 
-      if (doc.exists) {
-        return doc.data()?['code'] as String?;
+  Future<String?> generateAndSaveCode() async {
+    final userId = UserIdProvider.currentUserId;
+    try {
+      final payload = await _createSnapshot(userId);
+      final userCodeRef = _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('recovery')
+          .doc('code');
+      final oldCode = (await userCodeRef.get()).data()?['code'] as String?;
+      final expiresAt = DateTime.now().add(const Duration(days: 30));
+
+      for (var attempt = 0; attempt < 6; attempt++) {
+        final code = _generateRandomCode();
+        final capsuleRef = _firestore.collection('recovery_capsules').doc(code);
+        try {
+          await _firestore.runTransaction((transaction) async {
+            final existing = await transaction.get(capsuleRef);
+            if (existing.exists) throw StateError('code-collision');
+
+            transaction.set(capsuleRef, {
+              'ownerId': userId,
+              'data': payload,
+              'createdAt': FieldValue.serverTimestamp(),
+              'expiresAt': Timestamp.fromDate(expiresAt),
+              'schemaVersion': 2,
+            });
+            transaction.set(userCodeRef, {
+              'code': code,
+              'createdAt': FieldValue.serverTimestamp(),
+              'expiresAt': Timestamp.fromDate(expiresAt),
+            });
+            if (oldCode != null && oldCode != code) {
+              transaction.delete(
+                _firestore.collection('recovery_capsules').doc(oldCode),
+              );
+            }
+          });
+          return code;
+        } on StateError {
+          continue;
+        }
       }
       return null;
-    } catch (e) {
-      AppLogger.error('RECOVERY: Error getting code: $e');
+    } catch (error) {
+      AppLogger.error('RECOVERY: generation failed: $error');
       return null;
     }
   }
 
-  /// Genera y guarda un nuevo código de recuperación
-  Future<String?> generateAndSaveCode() async {
-    try {
-      final userId = UserIdProvider.currentUserId;
-      final code = _generateRandomCode();
-
-      // Guardar en el perfil del usuario
-      await _firestore
-          .collection('users')
-          .doc(userId)
-          .collection('recovery')
-          .doc('code')
-          .set({'code': code, 'createdAt': FieldValue.serverTimestamp()});
-
-      // Guardar índice inverso para búsqueda por código
-      await _firestore.collection('recovery_codes').doc(code).set({
-        'userId': userId,
-        'createdAt': FieldValue.serverTimestamp(),
-      });
-
-      AppLogger.success('RECOVERY: Code generated: $code');
-      return code;
-    } catch (e) {
-      AppLogger.error('RECOVERY: Error generating code: $e');
-      return null;
-    }
-  }
-
-  /// Busca una cuenta por código de recuperación
   Future<Map<String, dynamic>?> findAccountByCode(String code) async {
     try {
-      final codeDoc = await _firestore
-          .collection('recovery_codes')
-          .doc(code.toUpperCase())
+      final normalized = _normalize(code);
+      if (normalized.length != _codeLength) return null;
+      final snapshot = await _firestore
+          .collection('recovery_capsules')
+          .doc(normalized)
           .get();
-
-      if (!codeDoc.exists) {
-        AppLogger.warning('RECOVERY: Code not found: $code');
+      if (!snapshot.exists) return null;
+      final data = snapshot.data()!;
+      final expiresAt = data['expiresAt'] as Timestamp?;
+      if (expiresAt == null || expiresAt.toDate().isBefore(DateTime.now())) {
         return null;
       }
 
-      final originalUserId = codeDoc.data()?['userId'] as String?;
-      if (originalUserId == null) return null;
-
-      // Obtener perfil del usuario original
-      final profileDoc = await _firestore
-          .collection('users')
-          .doc(originalUserId)
-          .collection('profile')
-          .doc('data')
-          .get();
-
-      if (profileDoc.exists) {
-        return {'userId': originalUserId, 'profile': profileDoc.data()};
+      final payload = Map<String, dynamic>.from(data['data'] as Map);
+      final profileCollection = payload['profile'];
+      Map<String, dynamic>? profile;
+      if (profileCollection is Map && profileCollection['data'] is Map) {
+        profile = Map<String, dynamic>.from(profileCollection['data'] as Map);
       }
-
-      return {'userId': originalUserId};
-    } catch (e) {
-      AppLogger.error('RECOVERY: Error finding account: $e');
+      return {'profile': profile, 'expiresAt': expiresAt};
+    } catch (error) {
+      AppLogger.error('RECOVERY: lookup failed: $error');
       return null;
     }
   }
 
-  /// Vincula la cuenta actual con el userId de la cuenta a recuperar
-  /// (Copia todos los datos del usuario original al nuevo)
   Future<bool> recoverAccount(String code) async {
+    final normalized = _normalize(code);
+    if (normalized.length != _codeLength) return false;
+
     try {
-      final accountData = await findAccountByCode(code);
-      if (accountData == null) return false;
-
-      final originalUserId = accountData['userId'] as String;
-      final currentUserId = UserIdProvider.currentUserId;
-
-      if (originalUserId == currentUserId) {
-        AppLogger.warning('RECOVERY: Same account, no transfer needed');
-        return true;
+      final capsuleRef = _firestore
+          .collection('recovery_capsules')
+          .doc(normalized);
+      final capsule = await capsuleRef.get();
+      if (!capsule.exists) return false;
+      final capsuleData = capsule.data()!;
+      final expiresAt = capsuleData['expiresAt'] as Timestamp?;
+      if (expiresAt == null || expiresAt.toDate().isBefore(DateTime.now())) {
+        return false;
       }
 
-      // Copiar subcolecciones del usuario original al actual
-      await _copyUserData(originalUserId, currentUserId);
+      final payload = Map<String, dynamic>.from(capsuleData['data'] as Map);
+      final destination = _firestore
+          .collection('users')
+          .doc(UserIdProvider.currentUserId);
+      final batch = _firestore.batch();
+      var writes = 0;
 
-      AppLogger.success('RECOVERY: Account recovered successfully');
+      for (final collectionName in _subCollections) {
+        final documents = payload[collectionName];
+        if (documents is! Map) continue;
+        for (final entry in documents.entries) {
+          if (entry.value is! Map) continue;
+          batch.set(
+            destination.collection(collectionName).doc(entry.key.toString()),
+            Map<String, dynamic>.from(entry.value as Map),
+          );
+          writes++;
+        }
+      }
+      if (writes >= 450) {
+        throw StateError('recovery-payload-too-large');
+      }
+
+      batch.delete(capsuleRef);
+      await batch.commit();
+      await _refreshLocalProfile(payload);
       return true;
-    } catch (e) {
-      AppLogger.error('RECOVERY: Error recovering account: $e');
+    } catch (error) {
+      AppLogger.error('RECOVERY: restore failed: $error');
       return false;
     }
   }
 
-  /// Copia los datos de un usuario a otro
-  Future<void> _copyUserData(String fromUserId, String toUserId) async {
-    final subCollections = [
-      'profile',
-      'achievements',
-      'mission_progress',
-      'daily_progress',
-    ];
-
-    for (final subCollection in subCollections) {
-      final docs = await _firestore
-          .collection('users')
-          .doc(fromUserId)
-          .collection(subCollection)
-          .get();
-
-      for (final doc in docs.docs) {
-        await _firestore
-            .collection('users')
-            .doc(toUserId)
-            .collection(subCollection)
-            .doc(doc.id)
-            .set(doc.data());
-      }
-      AppLogger.log('RECOVERY: Copied $subCollection');
+  Future<Map<String, dynamic>> _createSnapshot(String userId) async {
+    final result = <String, dynamic>{};
+    final userRef = _firestore.collection('users').doc(userId);
+    for (final collectionName in _subCollections) {
+      final snapshot = await userRef.collection(collectionName).get();
+      result[collectionName] = {
+        for (final document in snapshot.docs) document.id: document.data(),
+      };
     }
+    return result;
+  }
+
+  Future<void> _refreshLocalProfile(Map<String, dynamic> payload) async {
+    final profileDocuments = payload['profile'];
+    if (profileDocuments is! Map || profileDocuments['data'] is! Map) return;
+    final profile = Map<String, dynamic>.from(profileDocuments['data'] as Map);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('user_profile', jsonEncode(profile));
   }
 }

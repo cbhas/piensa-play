@@ -97,11 +97,15 @@ class QuizQuestionWidget extends BaseQuestionWidget {
   }
 
   String _getQuestionEmoji() {
-    if (question.content?.toLowerCase().contains('noticia') ?? false)
+    if (question.content?.toLowerCase().contains('noticia') ?? false) {
       return '📰';
-    if (question.content?.toLowerCase().contains('vacuna') ?? false)
+    }
+    if (question.content?.toLowerCase().contains('vacuna') ?? false) {
       return '💉';
-    if (question.content?.toLowerCase().contains('agua') ?? false) return '💧';
+    }
+    if (question.content?.toLowerCase().contains('agua') ?? false) {
+      return '💧';
+    }
     return '🤔';
   }
 
@@ -165,7 +169,7 @@ class QuizQuestionWidget extends BaseQuestionWidget {
               height: 28,
               decoration: BoxDecoration(
                 color: showCheck
-                    ? Colors.white.withOpacity(0.3)
+                    ? Colors.white.withValues(alpha: 0.3)
                     : Colors.transparent,
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(

@@ -13,7 +13,6 @@ import 'zona_cero/word_trail_page.dart';
 import 'zona_cero/stereotype_breaker_page.dart';
 import '../../domain/entities/mission.dart';
 import '../../domain/entities/mission_category.dart';
-import '../../domain/entities/unified_question.dart';
 import '../../../../core/services/mission_progress_service.dart';
 
 class MissionMapPage extends StatefulWidget {

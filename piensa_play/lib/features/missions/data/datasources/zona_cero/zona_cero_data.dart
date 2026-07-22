@@ -121,8 +121,7 @@ class ZonaCeroData {
       ),
       StereotypeScene(
         title: 'En la escuela',
-        description:
-            'Mira el salón y elige palabras que incluyan a todos.',
+        description: 'Mira el salón y elige palabras que incluyan a todos.',
         statements: const [
           StereotypeStatement(
             text: 'Solo los grandes pueden liderar el equipo',
@@ -146,8 +145,7 @@ class ZonaCeroData {
       ),
       StereotypeScene(
         title: 'En casa',
-        description:
-            'Haz que las tareas sean justas y todos ayuden.',
+        description: 'Haz que las tareas sean justas y todos ayuden.',
         statements: const [
           StereotypeStatement(
             text: 'Solo mamá cocina',

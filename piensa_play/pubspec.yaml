@@ -1,7 +1,7 @@
 name: piensa_play
-description: "A new Flutter project."
+description: "Juego educativo multilingue de alfabetizacion mediatica e informacional."
 publish_to: 'none'
-version: 0.1.0
+version: 0.2.0+1
 
 environment:
   sdk: ^3.9.0
@@ -9,6 +9,9 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  cupertino_icons: ^1.0.9
   firebase_core: ^3.6.0
   firebase_auth: ^5.7.0
   cloud_firestore: ^5.4.4

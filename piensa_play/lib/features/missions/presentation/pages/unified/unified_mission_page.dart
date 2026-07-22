@@ -477,29 +477,6 @@ class _UnifiedMissionPageState extends State<UnifiedMissionPage> {
   }
 
   /// Obtener las opciones seleccionadas actualmente
-  List<AnswerOption> _getSelectedOptions() {
-    switch (currentQuestion.type) {
-      case QuestionType.quiz:
-      case QuestionType.stereotype:
-        return currentQuestion.options
-            .where((o) => _selectedOptionIds.contains(o.id))
-            .toList();
-      case QuestionType.trueFalse:
-        if (_selectedBoolAnswer == null) return [];
-        final answerId = _selectedBoolAnswer! ? 'true' : 'false';
-        return currentQuestion.options.where((o) => o.id == answerId).toList();
-      case QuestionType.wordSelection:
-        return currentQuestion.options
-            .where((o) => _selectedWords.contains(o.text))
-            .toList();
-      case QuestionType.classify:
-      case QuestionType.fillBlank:
-      case QuestionType.matchPairs:
-        // Estos tipos no usan opciones tradicionales
-        return [];
-    }
-  }
-
   /// Toggle selección de opción (para quiz múltiple)
   void _onOptionToggle(bool isCorrect, String? optionId) {
     if (optionId == null) return;

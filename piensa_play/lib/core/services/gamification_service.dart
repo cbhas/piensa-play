@@ -1,256 +1,236 @@
+import 'dart:convert';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:convert';
-import 'package:piensa_play/core/services/logger_service.dart';
-import 'package:piensa_play/core/services/app_data_service.dart';
+
+import '../domain/reward_policy.dart';
 import '../../features/achievements/domain/entities/achievement.dart';
 import '../../features/achievements/domain/entities/badge.dart' as entities;
 import '../../features/missions/domain/entities/mission.dart';
 import '../../features/missions/domain/entities/mission_category.dart';
+import 'app_data_service.dart';
+import 'logger_service.dart';
 import 'user_id_provider.dart';
 
-/// Servicio centralizado para manejar la gamificación:
-/// - XP y niveles
-/// - Monedas
-/// - Desbloqueo de badges
+/// Resultado idempotente de completar una mision.
+class MissionRewardResult {
+  final bool wasFirstCompletion;
+  final bool categoryCompletedNow;
+  final int xpAwarded;
+  final int coinsAwarded;
+  final List<entities.Badge> unlockedBadges;
+
+  const MissionRewardResult({
+    required this.wasFirstCompletion,
+    required this.categoryCompletedNow,
+    required this.xpAwarded,
+    required this.coinsAwarded,
+    required this.unlockedBadges,
+  });
+}
+
+/// Unico punto de escritura para progreso, XP, monedas e insignias.
+///
+/// Las recompensas se reclaman dentro de una transaccion de Firestore. Repetir
+/// una mision nunca vuelve a entregar XP, monedas o el bono de categoria.
 class GamificationService {
   static final GamificationService _instance = GamificationService._internal();
   factory GamificationService() => _instance;
   GamificationService._internal();
 
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  MissionRewardResult? _lastResult;
 
-  /// Llamar cuando el usuario completa una misión
-  /// Retorna los badges desbloqueados (para mostrar animación)
+  MissionRewardResult? get lastResult => _lastResult;
+
+  /// Mantiene la firma historica para no romper las pantallas existentes.
   Future<List<entities.Badge>> completeMission({
     required Mission mission,
     required MissionCategory category,
   }) async {
+    final result = await completeMissionWithResult(
+      mission: mission,
+      category: category,
+    );
+    return result.unlockedBadges;
+  }
+
+  Future<MissionRewardResult> completeMissionWithResult({
+    required Mission mission,
+    required MissionCategory category,
+  }) async {
     final userId = UserIdProvider.currentUserId;
-    final unlockedBadges = <entities.Badge>[];
+    final userRef = _firestore.collection('users').doc(userId);
+    final achievementRef = userRef.collection('achievements').doc('current');
+    final missionRef = userRef.collection('mission_progress').doc(mission.id);
+    final categoryClaimRef = userRef
+        .collection('reward_claims')
+        .doc('category_${category.id}');
 
-    AppLogger.log('GAMIFICATION: Completing mission ${mission.id}');
+    var firstCompletion = false;
+    var categoryCompletedNow = false;
+    var updatedAchievement = Achievement.initial();
+    final awardedBadgeIds = <String>[];
 
     try {
-      // 1. Cargar achievement actual
-      var achievement = await _loadAchievement(userId);
+      await _firestore.runTransaction((transaction) async {
+        // Firestore exige realizar todas las lecturas antes de escribir.
+        final missionSnapshot = await transaction.get(missionRef);
+        final achievementSnapshot = await transaction.get(achievementRef);
+        final categoryClaimSnapshot = await transaction.get(categoryClaimRef);
 
-      // 2. Agregar XP y monedas por misión
-      final newTotalXP = achievement.totalXP + GamificationConfig.xpPerMission;
-      final newCoins = achievement.coins + GamificationConfig.coinsPerMission;
-      final newLevel = Achievement.calculateLevel(newTotalXP);
-
-      achievement = achievement.copyWith(
-        totalXP: newTotalXP,
-        coins: newCoins,
-        currentLevel: newLevel,
-      );
-
-      AppLogger.log(
-        'GAMIFICATION: +${GamificationConfig.xpPerMission} XP, +${GamificationConfig.coinsPerMission} coins',
-      );
-      AppLogger.log('GAMIFICATION: Total XP: $newTotalXP, Level: $newLevel');
-
-      // 3. Desbloquear badge de la misión
-      final missionBadge = await _unlockBadge(userId, 'mission_${mission.id}');
-      if (missionBadge != null) {
-        unlockedBadges.add(missionBadge);
-      }
-
-      // 4. Verificar si la categoría está completa
-      final isCategoryComplete = await _checkCategoryComplete(userId, category);
-      if (isCategoryComplete) {
-        AppLogger.success(
-          'GAMIFICATION: Category ${category.id} complete! +${GamificationConfig.xpPerCategory} XP bonus',
-        );
-
-        // Bonus XP por categoría completa
-        final categoryBonusXP =
-            achievement.totalXP + GamificationConfig.xpPerCategory;
-        achievement = achievement.copyWith(
-          totalXP: categoryBonusXP,
-          currentLevel: Achievement.calculateLevel(categoryBonusXP),
-        );
-
-        // Desbloquear badge de categoría
-        final categoryBadge = await _unlockBadge(
-          userId,
-          'category_${category.id}',
-        );
-        if (categoryBadge != null) {
-          unlockedBadges.add(categoryBadge);
+        final progressSnapshots = <String, DocumentSnapshot>{};
+        for (final item in category.missions) {
+          if (item.id == mission.id) continue;
+          progressSnapshots[item.id] = await transaction.get(
+            userRef.collection('mission_progress').doc(item.id),
+          );
         }
-      }
 
-      // 5. Guardar progreso
-      await _saveAchievement(userId, achievement);
-      await _saveMissionProgress(userId, mission.id);
+        updatedAchievement = achievementSnapshot.exists
+            ? Achievement.fromJson(
+                achievementSnapshot.data() as Map<String, dynamic>,
+              )
+            : Achievement.initial();
 
-      AppLogger.success(
-        'GAMIFICATION: Unlocked ${unlockedBadges.length} badges',
-      );
-      return unlockedBadges;
-    } catch (e) {
-      AppLogger.error('GAMIFICATION: Error completing mission: $e');
-      return [];
-    }
-  }
+        final alreadyCompleted =
+            missionSnapshot.exists &&
+            (missionSnapshot.data()?['isCompleted'] == true);
 
-  /// Carga el achievement actual del usuario
-  Future<Achievement> _loadAchievement(String userId) async {
-    try {
-      final doc = await _firestore
-          .collection('users')
-          .doc(userId)
-          .collection('achievements')
-          .doc('current')
-          .get();
+        final allOtherMissionsComplete = category.missions
+            .where((item) => item.id != mission.id)
+            .every((item) {
+              final data = progressSnapshots[item.id]?.data();
+              return data is Map<String, dynamic> &&
+                  data['isCompleted'] == true;
+            });
 
-      if (doc.exists) {
-        return Achievement.fromJson(doc.data()!);
-      }
-    } catch (e) {
-      AppLogger.warning('GAMIFICATION: Error loading achievement: $e');
-    }
-
-    // Fallback: intentar desde cache local
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final jsonString = prefs.getString('achievements');
-      if (jsonString != null) {
-        return Achievement.fromJson(jsonDecode(jsonString));
-      }
-    } catch (e) {
-      AppLogger.warning('GAMIFICATION: Error loading from cache: $e');
-    }
-
-    return Achievement.initial();
-  }
-
-  /// Guarda el achievement en Firebase y cache local
-  Future<void> _saveAchievement(String userId, Achievement achievement) async {
-    try {
-      // Guardar en Firebase
-      await _firestore
-          .collection('users')
-          .doc(userId)
-          .collection('achievements')
-          .doc('current')
-          .set({
-            ...achievement.toJson(),
-            'lastUpdated': FieldValue.serverTimestamp(),
-          });
-
-      // Guardar en cache local
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('achievements', jsonEncode(achievement.toJson()));
-
-      // Actualizar caché de AppDataService para sincronizar UI inmediatamente
-      AppDataService.instance.updateAchievement(achievement);
-
-      AppLogger.success('GAMIFICATION: Achievement saved');
-    } catch (e) {
-      AppLogger.error('GAMIFICATION: Error saving achievement: $e');
-    }
-  }
-
-  /// Desbloquea un badge y lo retorna si es nuevo
-  Future<entities.Badge?> _unlockBadge(String userId, String badgeId) async {
-    try {
-      final badgeRef = _firestore
-          .collection('users')
-          .doc(userId)
-          .collection('unlockedBadges')
-          .doc(badgeId);
-
-      final existing = await badgeRef.get();
-      if (existing.exists) {
-        AppLogger.log('GAMIFICATION: Badge $badgeId already unlocked');
-        return null; // Ya desbloqueado
-      }
-
-      // Obtener info del badge desde catálogo global
-      final globalBadge = await _firestore
-          .collection('badges')
-          .doc(badgeId)
-          .get();
-
-      if (!globalBadge.exists) {
-        AppLogger.warning(
-          'GAMIFICATION: Badge $badgeId not found in global catalog',
+        final decision = MissionRewardPolicy.decide(
+          missionAlreadyCompleted: alreadyCompleted,
+          allOtherMissionsCompleted: allOtherMissionsComplete,
+          categoryBonusAlreadyClaimed: categoryClaimSnapshot.exists,
         );
-        return null;
+        if (!decision.grantMissionReward) return;
+
+        firstCompletion = true;
+        if (decision.grantCategoryBonus) {
+          categoryCompletedNow = true;
+          transaction.set(categoryClaimRef, {
+            'categoryId': category.id,
+            'claimedAt': FieldValue.serverTimestamp(),
+          });
+          awardedBadgeIds.add('category_${category.id}');
+        }
+
+        final totalXP = updatedAchievement.totalXP + decision.xp;
+        updatedAchievement = updatedAchievement.copyWith(
+          totalXP: totalXP,
+          coins: updatedAchievement.coins + decision.coins,
+          currentLevel: Achievement.calculateLevel(totalXP),
+        );
+
+        transaction.set(missionRef, {
+          'isCompleted': true,
+          'rewardGranted': true,
+          'completedAt': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
+        transaction.set(achievementRef, {
+          ...updatedAchievement.toJson(),
+          'lastUpdated': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
+
+        final missionBadgeId = 'mission_${mission.id}';
+        awardedBadgeIds.add(missionBadgeId);
+        for (final badgeId in awardedBadgeIds) {
+          transaction.set(
+            userRef.collection('unlockedBadges').doc(badgeId),
+            {'unlockedAt': FieldValue.serverTimestamp()},
+            SetOptions(merge: true),
+          );
+        }
+      });
+
+      if (!firstCompletion) {
+        final result = MissionRewardResult(
+          wasFirstCompletion: false,
+          categoryCompletedNow: false,
+          xpAwarded: 0,
+          coinsAwarded: 0,
+          unlockedBadges: const [],
+        );
+        _lastResult = result;
+        return result;
       }
 
-      // Desbloquear
-      await badgeRef.set({'unlockedAt': FieldValue.serverTimestamp()});
+      await _persistLocalAchievement(updatedAchievement);
+      AppDataService.instance.updateAchievement(updatedAchievement);
+      AppDataService.instance.markMissionCompleted(mission.id);
 
-      final data = globalBadge.data()!;
-      final badge = entities.Badge(
-        id: badgeId,
-        title: data['title'] ?? '',
-        description: data['description'],
-        iconName: data['iconName'] ?? '',
-        isUnlocked: true,
+      final badges = await _loadBadgeDetails(awardedBadgeIds);
+      final result = MissionRewardResult(
+        wasFirstCompletion: true,
+        categoryCompletedNow: categoryCompletedNow,
+        xpAwarded:
+            GamificationConfig.xpPerMission +
+            (categoryCompletedNow ? GamificationConfig.xpPerCategory : 0),
+        coinsAwarded: GamificationConfig.coinsPerMission,
+        unlockedBadges: badges,
       );
-
-      AppLogger.success('GAMIFICATION: Badge unlocked: ${badge.title}');
-      return badge;
-    } catch (e) {
-      AppLogger.error('GAMIFICATION: Error unlocking badge: $e');
-      return null;
+      _lastResult = result;
+      return result;
+    } catch (error) {
+      AppLogger.error('GAMIFICATION: atomic completion failed: $error');
+      rethrow;
     }
   }
 
-  /// Verifica si todas las misiones de una categoría están completas
-  Future<bool> _checkCategoryComplete(
-    String userId,
-    MissionCategory category,
-  ) async {
-    try {
-      final progressSnapshot = await _firestore
-          .collection('users')
-          .doc(userId)
-          .collection('mission_progress')
-          .get();
-
-      final completedMissionIds = progressSnapshot.docs
-          .where((doc) => doc.data()['isCompleted'] == true)
-          .map((doc) => doc.id)
-          .toSet();
-
-      final categoryMissionIds = category.missions.map((m) => m.id).toSet();
-
-      return categoryMissionIds.every((id) => completedMissionIds.contains(id));
-    } catch (e) {
-      AppLogger.error('GAMIFICATION: Error checking category completion: $e');
-      return false;
+  Future<List<entities.Badge>> _loadBadgeDetails(List<String> ids) async {
+    final badges = <entities.Badge>[];
+    for (final id in ids) {
+      try {
+        final snapshot = await _firestore.collection('badges').doc(id).get();
+        if (!snapshot.exists) continue;
+        final data = snapshot.data()!;
+        badges.add(
+          entities.Badge(
+            id: id,
+            title: data['title'] ?? '',
+            description: data['description'],
+            iconName: data['iconName'] ?? '',
+            isUnlocked: true,
+          ),
+        );
+      } catch (error) {
+        AppLogger.warning('GAMIFICATION: badge $id unavailable: $error');
+      }
     }
+    return badges;
   }
 
-  /// Guarda el progreso de una misión como completada
-  Future<void> _saveMissionProgress(String userId, String missionId) async {
-    try {
-      await _firestore
-          .collection('users')
-          .doc(userId)
-          .collection('mission_progress')
-          .doc(missionId)
-          .set({
-            'isCompleted': true,
-            'completedAt': FieldValue.serverTimestamp(),
-          });
-
-      // Actualizar caché para que el mapa refleje el cambio inmediatamente
-      AppDataService.instance.markMissionCompleted(missionId);
-    } catch (e) {
-      AppLogger.error('GAMIFICATION: Error saving mission progress: $e');
-    }
+  Future<void> _persistLocalAchievement(Achievement achievement) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('achievements', jsonEncode(achievement.toJson()));
   }
 
-  /// Obtiene el achievement actual (para UI)
   Future<Achievement> getAchievement() async {
     final userId = UserIdProvider.currentUserId;
-    return _loadAchievement(userId);
+    try {
+      final snapshot = await _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('achievements')
+          .doc('current')
+          .get();
+      if (snapshot.exists) return Achievement.fromJson(snapshot.data()!);
+    } catch (error) {
+      AppLogger.warning('GAMIFICATION: using local achievement: $error');
+    }
+
+    final prefs = await SharedPreferences.getInstance();
+    final cached = prefs.getString('achievements');
+    if (cached != null) {
+      return Achievement.fromJson(jsonDecode(cached));
+    }
+    return Achievement.initial();
   }
 }

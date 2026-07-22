@@ -1,113 +1,70 @@
-# **Planificación del Proyecto PiensaPlay**
+# PiensaPlay
 
-**Integrantes:**  
-1. Dara Van Gijsel  
-2. Carlos Mejía  
-3. Sebastián Calderón  
-4. Alex Ramírez  
+**Every click can change the world.** PiensaPlay is a bilingual, child-centred media and information literacy game for learners aged 8–12. Players restore trust in a digital city by checking sources, recognizing manipulated media and choosing responsible ways to share information.
 
-**Fecha de inicio:** 1 de octubre de 2025  
-**Duración:** 15 semanas  
+The project is being prepared for the [UNESCO Youth Hackathon 2026](https://www.unesco.org/en/articles/unesco-youth-hackathon-2026), under the theme *Play Your Part: Youth Designing the Future of Media and Information Literacy*.
 
----
+## What makes it different
 
-## 1. Introducción
+- **PIENSA method:** Pause, Identify, Examine, Notice, Seek and Act—a reusable decision routine, not a one-time quiz.
+- **Three-mission flagship demo:** viral misinformation, AI-generated media and the social ripple of sharing.
+- **Learning evidence:** anonymous baseline and transfer questions show change in decision quality.
+- **Inclusive by design:** Spanish and English, larger text, reduced motion, dark mode and a classroom mode.
+- **Low-connectivity ready:** the flagship experience and local progress work without an account or network.
+- **Child safety:** no ads, no public profiles and no need to collect a child's real name.
 
-El presente documento describe la planificación detallada para el desarrollo de la aplicación móvil **PiensaPlay**, un proyecto orientado a promover la alfabetización mediática e informacional en niños de 8 a 12 años mediante actividades lúdicas y educativas.  
-La temática principal aborda la **prevención del bullying** y el **uso responsable de los medios digitales**.  
-Este plan abarca desde la etapa de planificación hasta las pruebas finales, con una duración total de **quince semanas**. 
+## Run the project
 
----
+Prerequisites: Flutter stable, Dart and a browser or Android emulator.
 
-## 2. Objetivos del Proyecto
+```bash
+cd piensa_play
+flutter pub get
+flutter run
+```
 
-**Objetivo General:**  
-Desarrollar una aplicación móvil educativa que fomente el pensamiento crítico y la seguridad digital en niños de 8 a 12 años, utilizando actividades interactivas que sensibilicen sobre el bullying y la desinformación.
+Useful routes in the web build:
 
-**Objetivos Específicos:**
-- Implementar una estructura modular que permita a los niños aprender mediante juegos y desafíos.  
-- Garantizar la funcionalidad offline de la aplicación y la sincronización automática con Firebase.  
-- Diseñar una interfaz accesible y amigable para el público infantil.  
-- Evaluar el progreso y desempeño de los usuarios mediante métricas almacenadas localmente y en la nube.
+- `/#/demo` — direct three-minute flagship demo
+- `/#/missions` — Digital City mission map
+- `/#/facilitator` — in-app facilitator guide
 
----
+## Quality checks
 
-## 3. Alcance del Proyecto
+```bash
+cd piensa_play
+dart format --output=none --set-exit-if-changed lib test
+flutter analyze
+flutter test
+flutter build web --release
+```
 
-El proyecto **PiensaPlay** contempla el desarrollo de una versión móvil funcional para Android y iOS, centrada en el aprendizaje interactivo sobre bullying y seguridad digital.  
-En su versión inicial, la aplicación funcionará **sin conexión a internet** utilizando una base de datos local.  
-Cuando haya conexión, los datos de progreso y resultados de los niños se **sincronizarán automáticamente con Firebase**, permitiendo la actualización de preguntas y la recopilación de estadísticas de uso.
+GitHub Actions repeats these checks on pushes and pull requests.
 
----
+## Repository map
 
-## 4. Tecnologías y Herramientas
+```text
+piensa_play/
+  lib/core/                 theme, localization, accessibility and services
+  lib/features/flagship/    UNESCO-ready learning experience
+  lib/features/             existing game modules
+  test/                     policy, content and local-impact tests
+  firestore.rules           least-privilege database rules
+docs/                       submission, pitch, facilitation and safeguarding
+scripts/                    Firebase catalogue seed tools
+```
 
-- **Flutter:** Framework principal para el desarrollo multiplataforma.  
-- **Firebase:** Servicio backend para sincronización de datos y almacenamiento en la nube.  
-- **SQLite / Hive:** Base de datos local para funcionamiento offline.  
-- **GitHub:** Control de versiones y trabajo colaborativo.  
-- **Figma:** Prototipado y diseño de interfaces.  
-- **Visual Studio Code:** Entorno de desarrollo principal.
+## Competition material
 
----
+- [Product and impact brief](docs/unesco-2026-product-brief.md)
+- [Three-minute pitch script](docs/pitch-video-script.md)
+- [Facilitator and pilot guide](docs/facilitator-and-pilot-guide.md)
+- [Privacy and safeguarding](docs/privacy-and-safeguarding.md)
 
-## 5. Estructura del Equipo y Roles
+## Current scope and next evidence milestone
 
-El equipo de trabajo está conformado por cuatro integrantes, distribuidos de la siguiente manera:
+The repository contains a functional prototype and a complete flagship learning loop. Before making outcome claims, the team should run a small supervised pilot, obtain guardian/school consent where required, and report anonymized aggregate results. Production release also requires deploying the versioned Firestore rules and replacing development application identifiers with new Firebase configuration owned by the current team.
 
-- **Dara Van Gijsel:** Diseñadora UX/UI y documentación.  
-- **Carlos Mejía:** Desarrollador Frontend (Flutter).  
-- **Sebastián Calderón:** Desarrollador Backend y sincronización Firebase.  
-- **Alex Ramírez:** Líder técnico, planificación y control de versiones.
+## Team
 
-El trabajo colaborativo se realizará mediante **GitHub**, utilizando ramas de desarrollo y revisiones de código semanales.
-
----
-
-## 6. Planificación del Proyecto 
-
-La ejecución del proyecto durará 15 semanas desde la elaboración de su [**planificación**](https://github.com/cbhas/piensa-play/wiki/Planificaci%C3%B3n) hasta la fase final de pruebas.
-
-![Piensa Play](https://github.com/user-attachments/assets/c62ed0c8-cf3a-4d0e-a40e-7eb20a40dd00)
-
----
-
-## 7. Estrategia de Sincronización y Almacenamiento Local
-
-El sistema empleará una arquitectura **offline-first**.  
-Los datos de progreso, respuestas y preguntas se almacenarán localmente.
-Cuando se detecte una conexión activa a internet, el sistema **sincronizará con Firebase**, enviando los resultados generados por los niños y recibiendo actualizaciones de preguntas o contenidos.  
-
-Se implementará control de versiones de datos y **timestamps** para evitar conflictos durante la sincronización.
-
----
-
-## 8. Control de Versiones y Colaboración
-
-El desarrollo se gestionará mediante **GitHub** siguiendo la metodología **GitHub Flow**.  
-Cada integrante trabajará en ramas específicas según su módulo, realizando **commits descriptivos** y **pull requests** revisados por el líder técnico.  
-
-Se establecerán revisiones de código semanales y control de incidencias mediante **GitHub Projects**.
-
----
-
-## 9. Plan de Pruebas y Evaluación
-
-Las pruebas se desarrollarán en tres niveles:
-
-1. **Pruebas Unitarias:** Validan la funcionalidad individual de cada módulo.  
-2. **Pruebas de Integración:** Aseguran la correcta comunicación entre componentes y sincronización con Firebase.  
-3. **Pruebas de Usabilidad:** Realizadas con niños y docentes para evaluar accesibilidad, comprensión y experiencia general.
-
-Cada fase de pruebas generará un **informe técnico** con hallazgos, correcciones y mejoras recomendadas.
-
----
-
-## 10. Conclusiones
-
-La planificación presentada establece una hoja de ruta clara y realista para el desarrollo de la aplicación **PiensaPlay**.  
-El enfoque **offline-first** combinado con **sincronización Firebase** garantiza una experiencia fluida y adaptable.  
-
-El trabajo colaborativo y la distribución de roles permitirán cumplir con los plazos establecidos y alcanzar los objetivos pedagógicos del proyecto.
-
----
+Dara Van Gijsel · Carlos Mejía · Sebastián Calderón · Alex Ramírez

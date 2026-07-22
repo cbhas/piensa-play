@@ -1,11 +1,11 @@
 {
-    "name": "piensa_play",
-    "short_name": "piensa_play",
+    "name": "PiensaPlay",
+    "short_name": "PiensaPlay",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#132757",
+    "theme_color": "#132757",
+    "description": "Juego bilingüe de alfabetización mediática e informacional.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

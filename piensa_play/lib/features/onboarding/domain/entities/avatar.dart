@@ -7,9 +7,5 @@ class Avatar {
   final String assetPath;
   final String name;
 
-  const Avatar({
-    required this.id,
-    required this.assetPath,
-    required this.name,
-  });
+  const Avatar({required this.id, required this.assetPath, required this.name});
 }

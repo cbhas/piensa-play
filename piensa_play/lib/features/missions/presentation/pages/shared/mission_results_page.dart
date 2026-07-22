@@ -77,7 +77,6 @@ class _MissionResultsPageState extends State<MissionResultsPage> {
 
   Future<void> _completeMission() async {
     // Marcar misión como completada
-    await _progressService.completeMission(widget.missionId);
 
     Mission? mission = widget.mission;
     MissionCategory? category = widget.category;
@@ -107,16 +106,17 @@ class _MissionResultsPageState extends State<MissionResultsPage> {
     // Procesar gamificación si tenemos los datos
     if (mission != null && category != null) {
       AppLogger.log('GAMIFICATION: Processing completion for ${mission.id}');
-      final unlockedBadges = await _gamificationService.completeMission(
+      final reward = await _gamificationService.completeMissionWithResult(
         mission: mission,
         category: category,
       );
+      await _progressService.completeMission(widget.missionId);
 
       // Mostrar badges desbloqueados después de un breve delay
-      if (unlockedBadges.isNotEmpty && mounted) {
-        await Future.delayed(const Duration(seconds: 2));
+      if (reward.unlockedBadges.isNotEmpty && mounted) {
+        await Future.delayed(const Duration(milliseconds: 700));
         if (mounted) {
-          await BadgeUnlockDialog.showMultiple(context, unlockedBadges);
+          await BadgeUnlockDialog.showMultiple(context, reward.unlockedBadges);
         }
       }
     } else {

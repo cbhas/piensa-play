@@ -79,7 +79,7 @@ class _MissionFeedbackOverlayState extends State<MissionFeedbackOverlay> {
               ),
               boxShadow: [
                 BoxShadow(
-                  color: accentColor.withOpacity(0.15),
+                  color: accentColor.withValues(alpha: 0.15),
                   blurRadius: 15,
                   offset: const Offset(0, -3),
                 ),

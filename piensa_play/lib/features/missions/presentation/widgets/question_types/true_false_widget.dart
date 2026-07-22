@@ -155,7 +155,7 @@ class TrueFalseWidget extends BaseQuestionWidget {
               boxShadow: isSelected
                   ? [
                       BoxShadow(
-                        color: baseColor.withOpacity(0.4),
+                        color: baseColor.withValues(alpha: 0.4),
                         blurRadius: 12,
                         offset: const Offset(0, 4),
                       ),
