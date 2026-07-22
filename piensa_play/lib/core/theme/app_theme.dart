@@ -14,17 +14,45 @@ class AppTheme {
   static const Color accentYellowAlt = Color(0xFFFFD447);
   static const Color accentGreenSage = Color(0xFF78A88A);
 
-  static const Color backgroundLight = Color(0xFFF7F8F2);
+  // Cream/ivory base — deliberately not stark white, so the app reads as
+  // warm and hand-designed rather than a bare admin panel.
+  static const Color backgroundLight = Color(0xFFF7F3EA);
   static const Color surfaceLight = Color(0xFFFFFFFF);
   static const Color ink = Color(0xFF18223A);
-  static const Color muted = Color(0xFF667085);
+  static const Color muted = Color(0xFF6B7280);
   static const Color mascotBackground = Color(0xFFDDEAB8);
 
-  static const Color backgroundDark = Color(0xFF08132C);
-  static const Color surfaceDark = Color(0xFF122143);
-  static const Color cardDark = Color(0xFF1B2D57);
-  static const Color textPrimaryDark = Color(0xFFF8FAFF);
-  static const Color textSecondaryDark = Color(0xFFC7D1E8);
+  static const Color backgroundDark = Color(0xFF081327);
+  static const Color surfaceDark = Color(0xFF102038);
+  static const Color cardDark = Color(0xFF16234A);
+  static const Color textPrimaryDark = Color(0xFFF4F7FF);
+  static const Color textSecondaryDark = Color(0xFFA9B6D6);
+
+  // ---------------------------------------------------------------------
+  // Restrained accent pairs — one fill + one text color per semantic
+  // meaning, tuned separately for light/dark so accents stay legible
+  // instead of just inverting. Prefer these over reaching for a raw
+  // accent* color directly on a card: pick ONE accent per element.
+  // ---------------------------------------------------------------------
+  static Color greenFill(bool dark) =>
+      dark ? const Color(0xFF3E5C2C) : const Color(0xFFBFDA8E);
+  static Color greenText(bool dark) =>
+      dark ? const Color(0xFFBFE896) : const Color(0xFF3F6B2C);
+
+  static Color goldFill(bool dark) =>
+      dark ? const Color(0xFF5A4614) : const Color(0xFFFFD447);
+  static Color goldText(bool dark) =>
+      dark ? const Color(0xFFFFD447) : const Color(0xFF7A5B00);
+
+  static Color coralFill(bool dark) =>
+      dark ? const Color(0xFF5C2438) : const Color(0xFFE86F9B);
+  static Color coralText(bool dark) =>
+      dark ? const Color(0xFFF0A6C2) : const Color(0xFF9C2E56);
+
+  static Color blueFill(bool dark) =>
+      dark ? const Color(0xFF1E3A5C) : const Color(0xFFBEE3F5);
+  static Color blueText(bool dark) =>
+      dark ? const Color(0xFFA9DCF2) : const Color(0xFF2A6B85);
 
   static ThemeData get lightTheme {
     final scheme = ColorScheme.fromSeed(
@@ -157,4 +185,57 @@ class AppTheme {
       offset: const Offset(0, 12),
     ),
   ];
+
+  // ---------------------------------------------------------------------
+  // Design tokens (additive) — used to keep spacing/rounding consistent
+  // across the "playful but calm" refresh without touching brand colors.
+  // ---------------------------------------------------------------------
+  static const double radiusSm = 14;
+  static const double radiusMd = 20;
+  static const double radiusLg = 28;
+  static const double radiusXl = 36;
+
+  static const double spaceXs = 4;
+  static const double spaceSm = 8;
+  static const double spaceMd = 16;
+  static const double spaceLg = 24;
+  static const double spaceXl = 32;
+
+  /// Soft, low-contrast shadow for small interactive elements (chips,
+  /// avatar bubbles) — lighter than [defaultShadow] which is meant for
+  /// large hero cards.
+  static List<BoxShadow> get softShadow => [
+    BoxShadow(
+      color: primaryDark.withValues(alpha: 0.08),
+      blurRadius: 16,
+      offset: const Offset(0, 6),
+    ),
+  ];
+
+  /// A cheerful two-tone gradient for celebratory moments (streaks,
+  /// rewards, correct answers) — used sparingly so it stays a highlight
+  /// rather than the norm.
+  static const LinearGradient sunshineGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [accentYellow, accentYellowAlt],
+  );
+
+  static const LinearGradient freshGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [accentGreen, accentBlue],
+  );
+
+  static const LinearGradient playfulGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [accentPink, accentBlue],
+  );
+
+  static BoxDecoration glowCircle(Color color, {double alpha = 0.22}) =>
+      BoxDecoration(
+        color: color.withValues(alpha: alpha),
+        shape: BoxShape.circle,
+      );
 }

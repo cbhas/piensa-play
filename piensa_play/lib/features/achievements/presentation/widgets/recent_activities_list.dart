@@ -22,64 +22,53 @@ class RecentActivitiesList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final english = Localizations.localeOf(context).languageCode == 'en';
+    final dark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: AppTheme.accentBlue.withValues(alpha: 0.4),
-          width: 2.5,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: AppTheme.accentBlue.withValues(alpha: 0.15),
-            blurRadius: 15,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [AppTheme.accentBlue, AppTheme.accentGreen],
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppTheme.blueFill(dark),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(
+                      Icons.history,
+                      color: AppTheme.blueText(dark),
+                      size: 20,
+                    ),
                   ),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(Icons.history, color: Colors.white, size: 20),
+                  const SizedBox(width: 12),
+                  Text(
+                    english ? 'Recent Activities' : 'Actividades Recientes',
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                ],
               ),
-              const SizedBox(width: 12),
-              const Text(
-                'Actividades Recientes',
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: AppTheme.primaryDark,
-                ),
-              ),
+              const SizedBox(height: 16),
+              ...activities.asMap().entries.map((entry) {
+                final index = entry.key;
+                final activity = entry.value;
+                return ActivityItem(
+                  description: activity.description,
+                  xpReward: activity.xpReward,
+                  icon: _getIconFromName(activity.iconName),
+                ).staggeredEntry(
+                  index: index,
+                  staggerDelay: const Duration(milliseconds: 60),
+                );
+              }),
             ],
           ),
-          const SizedBox(height: 16),
-          ...activities.asMap().entries.map((entry) {
-            final index = entry.key;
-            final activity = entry.value;
-            return ActivityItem(
-              description: activity.description,
-              xpReward: activity.xpReward,
-              icon: _getIconFromName(activity.iconName),
-            ).staggeredEntry(
-              index: index,
-              staggerDelay: const Duration(milliseconds: 60),
-            );
-          }),
-        ],
+        ),
       ),
     );
   }

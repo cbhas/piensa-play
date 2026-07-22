@@ -112,6 +112,7 @@ class _MissionCategoryCardState extends State<MissionCategoryCard>
 
   @override
   Widget build(BuildContext context) {
+    final english = Localizations.localeOf(context).languageCode == 'en';
     final categoryColor = _getColorFromHex(widget.category.colorHex);
     final completedCount = widget.category.missions
         .where((m) => m.isCompleted)
@@ -121,7 +122,7 @@ class _MissionCategoryCardState extends State<MissionCategoryCard>
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(color: categoryColor, width: 3),
         boxShadow: [
@@ -165,20 +166,14 @@ class _MissionCategoryCardState extends State<MissionCategoryCard>
                       children: [
                         Text(
                           widget.category.title,
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: AppTheme.primaryDark,
-                          ),
+                          style: Theme.of(context).textTheme.titleLarge
+                              ?.copyWith(fontSize: 18),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           widget.category.description,
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: Colors.grey.shade600,
-                            height: 1.3,
-                          ),
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(fontSize: 13, height: 1.3),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -197,7 +192,7 @@ class _MissionCategoryCardState extends State<MissionCategoryCard>
                     ),
                     child: Icon(
                       Icons.keyboard_arrow_down,
-                      color: AppTheme.primaryDark,
+                      color: Theme.of(context).textTheme.bodyLarge?.color,
                       size: 28,
                     ),
                   ),
@@ -231,7 +226,11 @@ class _MissionCategoryCardState extends State<MissionCategoryCard>
                               .map<Widget>((entry) {
                                 final index = entry.key;
                                 final mission = entry.value;
-                                return _buildMissionTile(mission, categoryColor)
+                                return _buildMissionTile(
+                                      context,
+                                      mission,
+                                      categoryColor,
+                                    )
                                     .animate()
                                     .fadeIn(
                                       delay: Duration(milliseconds: 50 * index),
@@ -261,9 +260,9 @@ class _MissionCategoryCardState extends State<MissionCategoryCard>
                                       Icons.play_arrow,
                                       size: 24,
                                     ),
-                                    label: const Text(
-                                      'JUGAR',
-                                      style: TextStyle(
+                                    label: Text(
+                                      english ? 'PLAY' : 'JUGAR',
+                                      style: const TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold,
                                         letterSpacing: 1,
@@ -308,12 +307,14 @@ class _MissionCategoryCardState extends State<MissionCategoryCard>
                             ),
                             const SizedBox(width: 6),
                             Text(
-                              '$completedCount de $totalCount completadas',
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: Colors.grey.shade600,
-                                fontWeight: FontWeight.w500,
-                              ),
+                              english
+                                  ? '$completedCount of $totalCount completed'
+                                  : '$completedCount de $totalCount completadas',
+                              style: Theme.of(context).textTheme.bodyMedium
+                                  ?.copyWith(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w500,
+                                  ),
                             ),
                           ],
                         ),
@@ -328,17 +329,27 @@ class _MissionCategoryCardState extends State<MissionCategoryCard>
   }
 
   /// Widget simplificado de misión (sin botón play individual)
-  Widget _buildMissionTile(dynamic mission, Color categoryColor) {
+  Widget _buildMissionTile(
+    BuildContext context,
+    dynamic mission,
+    Color categoryColor,
+  ) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final tileBg = dark ? Colors.white10 : Colors.grey.shade50;
+    final tileBorder = dark ? Colors.white24 : Colors.grey.shade200;
+    final mutedIcon = dark ? Colors.white38 : Colors.grey.shade400;
+    final mutedText = dark ? Colors.white60 : Colors.grey.shade500;
+    final doneText = dark ? Colors.white54 : Colors.grey.shade600;
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.grey.shade50,
+        color: tileBg,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: mission.isCompleted
               ? AppTheme.accentGreen.withValues(alpha: 0.5)
-              : Colors.grey.shade200,
+              : tileBorder,
           width: 1.5,
         ),
       ),
@@ -351,14 +362,12 @@ class _MissionCategoryCardState extends State<MissionCategoryCard>
             decoration: BoxDecoration(
               color: mission.isCompleted
                   ? AppTheme.accentGreen.withValues(alpha: 0.2)
-                  : Colors.grey.shade200,
+                  : tileBorder,
               shape: BoxShape.circle,
             ),
             child: Icon(
               mission.isCompleted ? Icons.check : Icons.radio_button_unchecked,
-              color: mission.isCompleted
-                  ? AppTheme.accentGreen
-                  : Colors.grey.shade400,
+              color: mission.isCompleted ? AppTheme.accentGreen : mutedIcon,
               size: 18,
             ),
           ),
@@ -375,8 +384,8 @@ class _MissionCategoryCardState extends State<MissionCategoryCard>
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
                     color: mission.isCompleted
-                        ? Colors.grey.shade600
-                        : AppTheme.primaryDark,
+                        ? doneText
+                        : Theme.of(context).textTheme.bodyLarge?.color,
                     decoration: mission.isCompleted
                         ? TextDecoration.lineThrough
                         : null,
@@ -387,7 +396,7 @@ class _MissionCategoryCardState extends State<MissionCategoryCard>
                   mission.description,
                   style: TextStyle(
                     fontSize: 12,
-                    color: Colors.grey.shade500,
+                    color: mutedText,
                     height: 1.2,
                   ),
                   maxLines: 1,

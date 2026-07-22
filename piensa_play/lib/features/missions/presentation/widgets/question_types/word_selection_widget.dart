@@ -21,6 +21,7 @@ class WordSelectionWidget extends BaseQuestionWidget {
   @override
   Widget build(BuildContext context) {
     final words = question.options.map((o) => o.text).toList();
+    final english = Localizations.localeOf(context).languageCode == 'en';
 
     return Container(
       color: Colors.white,
@@ -32,10 +33,11 @@ class WordSelectionWidget extends BaseQuestionWidget {
               padding: const EdgeInsets.all(20),
               child: Column(
                 children: [
-                  // Emoji grande
-                  const Text(
-                    '🎯',
-                    style: TextStyle(fontSize: 48),
+                  // Ícono grande
+                  const Icon(
+                    Icons.track_changes_rounded,
+                    size: 48,
+                    color: AppTheme.primaryDark,
                   ).animate().scale(duration: 300.ms, curve: Curves.elasticOut),
 
                   const SizedBox(height: 16),
@@ -63,13 +65,24 @@ class WordSelectionWidget extends BaseQuestionWidget {
                       color: const Color(0xFF2196F3).withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    child: Text(
-                      '👆 Toca las palabras',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.blue.shade700,
-                        fontWeight: FontWeight.w600,
-                      ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.touch_app_rounded,
+                          size: 16,
+                          color: Colors.blue.shade700,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          english ? 'Tap the words' : 'Toca las palabras',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.blue.shade700,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
 
@@ -117,7 +130,7 @@ class WordSelectionWidget extends BaseQuestionWidget {
           ),
 
           // Botón verificar
-          if (!isAnswered) _buildVerifyButton(),
+          if (!isAnswered) _buildVerifyButton(english),
         ],
       ),
     );
@@ -190,7 +203,7 @@ class WordSelectionWidget extends BaseQuestionWidget {
         .scale(begin: const Offset(0.9, 0.9));
   }
 
-  Widget _buildVerifyButton() {
+  Widget _buildVerifyButton(bool english) {
     final hasSelection = selectedWords.isNotEmpty;
 
     return Container(
@@ -217,9 +230,24 @@ class WordSelectionWidget extends BaseQuestionWidget {
                 borderRadius: BorderRadius.circular(16),
               ),
             ),
-            child: Text(
-              hasSelection ? '¡VERIFICAR! ✓' : 'Selecciona palabras',
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  hasSelection
+                      ? (english ? 'CHECK!' : '¡VERIFICAR!')
+                      : (english ? 'Select words' : 'Selecciona palabras'),
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                if (hasSelection) ...[
+                  const SizedBox(width: 8),
+                  const Icon(Icons.check_rounded),
+                ],
+              ],
             ),
           ),
         ),

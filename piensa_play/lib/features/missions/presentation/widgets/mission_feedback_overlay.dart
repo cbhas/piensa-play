@@ -25,7 +25,7 @@ class MissionFeedbackOverlay extends StatefulWidget {
 }
 
 class _MissionFeedbackOverlayState extends State<MissionFeedbackOverlay> {
-  final List<_ConfettiEmoji> _confetti = [];
+  final List<_ConfettiIcon> _confetti = [];
   final Random _random = Random();
   bool _showConfetti = false;
 
@@ -45,11 +45,22 @@ class _MissionFeedbackOverlayState extends State<MissionFeedbackOverlay> {
   }
 
   void _generateConfetti() {
-    final emojis = ['🎉', '⭐', '✨', '🌟', '💫', '🎊'];
+    const icons = [
+      Icons.celebration_rounded,
+      Icons.star_rounded,
+      Icons.auto_awesome_rounded,
+    ];
+    const colors = [
+      AppTheme.accentYellowAlt,
+      AppTheme.accentPink,
+      AppTheme.accentGreen,
+      AppTheme.accentBlue,
+    ];
     for (int i = 0; i < 12; i++) {
       _confetti.add(
-        _ConfettiEmoji(
-          emoji: emojis[_random.nextInt(emojis.length)],
+        _ConfettiIcon(
+          icon: icons[_random.nextInt(icons.length)],
+          color: colors[_random.nextInt(colors.length)],
           left: _random.nextDouble() * 0.8 + 0.1, // 10% a 90%
           delay: i * 50,
         ),
@@ -59,6 +70,7 @@ class _MissionFeedbackOverlayState extends State<MissionFeedbackOverlay> {
 
   @override
   Widget build(BuildContext context) {
+    final english = Localizations.localeOf(context).languageCode == 'en';
     final accentColor = widget.isCorrect
         ? AppTheme.accentGreen
         : const Color(0xFFE53935);
@@ -73,7 +85,7 @@ class _MissionFeedbackOverlayState extends State<MissionFeedbackOverlay> {
           // Panel de feedback
           Container(
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: Theme.of(context).cardColor,
               borderRadius: const BorderRadius.vertical(
                 top: Radius.circular(24),
               ),
@@ -92,13 +104,16 @@ class _MissionFeedbackOverlayState extends State<MissionFeedbackOverlay> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Emoji + Título en una fila
+                    // Ícono + Título en una fila
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text(
-                          widget.isCorrect ? '🎉' : '😕',
-                          style: const TextStyle(fontSize: 36),
+                        Icon(
+                          widget.isCorrect
+                              ? Icons.celebration_rounded
+                              : Icons.sentiment_dissatisfied_rounded,
+                          size: 36,
+                          color: accentColor,
                         ).animate().scale(
                           begin: const Offset(0.5, 0.5),
                           duration: 300.ms,
@@ -106,7 +121,9 @@ class _MissionFeedbackOverlayState extends State<MissionFeedbackOverlay> {
                         ),
                         const SizedBox(width: 12),
                         Text(
-                          widget.isCorrect ? '¡Correcto!' : '¡Ups!',
+                          widget.isCorrect
+                              ? (english ? 'Correct!' : '¡Correcto!')
+                              : (english ? 'Oops!' : '¡Ups!'),
                           style: TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
@@ -136,12 +153,27 @@ class _MissionFeedbackOverlayState extends State<MissionFeedbackOverlay> {
                                 borderRadius: BorderRadius.circular(12),
                               ),
                             ),
-                            child: Text(
-                              widget.isCorrect ? '💡 Ver más' : '❓ Explica',
-                              style: const TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.bold,
-                              ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  widget.isCorrect
+                                      ? Icons.lightbulb_rounded
+                                      : Icons.help_outline_rounded,
+                                  size: 18,
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  widget.isCorrect
+                                      ? (english ? 'See more' : 'Ver más')
+                                      : (english ? 'Explain' : 'Explica'),
+                                  style: const TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ),
@@ -165,12 +197,23 @@ class _MissionFeedbackOverlayState extends State<MissionFeedbackOverlay> {
                               ),
                               elevation: 2,
                             ),
-                            child: const Text(
-                              'CONTINUAR →',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  english ? 'CONTINUE' : 'CONTINUAR',
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                const Icon(
+                                  Icons.arrow_forward_rounded,
+                                  size: 18,
+                                ),
+                              ],
                             ),
                           ),
                         ),
@@ -200,7 +243,7 @@ class _MissionFeedbackOverlayState extends State<MissionFeedbackOverlay> {
                     return Positioned(
                       left: MediaQuery.of(context).size.width * c.left - 20,
                       top: 0,
-                      child: Text(c.emoji, style: const TextStyle(fontSize: 28))
+                      child: Icon(c.icon, size: 28, color: c.color)
                           .animate(delay: c.delay.ms)
                           .fadeIn(duration: 200.ms)
                           .slideY(
@@ -221,14 +264,16 @@ class _MissionFeedbackOverlayState extends State<MissionFeedbackOverlay> {
   }
 }
 
-// Modelo simple para confetti de emoji
-class _ConfettiEmoji {
-  final String emoji;
+// Modelo simple para confetti de íconos
+class _ConfettiIcon {
+  final IconData icon;
+  final Color color;
   final double left;
   final int delay;
 
-  _ConfettiEmoji({
-    required this.emoji,
+  _ConfettiIcon({
+    required this.icon,
+    required this.color,
     required this.left,
     required this.delay,
   });

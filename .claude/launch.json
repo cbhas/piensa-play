@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "piensa-play-web",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": ["/c", "cd piensa_play && flutter run -d chrome --web-port 5959"],
+      "port": 5959
+    }
+  ]
+}

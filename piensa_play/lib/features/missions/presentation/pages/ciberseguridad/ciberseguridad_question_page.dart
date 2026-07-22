@@ -6,6 +6,7 @@ import '../../../domain/entities/veracidadville/quiz_question.dart';
 import '../../../domain/entities/veracidadville/quiz_element.dart'; // Import QuizElement
 import 'ciberseguridad_feedback_page.dart';
 import '../../../domain/entities/mission.dart';
+import '../../../../../core/widgets/icon_from_name.dart';
 
 class CiberseguridadQuestionPage extends StatefulWidget {
   final Mission currentMission;
@@ -142,6 +143,8 @@ class _CiberseguridadQuestionPageState
     }
 
     final progress = (widget.questionIndex + 1) / missionQuestions.length;
+    final locale = Localizations.localeOf(context);
+    final english = locale.languageCode == 'en';
 
     return Scaffold(
       body: Container(
@@ -160,18 +163,18 @@ class _CiberseguridadQuestionPageState
         child: SafeArea(
           child: Column(
             children: [
-              _buildHeader(progress),
+              _buildHeader(progress, english),
               Expanded(
                 child: SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
                   padding: const EdgeInsets.all(20),
                   child: Column(
                     children: [
-                      _buildNewsCard(),
+                      _buildNewsCard(locale, english),
                       const SizedBox(height: 24),
-                      _buildElementsGrid(),
+                      _buildElementsGrid(locale, english),
                       const SizedBox(height: 30),
-                      _buildContinueButton(),
+                      _buildContinueButton(english),
                     ],
                   ),
                 ),
@@ -183,7 +186,7 @@ class _CiberseguridadQuestionPageState
     );
   }
 
-  Widget _buildHeader(double progress) {
+  Widget _buildHeader(double progress, bool english) {
     final List<QuizQuestion> missionQuestions =
         widget.currentMission.questions ?? [];
     return Container(
@@ -206,7 +209,9 @@ class _CiberseguridadQuestionPageState
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Pregunta ${widget.questionIndex + 1} de ${missionQuestions.length}',
+                    english
+                        ? 'Question ${widget.questionIndex + 1} of ${missionQuestions.length}'
+                        : 'Pregunta ${widget.questionIndex + 1} de ${missionQuestions.length}',
                     style: const TextStyle(fontSize: 14, color: Colors.white70),
                   ),
                 ],
@@ -224,7 +229,11 @@ class _CiberseguridadQuestionPageState
                     ),
                   ],
                 ),
-                child: const Text('🛡️', style: TextStyle(fontSize: 24)),
+                child: const Icon(
+                  Icons.shield_rounded,
+                  size: 24,
+                  color: Colors.white,
+                ),
               ),
             ],
           ),
@@ -245,7 +254,7 @@ class _CiberseguridadQuestionPageState
     ).animate().fadeIn(duration: 300.ms);
   }
 
-  Widget _buildNewsCard() {
+  Widget _buildNewsCard(Locale locale, bool english) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -277,12 +286,16 @@ class _CiberseguridadQuestionPageState
             ),
             child: Row(
               children: [
-                const Text('🚨', style: TextStyle(fontSize: 32)),
+                const Icon(
+                  Icons.warning_amber_rounded,
+                  size: 32,
+                  color: Colors.white,
+                ),
                 const SizedBox(width: 12),
-                const Expanded(
+                Expanded(
                   child: Text(
-                    'ANALIZA ESTE MENSAJE',
-                    style: TextStyle(
+                    english ? 'ANALYZE THIS MESSAGE' : 'ANALIZA ESTE MENSAJE',
+                    style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
@@ -309,7 +322,7 @@ class _CiberseguridadQuestionPageState
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
-                        question.newsSource,
+                        question.newsSource.resolve(locale),
                         style: const TextStyle(
                           fontSize: 12,
                           color: Colors.grey,
@@ -319,14 +332,14 @@ class _CiberseguridadQuestionPageState
                     ),
                     const Spacer(),
                     Text(
-                      question.newsDate,
+                      question.newsDate.resolve(locale),
                       style: const TextStyle(fontSize: 12, color: Colors.grey),
                     ),
                   ],
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  question.newsTitle,
+                  question.newsTitle.resolve(locale),
                   style: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
@@ -336,7 +349,7 @@ class _CiberseguridadQuestionPageState
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  question.newsContent,
+                  question.newsContent.resolve(locale),
                   style: TextStyle(
                     fontSize: 16,
                     color: Colors.grey[700],
@@ -353,7 +366,7 @@ class _CiberseguridadQuestionPageState
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      question.newsAuthor,
+                      question.newsAuthor.resolve(locale),
                       style: const TextStyle(fontSize: 13, color: Colors.grey),
                     ),
                     const Spacer(),
@@ -364,7 +377,7 @@ class _CiberseguridadQuestionPageState
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      question.newsShares,
+                      question.newsShares.resolve(locale),
                       style: const TextStyle(fontSize: 13, color: Colors.grey),
                     ),
                   ],
@@ -377,7 +390,7 @@ class _CiberseguridadQuestionPageState
     ).animate().scale(delay: 200.ms, duration: 400.ms, curve: Curves.easeOut);
   }
 
-  Widget _buildElementsGrid() {
+  Widget _buildElementsGrid(Locale locale, bool english) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -394,12 +407,18 @@ class _CiberseguridadQuestionPageState
           ),
           child: Row(
             children: [
-              const Text('🚨', style: TextStyle(fontSize: 28)),
+              const Icon(
+                Icons.warning_amber_rounded,
+                size: 28,
+                color: Colors.white,
+              ),
               const SizedBox(width: 12),
-              const Expanded(
+              Expanded(
                 child: Text(
-                  '¿Qué elementos son sospechosos?',
-                  style: TextStyle(
+                  english
+                      ? 'Which elements are suspicious?'
+                      : '¿Qué elementos son sospechosos?',
+                  style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
@@ -426,6 +445,7 @@ class _CiberseguridadQuestionPageState
                   _elementColors[index %
                       _elementColors.length], // Cycle through predefined colors
               index: index,
+              locale: locale,
             );
           }).toList(),
         ),
@@ -437,6 +457,7 @@ class _CiberseguridadQuestionPageState
     required QuizElement element, // Changed to QuizElement
     required Color color,
     required int index,
+    required Locale locale,
   }) {
     final isSelected = selectedElements.contains(element.id);
 
@@ -486,15 +507,16 @@ class _CiberseguridadQuestionPageState
                       shape: BoxShape.circle,
                     ),
                     child: Center(
-                      child: Text(
-                        element.icon, // Use element.icon for emoji
-                        style: const TextStyle(fontSize: 32),
+                      child: Icon(
+                        iconFromName(element.icon),
+                        size: 32,
+                        color: isSelected ? Colors.white : color,
                       ),
                     ),
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    element.text, // Use element.text for title
+                    element.text.resolve(locale), // Use element.text for title
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -527,7 +549,7 @@ class _CiberseguridadQuestionPageState
     );
   }
 
-  Widget _buildContinueButton() {
+  Widget _buildContinueButton(bool english) {
     final canContinue = selectedElements.isNotEmpty;
 
     return AnimatedContainer(
@@ -561,7 +583,7 @@ class _CiberseguridadQuestionPageState
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                'Verificar Amenaza',
+                english ? 'Check Threat' : 'Verificar Amenaza',
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,

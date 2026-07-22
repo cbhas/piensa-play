@@ -5,6 +5,7 @@ import '../../domain/entities/mission_category.dart';
 import '../../domain/entities/veracidadville/quiz_question.dart';
 import '../../domain/entities/veracidadville/quiz_element.dart';
 import '../../domain/entities/veracidadville/question_type.dart';
+import '../../../../core/localization/localized_text.dart';
 
 class MissionsRemoteDatasource {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -108,18 +109,20 @@ class MissionsRemoteDatasource {
         final data = doc.data();
         return QuizQuestion(
           id: doc.id,
-          newsTitle: data['newsTitle'] ?? '',
-          newsContent: data['newsContent'] ?? '',
-          newsSource: data['newsSource'] ?? '',
-          newsDate: data['newsDate'] ?? '',
-          newsAuthor: data['newsAuthor'] ?? '',
-          newsShares: data['newsShares'] ?? '',
+          newsTitle: LocalizedText.fromJson(data['newsTitle']),
+          newsContent: LocalizedText.fromJson(data['newsContent']),
+          newsSource: LocalizedText.fromJson(data['newsSource']),
+          newsDate: LocalizedText.fromJson(data['newsDate']),
+          newsAuthor: LocalizedText.fromJson(data['newsAuthor']),
+          newsShares: LocalizedText.fromJson(data['newsShares']),
           newsImage: data['newsImage'],
           elements: _parseElements(data['elements']),
-          explanation: data['explanation'] ?? '',
+          explanation: LocalizedText.fromJson(data['explanation']),
           type: _parseQuestionType(data['type']),
           correctAnswer: data['correctAnswer'] as bool?,
-          clues: (data['clues'] as List<dynamic>?)?.cast<String>(),
+          clues: (data['clues'] as List<dynamic>?)
+              ?.map((c) => LocalizedText.fromJson(c))
+              .toList(),
         );
       }).toList();
 
@@ -151,18 +154,20 @@ class MissionsRemoteDatasource {
 
         final question = QuizQuestion(
           id: doc.id,
-          newsTitle: data['newsTitle'] ?? '',
-          newsContent: data['newsContent'] ?? '',
-          newsSource: data['newsSource'] ?? '',
-          newsDate: data['newsDate'] ?? '',
-          newsAuthor: data['newsAuthor'] ?? '',
-          newsShares: data['newsShares'] ?? '',
+          newsTitle: LocalizedText.fromJson(data['newsTitle']),
+          newsContent: LocalizedText.fromJson(data['newsContent']),
+          newsSource: LocalizedText.fromJson(data['newsSource']),
+          newsDate: LocalizedText.fromJson(data['newsDate']),
+          newsAuthor: LocalizedText.fromJson(data['newsAuthor']),
+          newsShares: LocalizedText.fromJson(data['newsShares']),
           newsImage: data['newsImage'],
           elements: _parseElements(data['elements']),
-          explanation: data['explanation'] ?? '',
+          explanation: LocalizedText.fromJson(data['explanation']),
           type: _parseQuestionType(data['type']),
           correctAnswer: data['correctAnswer'] as bool?,
-          clues: (data['clues'] as List<dynamic>?)?.cast<String>(),
+          clues: (data['clues'] as List<dynamic>?)
+              ?.map((c) => LocalizedText.fromJson(c))
+              .toList(),
         );
 
         questionsByMission.putIfAbsent(missionId, () => []);
@@ -191,7 +196,7 @@ class MissionsRemoteDatasource {
       final map = e as Map<String, dynamic>;
       return QuizElement(
         id: map['id'] ?? '',
-        text: map['text'] ?? '',
+        text: LocalizedText.fromJson(map['text']),
         icon: map['icon'] ?? '',
         isCorrect: map['isCorrect'] ?? false,
       );

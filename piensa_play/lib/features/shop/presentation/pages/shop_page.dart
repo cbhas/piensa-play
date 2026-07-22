@@ -59,11 +59,13 @@ class _ShopPageState extends State<ShopPage>
   List<ShopItem> get _powerups =>
       _allItems.where((i) => i.category == ShopItemCategory.powerup).toList();
 
+  bool get _english => Localizations.localeOf(context).languageCode == 'en';
+
   Future<void> _onPurchase(ShopItem item) async {
     if (item.isPurchased) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Ya tienes este item'),
+          content: Text(_english ? 'You already own this item' : 'Ya tienes este item'),
           backgroundColor: AppTheme.primaryDark,
         ),
       );
@@ -73,7 +75,9 @@ class _ShopPageState extends State<ShopPage>
     if (!_shopService.canAfford(item.price)) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('No tienes suficientes monedas'),
+          content: Text(
+            _english ? 'Not enough coins' : 'No tienes suficientes monedas',
+          ),
           backgroundColor: AppTheme.accentRed,
         ),
       );
@@ -100,7 +104,19 @@ class _ShopPageState extends State<ShopPage>
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('¡Compraste ${item.name}! 🎉'),
+              content: Row(
+                children: [
+                  const Icon(Icons.celebration_rounded, color: Colors.white),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      _english
+                          ? 'You bought ${item.name}!'
+                          : '¡Compraste ${item.name}!',
+                    ),
+                  ),
+                ],
+              ),
               backgroundColor: AppTheme.accentGreen,
             ),
           );
@@ -122,9 +138,15 @@ class _ShopPageState extends State<ShopPage>
         foregroundColor: Colors.white,
         elevation: 0,
         automaticallyImplyLeading: false,
-        title: const Text(
-          '🛍️ Tienda',
-          style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+        title: Row(
+          children: [
+            const Icon(Icons.storefront_rounded),
+            const SizedBox(width: 10),
+            Text(
+              _english ? 'Shop' : 'Tienda',
+              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+            ),
+          ],
         ),
         actions: [
           Container(
@@ -143,7 +165,11 @@ class _ShopPageState extends State<ShopPage>
             ),
             child: Row(
               children: [
-                const Text('🪙', style: TextStyle(fontSize: 18)),
+                const Icon(
+                  Icons.monetization_on_rounded,
+                  size: 18,
+                  color: AppTheme.primaryDark,
+                ),
                 const SizedBox(width: 6),
                 Text(
                   '$_coins',
@@ -164,9 +190,12 @@ class _ShopPageState extends State<ShopPage>
           labelColor: Colors.white,
           unselectedLabelColor: Colors.white60,
           labelStyle: const TextStyle(fontWeight: FontWeight.bold),
-          tabs: const [
-            Tab(icon: Icon(Icons.person), text: 'Avatares'),
-            Tab(icon: Icon(Icons.flash_on), text: 'Power-ups'),
+          tabs: [
+            Tab(
+              icon: const Icon(Icons.person),
+              text: _english ? 'Avatars' : 'Avatares',
+            ),
+            const Tab(icon: Icon(Icons.flash_on), text: 'Power-ups'),
           ],
         ),
       ),
@@ -205,7 +234,7 @@ class _ShopPageState extends State<ShopPage>
             ),
             const SizedBox(height: 16),
             Text(
-              'No hay items disponibles',
+              _english ? 'No items available' : 'No hay items disponibles',
               style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
             ),
           ],

@@ -71,24 +71,25 @@ class _SettingsPageState extends State<SettingsPage> {
   Future<void> _editName() async {
     final profile = AppDataService.instance.userProfile;
     if (profile == null) return;
+    final english = context.read<AppLocaleController>().isEnglish;
     final controller = TextEditingController(text: profile.name);
     final name = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Profile'),
+        title: Text(english ? 'Profile' : 'Perfil'),
         content: TextField(
           controller: controller,
           maxLength: 30,
-          decoration: const InputDecoration(labelText: 'Name / Nombre'),
+          decoration: InputDecoration(labelText: english ? 'Name' : 'Nombre'),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(english ? 'Cancel' : 'Cancelar'),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, controller.text.trim()),
-            child: const Text('Save'),
+            child: Text(english ? 'Save' : 'Guardar'),
           ),
         ],
       ),
@@ -283,7 +284,7 @@ class _SettingsPageState extends State<SettingsPage> {
         actions: [
           FilledButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
+            child: Text(english ? 'Got it' : 'Entendido'),
           ),
         ],
       ),
@@ -318,14 +319,15 @@ class _SettingIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       width: 42,
       height: 42,
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.25),
+        color: color.withValues(alpha: dark ? 0.35 : 0.25),
         borderRadius: BorderRadius.circular(14),
       ),
-      child: Icon(icon, color: AppTheme.primaryDark),
+      child: Icon(icon, color: dark ? Colors.white : AppTheme.primaryDark),
     );
   }
 }

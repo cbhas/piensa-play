@@ -1,12 +1,8 @@
 import 'package:flutter/material.dart';
 
-class LocalizedText {
-  final String es;
-  final String en;
-  const LocalizedText({required this.es, required this.en});
+import '../../../core/localization/localized_text.dart';
 
-  String resolve(Locale locale) => locale.languageCode == 'en' ? en : es;
-}
+export '../../../core/localization/localized_text.dart';
 
 enum PiensaSkill { pause, identify, examine, notice, seek, act }
 

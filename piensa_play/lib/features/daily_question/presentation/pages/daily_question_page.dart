@@ -39,6 +39,8 @@ class _DailyQuestionPageState extends State<DailyQuestionPage> {
   final List<String> _userBlanks = [];
   final Map<String, String> _userMatches = {};
 
+  bool get _english => Localizations.localeOf(context).languageCode == 'en';
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -90,8 +92,8 @@ class _DailyQuestionPageState extends State<DailyQuestionPage> {
           Expanded(
             child: Column(
               children: [
-                const Text(
-                  '¡Pregunta del día!',
+                Text(
+                  _english ? 'Question of the day!' : '¡Pregunta del día!',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: AppTheme.tertiaryDark,
@@ -101,13 +103,24 @@ class _DailyQuestionPageState extends State<DailyQuestionPage> {
                 ),
                 if (_rewards != null) ...[
                   const SizedBox(height: 4),
-                  Text(
-                    '+${_rewards!['xp']} XP  •  +${_rewards!['coins']} 🪙',
-                    style: TextStyle(
-                      color: AppTheme.tertiaryDark.withValues(alpha: 0.8),
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                    ),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        '+${_rewards!['xp']} XP  •  +${_rewards!['coins']}',
+                        style: TextStyle(
+                          color: AppTheme.tertiaryDark.withValues(alpha: 0.8),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(width: 3),
+                      Icon(
+                        Icons.monetization_on_rounded,
+                        size: 14,
+                        color: AppTheme.tertiaryDark.withValues(alpha: 0.8),
+                      ),
+                    ],
                   ),
                 ],
               ],
@@ -336,9 +349,9 @@ class _DailyQuestionPageState extends State<DailyQuestionPage> {
       backgroundColor: Colors.transparent,
       builder: (context) => Container(
         padding: const EdgeInsets.all(24),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        decoration: BoxDecoration(
+          color: Theme.of(context).cardColor,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -346,25 +359,26 @@ class _DailyQuestionPageState extends State<DailyQuestionPage> {
           children: [
             Row(
               children: [
-                const Text('💡', style: TextStyle(fontSize: 28)),
+                const Icon(
+                  Icons.lightbulb_rounded,
+                  size: 28,
+                  color: AppTheme.accentYellowAlt,
+                ),
                 const SizedBox(width: 12),
                 Text(
-                  _isCorrect ? '¿Por qué es correcto?' : 'Explicación',
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  _isCorrect
+                      ? (_english ? 'Why is it correct?' : '¿Por qué es correcto?')
+                      : (_english ? 'Explanation' : 'Explicación'),
+                  style: Theme.of(context).textTheme.titleLarge,
                 ),
               ],
             ),
             const SizedBox(height: 16),
             Text(
               widget.question.explanation,
-              style: TextStyle(
-                fontSize: 16,
-                height: 1.5,
-                color: Colors.grey.shade700,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyLarge?.copyWith(height: 1.5),
             ),
             const SizedBox(height: 24),
             SizedBox(
@@ -379,9 +393,12 @@ class _DailyQuestionPageState extends State<DailyQuestionPage> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: const Text(
-                  'Entendido',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                child: Text(
+                  _english ? 'Got it' : 'Entendido',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ),
@@ -396,21 +413,23 @@ class _DailyQuestionPageState extends State<DailyQuestionPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('¿Salir?'),
-        content: const Text(
-          'Si sales ahora, perderás la oportunidad de responder la pregunta del día.',
+        title: Text(_english ? 'Leave?' : '¿Salir?'),
+        content: Text(
+          _english
+              ? 'If you leave now you will lose the chance to answer today\'s question.'
+              : 'Si sales ahora, perderás la oportunidad de responder la pregunta del día.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Seguir'),
+            child: Text(_english ? 'Stay' : 'Seguir'),
           ),
           TextButton(
             onPressed: () {
               Navigator.pop(context);
               Navigator.pop(context, false);
             },
-            child: const Text('Salir'),
+            child: Text(_english ? 'Leave' : 'Salir'),
           ),
         ],
       ),

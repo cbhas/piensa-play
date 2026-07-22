@@ -166,9 +166,10 @@ class _UnifiedMissionPageState extends State<UnifiedMissionPage> {
                       ],
                     ),
                     child: Center(
-                      child: Text(
-                        _getMissionEmoji(),
-                        style: const TextStyle(fontSize: 60),
+                      child: Icon(
+                        _getMissionIcon(),
+                        size: 60,
+                        color: categoryColor,
                       ),
                     ),
                   ).animate().scale(duration: 400.ms, curve: Curves.elasticOut),
@@ -718,16 +719,16 @@ class _UnifiedMissionPageState extends State<UnifiedMissionPage> {
     );
   }
 
-  String _getMissionEmoji() {
+  IconData _getMissionIcon() {
     switch (widget.mission.type) {
       case MissionType.quiz:
-        return '📰';
+        return Icons.newspaper_rounded;
       case MissionType.trueFalse:
-        return '✅';
+        return Icons.fact_check_rounded;
       case MissionType.wordSelection:
-        return '🔤';
+        return Icons.text_fields_rounded;
       case MissionType.stereotype:
-        return '🎭';
+        return Icons.theater_comedy_rounded;
     }
   }
 }

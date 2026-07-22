@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/localization/app_locale.dart';
 import '../../../../core/routes/app_routes.dart';
+import '../../../../core/theme/app_animations.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/widgets/decorative_shapes.dart';
 
 class WelcomePage extends StatelessWidget {
   const WelcomePage({super.key});
@@ -28,6 +31,16 @@ class WelcomePage extends StatelessWidget {
                 bottom: 40,
                 left: -100,
                 child: _Glow(size: 260, color: AppTheme.accentGreen),
+              ),
+              const Positioned(
+                top: 130,
+                left: 18,
+                child: Sparkle(size: 20, color: AppTheme.accentYellow),
+              ),
+              const Positioned(
+                top: 90,
+                right: 40,
+                child: Sparkle(size: 14, color: AppTheme.accentPink),
               ),
               SingleChildScrollView(
                 padding: const EdgeInsets.fromLTRB(24, 18, 24, 28),
@@ -68,9 +81,11 @@ class WelcomePage extends StatelessWidget {
                             color: AppTheme.accentYellow,
                             borderRadius: BorderRadius.circular(999),
                           ),
-                          child: const Text(
-                            'PLAY YOUR PART · UNESCO 2026',
-                            style: TextStyle(
+                          child: Text(
+                            locale.isEnglish
+                                ? 'PLAY YOUR PART · UNESCO 2026'
+                                : 'PARTICIPA · UNESCO 2026',
+                            style: const TextStyle(
                               color: AppTheme.tertiaryDark,
                               fontSize: 11,
                               fontWeight: FontWeight.w900,
@@ -78,6 +93,10 @@ class WelcomePage extends StatelessWidget {
                             ),
                           ),
                         ),
+                      ).animate().fadeIn(duration: 400.ms).slideY(
+                        begin: -0.3,
+                        end: 0,
+                        curve: Curves.easeOutBack,
                       ),
                       const SizedBox(height: 18),
                       Center(
@@ -113,14 +132,14 @@ class WelcomePage extends StatelessWidget {
                             ),
                           ],
                         ),
-                      ),
+                      ).scaleIn(delay: 120.ms, duration: 550.ms),
                       const SizedBox(height: 18),
                       Text(
                         strings.t('welcomeTitle'),
                         textAlign: TextAlign.center,
                         style: Theme.of(context).textTheme.displaySmall
                             ?.copyWith(color: Colors.white, fontSize: 38),
-                      ),
+                      ).fadeInSlide(delay: 250.ms),
                       const SizedBox(height: 12),
                       Text(
                         strings.t('welcomeBody'),
@@ -130,7 +149,7 @@ class WelcomePage extends StatelessWidget {
                           fontSize: 16,
                           height: 1.5,
                         ),
-                      ),
+                      ).fadeInSlide(delay: 320.ms),
                       const SizedBox(height: 22),
                       const Row(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -150,7 +169,7 @@ class WelcomePage extends StatelessWidget {
                             label: 'SAFE',
                           ),
                         ],
-                      ),
+                      ).fadeInSlide(delay: 380.ms),
                       const SizedBox(height: 28),
                       ElevatedButton.icon(
                         style: ElevatedButton.styleFrom(
@@ -162,7 +181,7 @@ class WelcomePage extends StatelessWidget {
                         ).pushReplacementNamed(AppRoutes.onboarding),
                         icon: const Icon(Icons.arrow_forward_rounded),
                         label: Text(strings.t('startAdventure')),
-                      ),
+                      ).fadeInSlide(delay: 440.ms),
                       const SizedBox(height: 10),
                       OutlinedButton.icon(
                         style: OutlinedButton.styleFrom(
@@ -173,7 +192,7 @@ class WelcomePage extends StatelessWidget {
                             Navigator.of(context).pushNamed(AppRoutes.demo),
                         icon: const Icon(Icons.play_circle_outline_rounded),
                         label: Text(strings.t('tryDemo')),
-                      ),
+                      ).fadeInSlide(delay: 500.ms),
                       const SizedBox(height: 18),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,

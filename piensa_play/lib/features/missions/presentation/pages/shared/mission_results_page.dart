@@ -200,14 +200,15 @@ class _MissionResultsPageState extends State<MissionResultsPage> {
       ),
       child: Column(
         children: [
-          // Emoji - animación sutil inmediata
-          Text(
+          // Ícono - animación sutil inmediata
+          Icon(
                 isPerfect
-                    ? '🏆'
+                    ? Icons.emoji_events_rounded
                     : isGood
-                    ? '🎉'
-                    : '💪',
-                style: const TextStyle(fontSize: 80),
+                    ? Icons.celebration_rounded
+                    : Icons.thumb_up_rounded,
+                size: 80,
+                color: Colors.white,
               )
               .animate(onPlay: (c) => c.repeat(reverse: true))
               .scale(
@@ -432,7 +433,11 @@ class _MissionResultsPageState extends State<MissionResultsPage> {
                       ),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Text('💡', style: TextStyle(fontSize: 28)),
+                    child: const Icon(
+                      Icons.lightbulb_rounded,
+                      size: 28,
+                      color: Colors.white,
+                    ),
                   ),
                   const SizedBox(width: 12),
                   const Text(

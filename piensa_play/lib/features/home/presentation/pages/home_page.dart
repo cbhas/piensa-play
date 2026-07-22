@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../../../core/localization/app_locale.dart';
 import '../../../../core/routes/app_routes.dart';
 import '../../../../core/services/app_data_service.dart';
 import '../../../../core/services/daily_question_service.dart';
+import '../../../../core/services/user_id_provider.dart';
+import '../../../../core/theme/app_animations.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../daily_question/presentation/pages/daily_question_page.dart';
 import '../../../flagship/data/flagship_content.dart';
@@ -11,6 +14,9 @@ import '../../../flagship/data/flagship_progress_service.dart';
 import '../../../missions/domain/entities/unified_question.dart';
 import '../../../onboarding/data/repositories/onboarding_repository_impl.dart';
 import '../../../onboarding/domain/entities/user_profile.dart';
+import '../../domain/entities/user_progress.dart';
+import '../../domain/usecases/get_user_progress.dart';
+import '../widgets/progress_circle.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -23,28 +29,36 @@ class _HomePageState extends State<HomePage> {
   final _daily = DailyQuestionService();
   final _flagshipProgress = FlagshipProgressService();
   final _profiles = OnboardingRepositoryImpl();
+  final _getUserProgress = GetUserProgress();
 
   UserProfile? _profile;
   UnifiedQuestion? _dailyQuestion;
   bool _dailyAnswered = false;
   int _dailyStreak = 0;
   Set<String> _completed = {};
+  UserProgress? _userProgress;
   bool _loading = true;
+  bool _initialized = false;
 
   @override
-  void initState() {
-    super.initState();
-    _load();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_initialized) {
+      _initialized = true;
+      _load();
+    }
   }
 
   Future<void> _load() async {
     final cached = AppDataService.instance.userProfile;
+    final english = Localizations.localeOf(context).languageCode == 'en';
     final results = await Future.wait<dynamic>([
       cached == null ? _profiles.getUserProfile() : Future.value(cached),
       _daily.hasAnsweredToday(),
       _daily.getStreak(),
-      _daily.getTodaysQuestion(),
+      _daily.getTodaysQuestion(english: english),
       _flagshipProgress.completedMissions(),
+      _getUserProgress.execute(UserIdProvider.currentUserId),
     ]);
     if (!mounted) return;
     setState(() {
@@ -53,6 +67,7 @@ class _HomePageState extends State<HomePage> {
       _dailyStreak = results[2] as int;
       _dailyQuestion = results[3] as UnifiedQuestion?;
       _completed = results[4] as Set<String>;
+      _userProgress = results[5] as UserProgress?;
       _loading = false;
     });
   }
@@ -72,7 +87,10 @@ class _HomePageState extends State<HomePage> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('Avatar', style: Theme.of(context).textTheme.titleLarge),
+              Text(
+                context.strings.t('avatarLabel'),
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
               const SizedBox(height: 18),
               Wrap(
                 spacing: 14,
@@ -130,6 +148,7 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     final strings = context.strings;
+    final dark = Theme.of(context).brightness == Brightness.dark;
     final achievement = AppDataService.instance.achievement;
     final cityProgress = (_completed.length / FlagshipContent.missions.length)
         .clamp(0.0, 1.0);
@@ -145,7 +164,7 @@ class _HomePageState extends State<HomePage> {
                     child: _HomeHeader(
                       name: _profile?.name.isNotEmpty == true
                           ? _profile!.name
-                          : 'Explorer',
+                          : strings.t('explorer'),
                       avatarPath: _avatarPath(_profile?.avatarId),
                       level: achievement.currentLevel,
                       coins: achievement.coins,
@@ -159,7 +178,7 @@ class _HomePageState extends State<HomePage> {
                         Text(
                           strings.t('homeQuestion'),
                           style: Theme.of(context).textTheme.headlineMedium,
-                        ),
+                        ).fadeInSlide(),
                         const SizedBox(height: 18),
                         _CityHeroCard(
                           progress: cityProgress,
@@ -170,15 +189,22 @@ class _HomePageState extends State<HomePage> {
                             );
                             await _load();
                           },
-                        ),
+                        ).fadeInSlide(delay: 60.ms),
                         const SizedBox(height: 16),
-                        _PiensaMethodCard(),
+                        _ClassicMissionsCard(
+                          onTap: () => Navigator.pushNamed(
+                            context,
+                            AppRoutes.legacyMissions,
+                          ),
+                        ).fadeInSlide(delay: 90.ms),
+                        const SizedBox(height: 16),
+                        _PiensaMethodCard().fadeInSlide(delay: 120.ms),
                         const SizedBox(height: 16),
                         _DailyCard(
                           answered: _dailyAnswered,
                           streak: _dailyStreak,
                           onTap: _openDaily,
-                        ),
+                        ).fadeInSlide(delay: 180.ms),
                         const SizedBox(height: 22),
                         GridView.count(
                           crossAxisCount: 2,
@@ -191,14 +217,16 @@ class _HomePageState extends State<HomePage> {
                             _QuickCard(
                               title: strings.t('learn'),
                               icon: Icons.play_lesson_outlined,
-                              color: AppTheme.accentBlue,
+                              fill: AppTheme.blueFill(dark),
+                              iconColor: AppTheme.blueText(dark),
                               onTap: () =>
                                   Navigator.pushNamed(context, AppRoutes.learn),
                             ),
                             _QuickCard(
                               title: strings.t('glossary'),
                               icon: Icons.menu_book_outlined,
-                              color: AppTheme.accentGreen,
+                              fill: AppTheme.greenFill(dark),
+                              iconColor: AppTheme.greenText(dark),
                               onTap: () => Navigator.pushNamed(
                                 context,
                                 AppRoutes.glossary,
@@ -207,23 +235,31 @@ class _HomePageState extends State<HomePage> {
                             _QuickCard(
                               title: strings.t('achievements'),
                               icon: Icons.emoji_events_outlined,
-                              color: AppTheme.accentYellow,
+                              fill: AppTheme.goldFill(dark),
+                              iconColor: AppTheme.goldText(dark),
                               onTap: () => Navigator.pushNamed(
                                 context,
                                 AppRoutes.achievements,
                               ),
                             ),
                             _QuickCard(
-                              title: strings.t('settings'),
-                              icon: Icons.tune_rounded,
-                              color: AppTheme.accentPink,
-                              onTap: () => Navigator.pushNamed(
-                                context,
-                                AppRoutes.settings,
-                              ),
+                              title: strings.t('shop'),
+                              icon: Icons.storefront_rounded,
+                              fill: AppTheme.coralFill(dark),
+                              iconColor: AppTheme.coralText(dark),
+                              onTap: () =>
+                                  Navigator.pushNamed(context, AppRoutes.shop),
                             ),
-                          ],
+                          ].animate(interval: 60.ms).fadeIn(duration: 300.ms).scale(
+                            begin: const Offset(0.92, 0.92),
+                            curve: Curves.easeOutBack,
+                          ),
                         ),
+                        if (_userProgress != null)
+                          ProgressCircle(
+                            progress: _userProgress!.generalProgress,
+                            monthlyProgress: _userProgress!.monthlyProgress,
+                          ).fadeInSlide(delay: 240.ms),
                       ],
                     ),
                   ),
@@ -288,7 +324,7 @@ class _HomeHeader extends StatelessWidget {
         children: [
           Semantics(
             button: true,
-            label: 'Change avatar',
+            label: context.strings.t('changeAvatar'),
             child: InkWell(
               onTap: onAvatarTap,
               borderRadius: BorderRadius.circular(22),
@@ -299,11 +335,12 @@ class _HomeHeader extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: AppTheme.accentGreen,
                   borderRadius: BorderRadius.circular(22),
+                  boxShadow: AppTheme.softShadow,
                 ),
                 child: Image.asset(avatarPath),
               ),
             ),
-          ),
+          ).scaleIn(),
           const SizedBox(width: 14),
           Expanded(
             child: Column(
@@ -318,13 +355,26 @@ class _HomeHeader extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  'Level $level · $coins coins',
-                  style: const TextStyle(color: Colors.white70),
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.local_fire_department_rounded,
+                      color: AppTheme.accentYellow,
+                      size: 16,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      context.strings.t('levelCoins', {
+                        'level': '$level',
+                        'coins': '$coins',
+                      }),
+                      style: const TextStyle(color: Colors.white70),
+                    ),
+                  ],
                 ),
               ],
             ),
-          ),
+          ).fadeInSlide(delay: 80.ms),
           IconButton(
             color: Colors.white,
             onPressed: () => Navigator.pushNamed(context, AppRoutes.settings),
@@ -419,20 +469,79 @@ class _CityHeroCard extends StatelessWidget {
   }
 }
 
+class _ClassicMissionsCard extends StatelessWidget {
+  final VoidCallback onTap;
+  const _ClassicMissionsCard({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final strings = context.strings;
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(18),
+          child: Row(
+            children: [
+              Container(
+                width: 52,
+                height: 52,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: AppTheme.greenFill(dark),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                ),
+                child: Icon(
+                  Icons.explore_rounded,
+                  color: AppTheme.greenText(dark),
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      strings.t('classicMissions'),
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      strings.t('classicMissionsSubtitle'),
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                Icons.chevron_right_rounded,
+                color: Theme.of(context).textTheme.bodyMedium?.color,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _PiensaMethodCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(18),
         child: Row(
           children: [
-            const CircleAvatar(
+            CircleAvatar(
               radius: 25,
-              backgroundColor: AppTheme.accentGreen,
+              backgroundColor: AppTheme.greenFill(dark),
               child: Icon(
                 Icons.psychology_alt_rounded,
-                color: AppTheme.primaryDark,
+                color: AppTheme.greenText(dark),
               ),
             ),
             const SizedBox(width: 14),
@@ -468,6 +577,7 @@ class _DailyCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
     return Card(
       clipBehavior: Clip.antiAlias,
       child: ListTile(
@@ -477,12 +587,12 @@ class _DailyCard extends StatelessWidget {
           width: 52,
           height: 52,
           decoration: BoxDecoration(
-            color: AppTheme.accentYellow.withValues(alpha: 0.35),
+            color: AppTheme.goldFill(dark),
             borderRadius: BorderRadius.circular(17),
           ),
           child: Icon(
             answered ? Icons.check_circle_rounded : Icons.bolt_rounded,
-            color: AppTheme.primaryDark,
+            color: AppTheme.goldText(dark),
           ),
         ),
         title: Text(
@@ -511,12 +621,14 @@ class _DailyCard extends StatelessWidget {
 class _QuickCard extends StatelessWidget {
   final String title;
   final IconData icon;
-  final Color color;
+  final Color fill;
+  final Color iconColor;
   final VoidCallback onTap;
   const _QuickCard({
     required this.title,
     required this.icon,
-    required this.color,
+    required this.fill,
+    required this.iconColor,
     required this.onTap,
   });
 
@@ -533,12 +645,14 @@ class _QuickCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Container(
-                padding: const EdgeInsets.all(9),
+                width: 44,
+                height: 44,
+                alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.35),
-                  borderRadius: BorderRadius.circular(13),
+                  color: fill,
+                  borderRadius: BorderRadius.circular(AppTheme.radiusSm),
                 ),
-                child: Icon(icon, color: AppTheme.primaryDark),
+                child: Icon(icon, color: iconColor),
               ),
               Text(title, style: Theme.of(context).textTheme.titleMedium),
             ],

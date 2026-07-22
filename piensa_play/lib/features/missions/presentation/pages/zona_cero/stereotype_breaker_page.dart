@@ -22,6 +22,9 @@ class _StereotypeBreakerPageState extends State<StereotypeBreakerPage> {
       .map((s) => s.statements.where((st) => !st.isInclusive).length)
       .fold(0, (a, b) => a + b);
 
+  bool get _english => Localizations.localeOf(context).languageCode == 'en';
+  Locale get _locale => Localizations.localeOf(context);
+
   @override
   void initState() {
     super.initState();
@@ -38,9 +41,13 @@ class _StereotypeBreakerPageState extends State<StereotypeBreakerPage> {
     if (statement.isInclusive) {
       setState(() => incorrect++);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('¡Este mensaje ya es inclusivo!'),
-          duration: Duration(seconds: 1),
+        SnackBar(
+          content: Text(
+            _english
+                ? 'This message is already inclusive!'
+                : '¡Este mensaje ya es inclusivo!',
+          ),
+          duration: const Duration(seconds: 1),
         ),
       );
       return;
@@ -75,18 +82,20 @@ class _StereotypeBreakerPageState extends State<StereotypeBreakerPage> {
                 size: 48,
               ),
               const SizedBox(height: 10),
-              const Text(
-                '¡Escena lista!',
-                style: TextStyle(
+              Text(
+                _english ? 'Scene complete!' : '¡Escena lista!',
+                style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 18,
                   color: AppTheme.primaryDark,
                 ),
               ),
               const SizedBox(height: 8),
-              const Text(
-                'Cambiamos los mensajes para incluir a todos.',
-                style: TextStyle(color: AppTheme.primaryDark),
+              Text(
+                _english
+                    ? 'We changed the messages to include everyone.'
+                    : 'Cambiamos los mensajes para incluir a todos.',
+                style: const TextStyle(color: AppTheme.primaryDark),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 14),
@@ -102,11 +111,14 @@ class _StereotypeBreakerPageState extends State<StereotypeBreakerPage> {
                   Navigator.pop(context);
                   _goNextScene();
                 },
-                child: const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
                   child: Text(
-                    'Continuar',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                    _english ? 'Continue' : 'Continuar',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                 ),
               ),
@@ -140,14 +152,24 @@ class _StereotypeBreakerPageState extends State<StereotypeBreakerPage> {
           missionName: 'Zona Cero Odio',
           primaryColor: const Color(0xFFFFC857),
           secondaryColor: AppTheme.accentGreen,
-          perfectMessage: '¡Bosque restaurado!',
-          goodMessage: 'Has eliminado los estereotipos',
-          tryAgainMessage: '¡Sigue practicando!',
-          learningPoints: [
-            'Los estereotipos lastiman a las personas',
-            'Usar palabras que invitan a todos hace el juego justo',
-            'El respeto y la inclusión construyen comunidades fuertes',
-          ],
+          perfectMessage: _english
+              ? 'Forest restored!'
+              : '¡Bosque restaurado!',
+          goodMessage: _english
+              ? 'You eliminated the stereotypes'
+              : 'Has eliminado los estereotipos',
+          tryAgainMessage: _english ? 'Keep practicing!' : '¡Sigue practicando!',
+          learningPoints: _english
+              ? const [
+                  'Stereotypes hurt people',
+                  'Using words that invite everyone makes the game fair',
+                  'Respect and inclusion build strong communities',
+                ]
+              : const [
+                  'Los estereotipos lastiman a las personas',
+                  'Usar palabras que invitan a todos hace el juego justo',
+                  'El respeto y la inclusión construyen comunidades fuertes',
+                ],
         ),
       ),
     ).then((result) {
@@ -233,8 +255,8 @@ class _StereotypeBreakerPageState extends State<StereotypeBreakerPage> {
                 ),
               ),
               Column(
-                children: const [
-                  Text(
+                children: [
+                  const Text(
                     'Zona Cero Odio',
                     style: TextStyle(
                       color: Colors.white,
@@ -242,10 +264,10 @@ class _StereotypeBreakerPageState extends State<StereotypeBreakerPage> {
                       fontSize: 20,
                     ),
                   ),
-                  SizedBox(height: 2),
+                  const SizedBox(height: 2),
                   Text(
-                    'Rompe estereotipos',
-                    style: TextStyle(color: Colors.white70, fontSize: 13),
+                    _english ? 'Break stereotypes' : 'Rompe estereotipos',
+                    style: const TextStyle(color: Colors.white70, fontSize: 13),
                   ),
                 ],
               ),
@@ -256,9 +278,9 @@ class _StereotypeBreakerPageState extends State<StereotypeBreakerPage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'Progreso',
-                style: TextStyle(
+              Text(
+                _english ? 'Progress' : 'Progreso',
+                style: const TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
                 ),
@@ -297,13 +319,15 @@ class _StereotypeBreakerPageState extends State<StereotypeBreakerPage> {
         border: Border.all(color: AppTheme.accentGreen, width: 1.5),
       ),
       child: Row(
-        children: const [
-          Icon(Icons.lightbulb, color: AppTheme.primaryDark),
-          SizedBox(width: 10),
+        children: [
+          const Icon(Icons.lightbulb, color: AppTheme.primaryDark),
+          const SizedBox(width: 10),
           Expanded(
             child: Text(
-              'Toca los mensajes que dejan fuera a alguien y cámbialos por opciones que incluyan a todos.',
-              style: TextStyle(color: AppTheme.primaryDark, fontSize: 14),
+              _english
+                  ? 'Tap the messages that leave someone out and swap them for options that include everyone.'
+                  : 'Toca los mensajes que dejan fuera a alguien y cámbialos por opciones que incluyan a todos.',
+              style: const TextStyle(color: AppTheme.primaryDark, fontSize: 14),
             ),
           ),
         ],
@@ -331,7 +355,9 @@ class _StereotypeBreakerPageState extends State<StereotypeBreakerPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Escena: ${scene.title}',
+            _english
+                ? 'Scene: ${scene.title.resolve(_locale)}'
+                : 'Escena: ${scene.title.resolve(_locale)}',
             style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
@@ -340,7 +366,7 @@ class _StereotypeBreakerPageState extends State<StereotypeBreakerPage> {
           ),
           const SizedBox(height: 6),
           Text(
-            scene.description,
+            scene.description.resolve(_locale),
             style: TextStyle(
               color: AppTheme.primaryDark.withValues(alpha: 0.8),
             ),
@@ -381,19 +407,19 @@ class _StereotypeBreakerPageState extends State<StereotypeBreakerPage> {
       icon = Icons.check_circle;
       iconColor = Colors.green;
       background = const Color(0xFFE7F7E7);
-      subtitle = statement.replacement;
+      subtitle = statement.replacement.resolve(_locale);
     } else if (isTarget) {
       borderColor = Colors.redAccent;
       icon = Icons.warning_amber_rounded;
       iconColor = Colors.redAccent;
       background = const Color(0xFFFFF0F0);
-      subtitle = statement.hint;
+      subtitle = statement.hint.resolve(_locale);
     } else {
       borderColor = Colors.green;
       icon = Icons.check_circle;
       iconColor = Colors.green;
       background = const Color(0xFFE7F7E7);
-      subtitle = statement.hint;
+      subtitle = statement.hint.resolve(_locale);
     }
 
     return GestureDetector(
@@ -428,7 +454,7 @@ class _StereotypeBreakerPageState extends State<StereotypeBreakerPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    statement.text,
+                    statement.text.resolve(_locale),
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       color: AppTheme.primaryDark,
@@ -481,19 +507,19 @@ class _StereotypeBreakerPageState extends State<StereotypeBreakerPage> {
         children: [
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: const [
+            children: [
               Text(
-                'Puntuación',
-                style: TextStyle(
+                _english ? 'Score' : 'Puntuación',
+                style: const TextStyle(
                   color: AppTheme.primaryDark,
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
                 ),
               ),
-              SizedBox(height: 4),
+              const SizedBox(height: 4),
               Text(
-                '¡Sigue así!',
-                style: TextStyle(color: AppTheme.primaryDark, fontSize: 13),
+                _english ? 'Keep it up!' : '¡Sigue así!',
+                style: const TextStyle(color: AppTheme.primaryDark, fontSize: 13),
               ),
             ],
           ),
@@ -519,7 +545,7 @@ class _StereotypeBreakerPageState extends State<StereotypeBreakerPage> {
               ),
               const SizedBox(width: 10),
               Text(
-                '$score puntos',
+                _english ? '$score points' : '$score puntos',
                 style: const TextStyle(
                   color: AppTheme.primaryDark,
                   fontWeight: FontWeight.bold,

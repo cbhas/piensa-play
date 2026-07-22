@@ -11,7 +11,7 @@ class OverallProgressCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final streak = AppDataService.instance.dailyStreak;
-    debugPrint('STREAK DEBUG: streak value = $streak');
+    final english = Localizations.localeOf(context).languageCode == 'en';
 
     return Container(
       margin: const EdgeInsets.all(20),
@@ -34,9 +34,9 @@ class OverallProgressCard extends StatelessWidget {
       child: Column(
         children: [
           // Título
-          const Text(
-            'Tu Nivel',
-            style: TextStyle(
+          Text(
+            english ? 'Your Level' : 'Tu Nivel',
+            style: const TextStyle(
               color: Colors.white70,
               fontSize: 16,
               fontWeight: FontWeight.w500,
@@ -135,11 +135,15 @@ class OverallProgressCard extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Nivel ${achievement.currentLevel}',
+                    english
+                        ? 'Level ${achievement.currentLevel}'
+                        : 'Nivel ${achievement.currentLevel}',
                     style: const TextStyle(color: Colors.white70, fontSize: 12),
                   ),
                   Text(
-                    'Nivel ${achievement.currentLevel + 1}',
+                    english
+                        ? 'Level ${achievement.currentLevel + 1}'
+                        : 'Nivel ${achievement.currentLevel + 1}',
                     style: const TextStyle(color: Colors.white70, fontSize: 12),
                   ),
                 ],
@@ -181,7 +185,7 @@ class OverallProgressCard extends StatelessWidget {
                 color: AppTheme.accentGreen,
               ),
               _InfoItem(
-                label: 'Monedas',
+                label: english ? 'Coins' : 'Monedas',
                 value: achievement.coins.toString(),
                 icon: Icons.monetization_on,
                 color: AppTheme.accentYellow,

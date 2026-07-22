@@ -92,18 +92,22 @@ class MissionNodeWidget extends StatelessWidget {
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               gradient: _getNodeGradient(),
+                              border: Border.all(
+                                color: Colors.white.withValues(alpha: 0.9),
+                                width: 4,
+                              ),
                               boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.25),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 4),
+                                ),
                                 BoxShadow(
                                   color: _getNodeColor().withValues(
                                     alpha: 0.35,
                                   ),
                                   blurRadius: 8,
                                   offset: const Offset(0, 2),
-                                ),
-                                BoxShadow(
-                                  color: Colors.white.withValues(alpha: 0.25),
-                                  blurRadius: 3,
-                                  offset: const Offset(0, -1),
                                 ),
                               ],
                             ),

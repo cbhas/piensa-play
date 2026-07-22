@@ -93,10 +93,18 @@ class _LearnPageState extends State<LearnPage> {
     } else if (item.type == MediaType.audio) {
       // TODO: Implement audio player
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Reproductor de audio próximamente')),
+        SnackBar(
+          content: Text(
+            _english
+                ? 'Audio player coming soon'
+                : 'Reproductor de audio próximamente',
+          ),
+        ),
       );
     }
   }
+
+  bool get _english => Localizations.localeOf(context).languageCode == 'en';
 
   @override
   Widget build(BuildContext context) {
@@ -126,11 +134,11 @@ class _LearnPageState extends State<LearnPage> {
                   icon: const Icon(Icons.arrow_back, color: Colors.white),
                   onPressed: () => Navigator.pop(context),
                 ),
-                const Expanded(
+                Expanded(
                   child: Text(
-                    'Aprende',
+                    _english ? 'Learn' : 'Aprende',
                     textAlign: TextAlign.center,
-                    style: TextStyle(
+                    style: const TextStyle(
                       color: Colors.white,
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
@@ -149,7 +157,7 @@ class _LearnPageState extends State<LearnPage> {
             child: TextField(
               controller: _searchController,
               decoration: InputDecoration(
-                hintText: 'Buscar contenido...',
+                hintText: _english ? 'Search content...' : 'Buscar contenido...',
                 hintStyle: TextStyle(
                   color: isDark
                       ? AppTheme.textSecondaryDark

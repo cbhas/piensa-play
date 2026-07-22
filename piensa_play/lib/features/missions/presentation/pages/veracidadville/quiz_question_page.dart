@@ -59,6 +59,8 @@ class _QuizQuestionPageState extends State<QuizQuestionPage> {
 
   @override
   Widget build(BuildContext context) {
+    final locale = Localizations.localeOf(context);
+    final english = locale.languageCode == 'en';
     final progress = (widget.questionIndex + 1) / allQuestions.length;
 
     return Scaffold(
@@ -78,18 +80,18 @@ class _QuizQuestionPageState extends State<QuizQuestionPage> {
         child: SafeArea(
           child: Column(
             children: [
-              _buildHeader(progress),
+              _buildHeader(progress, english),
               Expanded(
                 child: SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
                   padding: const EdgeInsets.all(20),
                   child: Column(
                     children: [
-                      _buildNewsCard(),
+                      _buildNewsCard(locale),
                       const SizedBox(height: 24),
-                      _buildElementsGrid(),
+                      _buildElementsGrid(english),
                       const SizedBox(height: 30),
-                      _buildContinueButton(),
+                      _buildContinueButton(english),
                     ],
                   ),
                 ),
@@ -101,7 +103,7 @@ class _QuizQuestionPageState extends State<QuizQuestionPage> {
     );
   }
 
-  Widget _buildHeader(double progress) {
+  Widget _buildHeader(double progress, bool english) {
     return Container(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -122,7 +124,9 @@ class _QuizQuestionPageState extends State<QuizQuestionPage> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Pregunta ${widget.questionIndex + 1} de ${allQuestions.length}',
+                    english
+                        ? 'Question ${widget.questionIndex + 1} of ${allQuestions.length}'
+                        : 'Pregunta ${widget.questionIndex + 1} de ${allQuestions.length}',
                     style: const TextStyle(fontSize: 14, color: Colors.white70),
                   ),
                 ],
@@ -140,7 +144,11 @@ class _QuizQuestionPageState extends State<QuizQuestionPage> {
                     ),
                   ],
                 ),
-                child: const Text('🔍', style: TextStyle(fontSize: 24)),
+                child: const Icon(
+                  Icons.search_rounded,
+                  size: 24,
+                  color: AppTheme.primaryDark,
+                ),
               ),
             ],
           ),
@@ -161,7 +169,8 @@ class _QuizQuestionPageState extends State<QuizQuestionPage> {
     ).animate().fadeIn(duration: 300.ms);
   }
 
-  Widget _buildNewsCard() {
+  Widget _buildNewsCard(Locale locale) {
+    final english = locale.languageCode == 'en';
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -193,12 +202,16 @@ class _QuizQuestionPageState extends State<QuizQuestionPage> {
             ),
             child: Row(
               children: [
-                const Text('📰', style: TextStyle(fontSize: 32)),
+                const Icon(
+                  Icons.newspaper_rounded,
+                  size: 32,
+                  color: Colors.white,
+                ),
                 const SizedBox(width: 12),
-                const Expanded(
+                Expanded(
                   child: Text(
-                    'ANALIZA ESTA NOTICIA',
-                    style: TextStyle(
+                    english ? 'ANALYZE THIS NEWS' : 'ANALIZA ESTA NOTICIA',
+                    style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
@@ -225,7 +238,7 @@ class _QuizQuestionPageState extends State<QuizQuestionPage> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
-                        question.newsSource,
+                        question.newsSource.resolve(locale),
                         style: const TextStyle(
                           fontSize: 12,
                           color: Colors.grey,
@@ -235,14 +248,14 @@ class _QuizQuestionPageState extends State<QuizQuestionPage> {
                     ),
                     const Spacer(),
                     Text(
-                      question.newsDate,
+                      question.newsDate.resolve(locale),
                       style: const TextStyle(fontSize: 12, color: Colors.grey),
                     ),
                   ],
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  question.newsTitle,
+                  question.newsTitle.resolve(locale),
                   style: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
@@ -252,7 +265,7 @@ class _QuizQuestionPageState extends State<QuizQuestionPage> {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  question.newsContent,
+                  question.newsContent.resolve(locale),
                   style: TextStyle(
                     fontSize: 16,
                     color: Colors.grey[700],
@@ -269,7 +282,7 @@ class _QuizQuestionPageState extends State<QuizQuestionPage> {
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      question.newsAuthor,
+                      question.newsAuthor.resolve(locale),
                       style: const TextStyle(fontSize: 13, color: Colors.grey),
                     ),
                     const Spacer(),
@@ -280,7 +293,7 @@ class _QuizQuestionPageState extends State<QuizQuestionPage> {
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      question.newsShares,
+                      question.newsShares.resolve(locale),
                       style: const TextStyle(fontSize: 13, color: Colors.grey),
                     ),
                   ],
@@ -293,34 +306,34 @@ class _QuizQuestionPageState extends State<QuizQuestionPage> {
     ).animate().scale(delay: 200.ms, duration: 400.ms, curve: Curves.easeOut);
   }
 
-  Widget _buildElementsGrid() {
+  Widget _buildElementsGrid(bool english) {
     final elementData = [
       {
         'id': 'author',
-        'emoji': '👤',
-        'title': 'Autor',
-        'subtitle': '¿Es confiable?',
+        'icon': Icons.person_rounded,
+        'title': english ? 'Author' : 'Autor',
+        'subtitle': english ? 'Is it trustworthy?' : '¿Es confiable?',
         'color': const Color(0xFF6EC6FF),
       },
       {
         'id': 'source',
-        'emoji': '🔗',
-        'title': 'Fuente',
-        'subtitle': '¿Es verificada?',
+        'icon': Icons.link_rounded,
+        'title': english ? 'Source' : 'Fuente',
+        'subtitle': english ? 'Is it verified?' : '¿Es verificada?',
         'color': const Color(0xFFA4D65E),
       },
       {
         'id': 'image',
-        'emoji': '🖼️',
-        'title': 'Imagen',
-        'subtitle': '¿Es manipulada?',
+        'icon': Icons.image_rounded,
+        'title': english ? 'Image' : 'Imagen',
+        'subtitle': english ? 'Is it manipulated?' : '¿Es manipulada?',
         'color': const Color(0xFFFFB74D),
       },
       {
         'id': 'data',
-        'emoji': '📊',
-        'title': 'Datos',
-        'subtitle': '¿Son exagerados?',
+        'icon': Icons.bar_chart_rounded,
+        'title': english ? 'Data' : 'Datos',
+        'subtitle': english ? 'Is it exaggerated?' : '¿Son exagerados?',
         'color': const Color(0xFFE91E63),
       },
     ];
@@ -341,12 +354,18 @@ class _QuizQuestionPageState extends State<QuizQuestionPage> {
           ),
           child: Row(
             children: [
-              const Text('🎯', style: TextStyle(fontSize: 28)),
+              const Icon(
+                Icons.track_changes_rounded,
+                size: 28,
+                color: Colors.black87,
+              ),
               const SizedBox(width: 12),
-              const Expanded(
+              Expanded(
                 child: Text(
-                  '¿Qué elementos son sospechosos?',
-                  style: TextStyle(
+                  english
+                      ? 'Which elements are suspicious?'
+                      : '¿Qué elementos son sospechosos?',
+                  style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                     color: Colors.black87,
@@ -372,7 +391,7 @@ class _QuizQuestionPageState extends State<QuizQuestionPage> {
             );
             return _buildElementCard(
               element: element,
-              emoji: data['emoji'] as String,
+              icon: data['icon'] as IconData,
               title: data['title'] as String,
               subtitle: data['subtitle'] as String,
               color: data['color'] as Color,
@@ -386,7 +405,7 @@ class _QuizQuestionPageState extends State<QuizQuestionPage> {
 
   Widget _buildElementCard({
     required dynamic element,
-    required String emoji,
+    required IconData icon,
     required String title,
     required String subtitle,
     required Color color,
@@ -440,9 +459,10 @@ class _QuizQuestionPageState extends State<QuizQuestionPage> {
                           shape: BoxShape.circle,
                         ),
                         child: Center(
-                          child: Text(
-                            emoji,
-                            style: const TextStyle(fontSize: 32),
+                          child: Icon(
+                            icon,
+                            size: 32,
+                            color: isSelected ? Colors.white : color,
                           ),
                         ),
                       ),
@@ -496,7 +516,7 @@ class _QuizQuestionPageState extends State<QuizQuestionPage> {
         );
   }
 
-  Widget _buildContinueButton() {
+  Widget _buildContinueButton(bool english) {
     final canContinue = selectedElements.isNotEmpty;
 
     return AnimatedContainer(
@@ -530,7 +550,7 @@ class _QuizQuestionPageState extends State<QuizQuestionPage> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                'Verificar Respuesta',
+                english ? 'Check Answer' : 'Verificar Respuesta',
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,

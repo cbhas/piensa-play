@@ -1,10 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../../../core/routes/app_routes.dart';
 import '../../../../core/services/app_data_service.dart';
+import '../../../../core/theme/app_animations.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../domain/entities/user_profile.dart';
 import '../../domain/usecases/save_user_profile.dart';
+
+const _avatarNames = {
+  'cocodrilo': {'es': 'Cocodrilo', 'en': 'Crocodile'},
+  'jaguar': {'es': 'Jaguar', 'en': 'Jaguar'},
+  'pajaro': {'es': 'Pájaro', 'en': 'Bird'},
+  'tortuga': {'es': 'Tortuga', 'en': 'Turtle'},
+};
 
 class OnboardingPage extends StatefulWidget {
   const OnboardingPage({super.key});
@@ -116,14 +125,14 @@ class _OnboardingPageState extends State<OnboardingPage> {
                     ],
                   ),
                 ),
-              ),
+              ).fadeInSlide(),
               const SizedBox(height: 22),
               Text(
                 english
                     ? 'What should we call you?'
                     : '¿Cómo quieres que te llamemos?',
                 style: Theme.of(context).textTheme.titleLarge,
-              ),
+              ).fadeInSlide(delay: 80.ms),
               const SizedBox(height: 9),
               TextField(
                 controller: _name,
@@ -133,70 +142,126 @@ class _OnboardingPageState extends State<OnboardingPage> {
                   hintText: english ? 'Nickname' : 'Apodo',
                   prefixIcon: const Icon(Icons.badge_outlined),
                 ),
-              ),
-              const SizedBox(height: 14),
+              ).fadeInSlide(delay: 80.ms),
+              const SizedBox(height: 18),
               Text(
                 english ? 'Your age range' : 'Tu edad',
                 style: Theme.of(context).textTheme.titleLarge,
-              ),
-              const SizedBox(height: 9),
-              DropdownButtonFormField<int>(
-                initialValue: _age,
-                decoration: const InputDecoration(
-                  prefixIcon: Icon(Icons.cake_outlined),
-                ),
-                hint: Text(english ? 'Choose an age' : 'Elige una edad'),
-                items: [8, 9, 10, 11, 12]
-                    .map(
-                      (age) => DropdownMenuItem(
-                        value: age,
-                        child: Text(english ? '$age years old' : '$age años'),
+              ).fadeInSlide(delay: 140.ms),
+              const SizedBox(height: 10),
+              Wrap(
+                spacing: 10,
+                runSpacing: 10,
+                children: [8, 9, 10, 11, 12].map((age) {
+                  final selected = _age == age;
+                  return ChoiceChip(
+                    label: Text(english ? '$age yrs' : '$age años'),
+                    selected: selected,
+                    showCheckmark: false,
+                    labelStyle: TextStyle(
+                      fontWeight: FontWeight.w800,
+                      color: selected ? Colors.white : AppTheme.primaryDark,
+                    ),
+                    selectedColor: AppTheme.primaryDark,
+                    backgroundColor: AppTheme.accentGreen.withValues(
+                      alpha: 0.22,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(
+                        AppTheme.radiusMd,
                       ),
-                    )
-                    .toList(),
-                onChanged: (value) => setState(() => _age = value),
-              ),
-              const SizedBox(height: 24),
+                      side: BorderSide.none,
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 8,
+                    ),
+                    onSelected: (_) => setState(() => _age = age),
+                  );
+                }).toList(),
+              ).fadeInSlide(delay: 140.ms),
+              const SizedBox(height: 26),
               Text(
                 english ? 'Choose your guide' : 'Elige tu guía',
                 style: Theme.of(context).textTheme.titleLarge,
-              ),
+              ).fadeInSlide(delay: 200.ms),
               const SizedBox(height: 12),
               GridView.count(
                 crossAxisCount: 4,
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                mainAxisSpacing: 10,
+                mainAxisSpacing: 12,
                 crossAxisSpacing: 10,
-                children: ['cocodrilo', 'jaguar', 'pajaro', 'tortuga']
-                    .map(
-                      (avatar) => Semantics(
-                        button: true,
-                        selected: _avatar == avatar,
-                        label: avatar,
-                        child: InkWell(
-                          onTap: () => setState(() => _avatar = avatar),
-                          borderRadius: BorderRadius.circular(20),
-                          child: Container(
+                childAspectRatio: 0.72,
+                children: _avatarNames.keys.toList().asMap().entries.map((
+                  entry,
+                ) {
+                  final index = entry.key;
+                  final avatar = entry.value;
+                  final selected = _avatar == avatar;
+                  final name = english
+                      ? _avatarNames[avatar]!['en']!
+                      : _avatarNames[avatar]!['es']!;
+                  return Semantics(
+                    button: true,
+                    selected: selected,
+                    label: name,
+                    child: InkWell(
+                      onTap: () => setState(() => _avatar = avatar),
+                      borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          AnimatedContainer(
+                            duration: AppAnimations.normal,
+                            curve: Curves.easeOutBack,
                             padding: const EdgeInsets.all(6),
+                            transform: Matrix4.identity()
+                              ..scaleByDouble(
+                                selected ? 1.06 : 1.0,
+                                selected ? 1.06 : 1.0,
+                                1.0,
+                                1.0,
+                              ),
+                            transformAlignment: Alignment.center,
                             decoration: BoxDecoration(
                               color: AppTheme.accentGreen.withValues(
-                                alpha: 0.22,
+                                alpha: selected ? 0.32 : 0.16,
                               ),
-                              borderRadius: BorderRadius.circular(20),
+                              borderRadius: BorderRadius.circular(
+                                AppTheme.radiusMd,
+                              ),
                               border: Border.all(
-                                color: _avatar == avatar
+                                color: selected
                                     ? AppTheme.primaryDark
                                     : Colors.transparent,
                                 width: 3,
                               ),
+                              boxShadow: selected ? AppTheme.softShadow : null,
                             ),
-                            child: Image.asset('assets/avatars/$avatar.png'),
+                            child: Image.asset(
+                              'assets/avatars/$avatar.png',
+                            ),
                           ),
-                        ),
+                          const SizedBox(height: 6),
+                          Text(
+                            name,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: selected
+                                  ? FontWeight.w900
+                                  : FontWeight.w600,
+                              color: selected
+                                  ? AppTheme.primaryDark
+                                  : AppTheme.muted,
+                            ),
+                          ),
+                        ],
                       ),
-                    )
-                    .toList(),
+                    ),
+                  ).staggeredEntry(index: index, staggerDelay: 60.ms);
+                }).toList(),
               ),
               const SizedBox(height: 28),
               ElevatedButton.icon(
@@ -211,7 +276,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
                 label: Text(
                   english ? 'Enter Digital City' : 'Entrar a la Ciudad Digital',
                 ),
-              ),
+              ).fadeInSlide(delay: 260.ms),
               const SizedBox(height: 10),
               TextButton(
                 onPressed: () =>

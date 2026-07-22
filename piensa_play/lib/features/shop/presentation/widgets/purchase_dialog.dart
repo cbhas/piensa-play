@@ -94,7 +94,11 @@ class PurchaseDialog extends StatelessWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Text('🪙', style: TextStyle(fontSize: 22)),
+                  const Icon(
+                    Icons.monetization_on_rounded,
+                    size: 22,
+                    color: AppTheme.primaryDark,
+                  ),
                   const SizedBox(width: 8),
                   Text(
                     '${item.price}',

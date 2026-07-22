@@ -109,7 +109,11 @@ class ShopItemCard extends StatelessWidget {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Text('🪙', style: TextStyle(fontSize: 12)),
+                          const Icon(
+                            Icons.monetization_on_rounded,
+                            size: 12,
+                            color: Colors.black87,
+                          ),
                           const SizedBox(width: 4),
                           Text(
                             '${item.price}',
@@ -146,13 +150,20 @@ class ShopItemCard extends StatelessWidget {
                     ),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Text(
-                    '⭐ PREMIUM',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 9,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: const [
+                      Icon(Icons.star_rounded, size: 11, color: Colors.white),
+                      SizedBox(width: 3),
+                      Text(
+                        'PREMIUM',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 9,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),

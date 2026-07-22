@@ -26,7 +26,7 @@ class ExplanationPage extends StatelessWidget {
         : const Color(0xFFE53935);
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: Column(
           children: [
@@ -60,10 +60,13 @@ class ExplanationPage extends StatelessWidget {
                 padding: const EdgeInsets.all(24),
                 child: Column(
                   children: [
-                    // Emoji grande
-                    Text(
-                      isCorrect ? '🎯' : '💡',
-                      style: const TextStyle(fontSize: 64),
+                    // Ícono grande
+                    Icon(
+                      isCorrect
+                          ? Icons.track_changes_rounded
+                          : Icons.lightbulb_rounded,
+                      size: 64,
+                      color: accentColor,
                     ).animate().scale(
                       begin: const Offset(0.5, 0.5),
                       duration: 400.ms,
@@ -200,7 +203,11 @@ class ExplanationPage extends StatelessWidget {
                       ),
                       child: Row(
                         children: [
-                          const Text('💡', style: TextStyle(fontSize: 24)),
+                          Icon(
+                            Icons.lightbulb_rounded,
+                            size: 24,
+                            color: Colors.amber.shade700,
+                          ),
                           const SizedBox(width: 12),
                           Expanded(
                             child: Text(

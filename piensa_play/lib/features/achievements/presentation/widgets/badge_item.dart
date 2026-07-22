@@ -15,31 +15,20 @@ class BadgeItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final lockedBg = dark ? Colors.white10 : Colors.grey.shade100;
+    final lockedBorder = dark ? Colors.white24 : Colors.grey.shade300;
+    final lockedIcon = dark ? Colors.white38 : Colors.grey.shade500;
+    final lockedText = dark ? Colors.white54 : Colors.grey.shade600;
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        gradient: isUnlocked
-            ? const LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [AppTheme.accentGreen, AppTheme.accentBlue],
-              )
-            : null,
-        color: isUnlocked ? null : Colors.grey.shade100,
+        color: isUnlocked ? AppTheme.goldFill(dark) : lockedBg,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: isUnlocked ? AppTheme.accentYellow : Colors.grey.shade300,
-          width: 2.5,
+          color: isUnlocked ? AppTheme.goldText(dark) : lockedBorder,
+          width: 2,
         ),
-        boxShadow: isUnlocked
-            ? [
-                BoxShadow(
-                  color: AppTheme.accentGreen.withValues(alpha: 0.4),
-                  blurRadius: 12,
-                  offset: const Offset(0, 6),
-                ),
-              ]
-            : null,
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -49,21 +38,14 @@ class BadgeItem extends StatelessWidget {
             width: 56,
             height: 56,
             decoration: BoxDecoration(
-              color: isUnlocked ? Colors.white : Colors.grey.shade300,
+              color: isUnlocked
+                  ? Theme.of(context).cardColor
+                  : lockedIcon.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(16),
-              boxShadow: isUnlocked
-                  ? [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.1),
-                        blurRadius: 8,
-                        offset: const Offset(0, 4),
-                      ),
-                    ]
-                  : null,
             ),
             child: Icon(
               icon,
-              color: isUnlocked ? AppTheme.primaryDark : Colors.grey.shade500,
+              color: isUnlocked ? AppTheme.goldText(dark) : lockedIcon,
               size: 32,
             ),
           ),
@@ -75,7 +57,7 @@ class BadgeItem extends StatelessWidget {
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
-                color: isUnlocked ? Colors.white : Colors.grey.shade600,
+                color: isUnlocked ? AppTheme.goldText(dark) : lockedText,
                 height: 1.2,
               ),
               textAlign: TextAlign.center,

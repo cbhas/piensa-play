@@ -48,7 +48,7 @@ class DailyQuestionService {
     }
   }
 
-  Future<UnifiedQuestion?> getTodaysQuestion() async {
+  Future<UnifiedQuestion?> getTodaysQuestion({bool english = false}) async {
     final now = DateTime.now();
     if (_todaysQuestion != null &&
         _lastFetchDate != null &&
@@ -62,7 +62,7 @@ class DailyQuestionService {
           .collection('daily_questions')
           .orderBy(FieldPath.documentId)
           .get();
-      if (snapshot.docs.isEmpty) return _offlineQuestion;
+      if (snapshot.docs.isEmpty) return _offlineQuestion(english);
 
       final selected = snapshot.docs[_getDailyIndex(snapshot.docs.length)];
       _todaysQuestion = UnifiedQuestion.fromJson({
@@ -73,7 +73,7 @@ class DailyQuestionService {
       return _todaysQuestion;
     } catch (error) {
       AppLogger.warning('DAILY: using offline question: $error');
-      _todaysQuestion = _offlineQuestion;
+      _todaysQuestion = _offlineQuestion(english);
       _lastFetchDate = now;
       return _todaysQuestion;
     }
@@ -191,30 +191,57 @@ class DailyQuestionService {
     }
   }
 
-  UnifiedQuestion get _offlineQuestion => const UnifiedQuestion(
-    id: 'offline_daily_source',
-    type: QuestionType.quiz,
-    title:
-        'Una publicacion sorprendente no incluye autor ni fuente. ¿Que haces primero?',
-    subtitle: 'Aplica PIENSA antes de compartir.',
-    options: [
-      AnswerOption(
-        id: 'share',
-        text: 'La comparto porque parece urgente',
-        isCorrect: false,
-      ),
-      AnswerOption(
-        id: 'verify',
-        text: 'Busco la fuente original y otra fuente confiable',
-        isCorrect: true,
-      ),
-      AnswerOption(
-        id: 'likes',
-        text: 'Reviso si tiene muchos me gusta',
-        isCorrect: false,
-      ),
-    ],
-    explanation:
-        'La popularidad no es evidencia. Identifica la fuente y busca corroboracion.',
-  );
+  UnifiedQuestion _offlineQuestion(bool english) => english
+      ? const UnifiedQuestion(
+          id: 'offline_daily_source',
+          type: QuestionType.quiz,
+          title:
+              'A surprising post has no author or source. What do you do first?',
+          subtitle: 'Apply PIENSA before sharing.',
+          options: [
+            AnswerOption(
+              id: 'share',
+              text: 'Share it because it seems urgent',
+              isCorrect: false,
+            ),
+            AnswerOption(
+              id: 'verify',
+              text: 'Look for the original source and another trusted one',
+              isCorrect: true,
+            ),
+            AnswerOption(
+              id: 'likes',
+              text: 'Check if it has a lot of likes',
+              isCorrect: false,
+            ),
+          ],
+          explanation:
+              'Popularity is not evidence. Identify the source and look for corroboration.',
+        )
+      : const UnifiedQuestion(
+          id: 'offline_daily_source',
+          type: QuestionType.quiz,
+          title:
+              'Una publicacion sorprendente no incluye autor ni fuente. ¿Que haces primero?',
+          subtitle: 'Aplica PIENSA antes de compartir.',
+          options: [
+            AnswerOption(
+              id: 'share',
+              text: 'La comparto porque parece urgente',
+              isCorrect: false,
+            ),
+            AnswerOption(
+              id: 'verify',
+              text: 'Busco la fuente original y otra fuente confiable',
+              isCorrect: true,
+            ),
+            AnswerOption(
+              id: 'likes',
+              text: 'Reviso si tiene muchos me gusta',
+              isCorrect: false,
+            ),
+          ],
+          explanation:
+              'La popularidad no es evidencia. Identifica la fuente y busca corroboracion.',
+        );
 }
