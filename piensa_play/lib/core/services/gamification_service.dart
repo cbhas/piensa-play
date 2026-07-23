@@ -333,17 +333,34 @@ class GamificationService {
         }
       }
     }
-    // Cache vacia: verificar en Firestore (offline lee de la persistencia).
-    try {
-      final doc = await _firestore
+    // Cache vacia: intentar Firestore. Si el documento nunca estuvo en la
+    // cache local y no hay red, _readOrNull devuelve null y se asume no
+    // completada — es el lado seguro para el usuario (se le da la recompensa
+    // una vez de mas antes que negarsela), y la transaccion al reconectar
+    // corrige el estado.
+    final data = await _readOrNull(
+      _firestore
           .collection('users')
           .doc(userId)
           .collection('mission_progress')
-          .doc(missionId)
-          .get();
-      return doc.exists && (doc.data()?['isCompleted'] == true);
-    } catch (_) {
-      return false;
+          .doc(missionId),
+    );
+    return data?['isCompleted'] == true;
+  }
+
+  /// Lee un documento tolerando el modo offline.
+  ///
+  /// Firestore NO devuelve "no existe" cuando falta la red: `get()` lanza
+  /// `unavailable` si el documento nunca estuvo en la cache local.
+  Future<Map<String, dynamic>?> _readOrNull(
+    DocumentReference<Map<String, dynamic>> ref,
+  ) async {
+    try {
+      final snapshot = await ref.get();
+      return snapshot.exists ? snapshot.data() : null;
+    } catch (error) {
+      AppLogger.warning('GAMIFICATION: documento no disponible offline: $error');
+      return null;
     }
   }
 
@@ -360,17 +377,14 @@ class GamificationService {
   }
 
   Future<bool> _isCategoryBonusClaimed(String userId, String categoryId) async {
-    try {
-      final doc = await _firestore
+    final data = await _readOrNull(
+      _firestore
           .collection('users')
           .doc(userId)
           .collection('reward_claims')
-          .doc('category_$categoryId')
-          .get();
-      return doc.exists;
-    } catch (_) {
-      return false;
-    }
+          .doc('category_$categoryId'),
+    );
+    return data != null;
   }
 
   /// Carga el achievement actual del usuario.
@@ -506,10 +520,32 @@ class GamificationService {
           .collection('unlockedBadges')
           .doc(badgeId);
 
-      final existing = await badgeRef.get();
-      if (existing.exists) {
+      if (await _readOrNull(badgeRef) != null) {
         AppLogger.log('GAMIFICATION: Badge $badgeId already unlocked');
         return null;
+      }
+
+      // El catalogo global ya esta en la cache en memoria desde el arranque,
+      // asi que se resuelve sin tocar la red. Solo se consulta Firestore si la
+      // cache viniera fria.
+      final cached = AppDataService.instance.badges
+          .where((b) => b.id == badgeId)
+          .firstOrNull;
+      if (cached != null) {
+        badgeRef.set({'unlockedAt': FieldValue.serverTimestamp()}).catchError((
+          e,
+        ) {
+          AppLogger.error('GAMIFICATION: Error persisting badge $badgeId: $e');
+        });
+        AppDataService.instance.unlockBadge(badgeId);
+        AppLogger.success('GAMIFICATION: Badge unlocked: ${cached.title}');
+        return entities.Badge(
+          id: badgeId,
+          title: cached.title,
+          description: cached.description,
+          iconName: cached.iconName,
+          isUnlocked: true,
+        );
       }
 
       final globalBadge = await _firestore

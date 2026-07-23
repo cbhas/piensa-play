@@ -56,6 +56,8 @@ class AppDataService {
   int _dailyStreak = 0;
   int _dailyBestStreak = 0;
   int _dailyTotalAnswered = 0;
+  int _dailyTotalCorrect = 0;
+  String? _dailyLastAnsweredDate;
 
   // Questions cache (missionId -> questions)
   Map<String, List<UnifiedQuestion>>? _questionsByMission;
@@ -82,6 +84,15 @@ class AppDataService {
   int get dailyStreak => _dailyStreak;
   int get dailyBestStreak => _dailyBestStreak;
   int get dailyTotalAnswered => _dailyTotalAnswered;
+  int get dailyTotalCorrect => _dailyTotalCorrect;
+
+  /// Última fecha respondida (`yyyy-MM-dd`), o null si nunca respondió.
+  ///
+  /// La expone la caché porque sin conexión no siempre se puede leer de
+  /// Firestore: `get()` lanza `unavailable` cuando el documento nunca estuvo
+  /// en la caché local. Es el dato que permite decidir la racha y la
+  /// idempotencia de la pregunta diaria estando offline.
+  String? get dailyLastAnsweredDate => _dailyLastAnsweredDate;
 
   /// Get questions for a specific mission (from memory, instant)
   List<UnifiedQuestion> getQuestionsForMission(String missionId) {
@@ -222,8 +233,10 @@ class AppDataService {
         _dailyStreak = data['streak'] ?? 0;
         _dailyBestStreak = data['bestStreak'] ?? 0;
         _dailyTotalAnswered = data['totalAnswered'] ?? 0;
+        _dailyTotalCorrect = data['totalCorrect'] ?? 0;
 
         final lastAnsweredDate = data['lastAnsweredDate'] as String?;
+        _dailyLastAnsweredDate = lastAnsweredDate;
 
         // Verificar si la racha debe perderse
         if (_dailyStreak > 0 && lastAnsweredDate != null) {
@@ -465,10 +478,14 @@ class AppDataService {
     required int streak,
     required int bestStreak,
     required int totalAnswered,
+    int? totalCorrect,
+    String? lastAnsweredDate,
   }) {
     _dailyStreak = streak;
     _dailyBestStreak = bestStreak;
     _dailyTotalAnswered = totalAnswered;
+    if (totalCorrect != null) _dailyTotalCorrect = totalCorrect;
+    if (lastAnsweredDate != null) _dailyLastAnsweredDate = lastAnsweredDate;
     AppLogger.success('CACHE: Daily progress updated - streak: $streak');
   }
 }

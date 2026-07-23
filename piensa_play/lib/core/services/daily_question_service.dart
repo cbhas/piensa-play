@@ -128,6 +128,7 @@ class DailyQuestionService {
     var streak = 0;
     var bestStreak = 0;
     var totalAnswered = 0;
+    var totalCorrect = 0;
     var updatedAchievement = Achievement.initial();
 
     await _firestore.runTransaction((transaction) async {
@@ -152,6 +153,7 @@ class DailyQuestionService {
       streak = decision.streak;
       bestStreak = decision.bestStreak;
       totalAnswered = decision.totalAnswered;
+      totalCorrect = decision.totalCorrect;
       if (!decision.grantReward) return;
       xpAwarded = decision.xp;
       coinsAwarded = decision.coins;
@@ -183,6 +185,8 @@ class DailyQuestionService {
         streak: streak,
         bestStreak: bestStreak,
         totalAnswered: totalAnswered,
+        totalCorrect: totalCorrect,
+        lastAnsweredDate: _todayString,
       );
       await _updateWidget(streak);
     }
@@ -207,25 +211,30 @@ class DailyQuestionService {
   Future<Map<String, int>> _submitOptimistically(bool isCorrect) async {
     try {
       final userId = UserIdProvider.currentUserId;
+      final cache = AppDataService.instance;
 
-      // Lectura offline-ok: sale de la persistencia local de Firestore.
-      final progressSnapshot = await _dailyProgressRef(userId).get();
-      final progress = progressSnapshot.data() ?? const <String, dynamic>{};
+      // Se parte de la cache en memoria, NO de un get() a Firestore: sin red,
+      // `get()` lanza `unavailable` cuando el documento nunca estuvo en la
+      // cache local (usuario nuevo), y eso abortaria la respuesta entera. La
+      // cache se hidrata al arrancar y es la fuente unica offline.
+      final progress = await _readOrNull(_dailyProgressRef(userId));
 
       final decision = DailyRewardPolicy.decide(
         isCorrect: isCorrect,
         today: _todayString,
         yesterday: _yesterdayString,
-        lastAnsweredDate: progress['lastAnsweredDate'] as String?,
-        currentStreak: progress['streak'] as int? ?? 0,
-        currentBestStreak: progress['bestStreak'] as int? ?? 0,
-        currentTotalAnswered: progress['totalAnswered'] as int? ?? 0,
-        currentTotalCorrect: progress['totalCorrect'] as int? ?? 0,
+        lastAnsweredDate:
+            progress?['lastAnsweredDate'] as String? ??
+            cache.dailyLastAnsweredDate,
+        currentStreak: progress?['streak'] as int? ?? cache.dailyStreak,
+        currentBestStreak:
+            progress?['bestStreak'] as int? ?? cache.dailyBestStreak,
+        currentTotalAnswered:
+            progress?['totalAnswered'] as int? ?? cache.dailyTotalAnswered,
+        currentTotalCorrect:
+            progress?['totalCorrect'] as int? ?? cache.dailyTotalCorrect,
       );
 
-      // Se lee de Firestore (offline sale de la persistencia local) en vez de
-      // la cache en memoria: si la cache viniera fria devolveria
-      // Achievement.initial() y la escritura reiniciaria el XP real a 0.
       final current = await _loadAchievement(userId);
 
       // Ya respondio hoy: no se altera nada.
@@ -246,12 +255,17 @@ class DailyQuestionService {
         currentLevel: Achievement.calculateLevel(totalXP),
       );
 
-      // 1. Cache primero -> UI inmediata, online u offline.
+      // 1. Cache primero -> UI inmediata, online u offline. Registrar
+      //    lastAnsweredDate es lo que da idempotencia sin red: si la respuesta
+      //    se repite hoy, la politica ya la rechaza aunque Firestore siga sin
+      //    poder leerse.
       AppDataService.instance.updateAchievement(updated);
       AppDataService.instance.updateDailyProgress(
         streak: decision.streak,
         bestStreak: decision.bestStreak,
         totalAnswered: decision.totalAnswered,
+        totalCorrect: decision.totalCorrect,
+        lastAnsweredDate: _todayString,
       );
 
       // 2. Persistencia en segundo plano: se encola y sincroniza al reconectar.
@@ -299,14 +313,30 @@ class DailyQuestionService {
     }
   }
 
-  Future<Achievement> _loadAchievement(String userId) async {
+  /// Lee un documento tolerando el modo offline.
+  ///
+  /// Firestore NO devuelve "no existe" cuando falta la red: `get()` lanza
+  /// `unavailable` si el documento nunca estuvo en la cache local. Para el
+  /// llamador ambos casos son lo mismo — no hay dato — asi que se devuelve
+  /// null en vez de propagar el error.
+  Future<Map<String, dynamic>?> _readOrNull(
+    DocumentReference<Map<String, dynamic>> ref,
+  ) async {
     try {
-      final snapshot = await _achievementRef(userId).get();
-      if (snapshot.exists) return Achievement.fromJson(snapshot.data()!);
+      final snapshot = await ref.get();
+      return snapshot.exists ? snapshot.data() : null;
     } catch (error) {
-      AppLogger.warning('DAILY: achievement unavailable: $error');
+      AppLogger.warning('DAILY: documento no disponible offline: $error');
+      return null;
     }
-    return Achievement.initial();
+  }
+
+  /// Achievement actual. Sin red cae a la cache en memoria, que se hidrata al
+  /// arrancar; nunca a Achievement.initial() si hay algo mejor disponible.
+  Future<Achievement> _loadAchievement(String userId) async {
+    final data = await _readOrNull(_achievementRef(userId));
+    if (data != null) return Achievement.fromJson(data);
+    return AppDataService.instance.achievement;
   }
 
   Future<void> _updateWidget(int streak) async {
