@@ -31,10 +31,11 @@ class QuizQuestionWidget extends BaseQuestionWidget {
               padding: const EdgeInsets.all(20),
               child: Column(
                 children: [
-                  // Emoji grande de la misión
-                  Text(
-                    _getQuestionEmoji(),
-                    style: const TextStyle(fontSize: 48),
+                  // Ícono grande de la misión
+                  Icon(
+                    _getQuestionIcon(),
+                    size: 48,
+                    color: AppTheme.primaryDark,
                   ).animate().scale(duration: 300.ms, curve: Curves.elasticOut),
 
                   const SizedBox(height: 16),
@@ -90,19 +91,26 @@ class QuizQuestionWidget extends BaseQuestionWidget {
           ),
 
           // Botón verificar
-          if (!isAnswered) _buildVerifyButton(),
+          if (!isAnswered)
+            _buildVerifyButton(
+              Localizations.localeOf(context).languageCode == 'en',
+            ),
         ],
       ),
     );
   }
 
-  String _getQuestionEmoji() {
-    if (question.content?.toLowerCase().contains('noticia') ?? false)
-      return '📰';
-    if (question.content?.toLowerCase().contains('vacuna') ?? false)
-      return '💉';
-    if (question.content?.toLowerCase().contains('agua') ?? false) return '💧';
-    return '🤔';
+  IconData _getQuestionIcon() {
+    if (question.content?.toLowerCase().contains('noticia') ?? false) {
+      return Icons.newspaper_rounded;
+    }
+    if (question.content?.toLowerCase().contains('vacuna') ?? false) {
+      return Icons.vaccines_rounded;
+    }
+    if (question.content?.toLowerCase().contains('agua') ?? false) {
+      return Icons.water_drop_rounded;
+    }
+    return Icons.psychology_alt_rounded;
   }
 
   String _shortenText(String text, int maxLength) {
@@ -165,7 +173,7 @@ class QuizQuestionWidget extends BaseQuestionWidget {
               height: 28,
               decoration: BoxDecoration(
                 color: showCheck
-                    ? Colors.white.withOpacity(0.3)
+                    ? Colors.white.withValues(alpha: 0.3)
                     : Colors.transparent,
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
@@ -195,7 +203,7 @@ class QuizQuestionWidget extends BaseQuestionWidget {
     ).animate(delay: (60 * index).ms).fadeIn().slideX(begin: 0.05);
   }
 
-  Widget _buildVerifyButton() {
+  Widget _buildVerifyButton(bool english) {
     final hasSelection = selectedOptionIds.isNotEmpty;
 
     return Container(
@@ -222,9 +230,24 @@ class QuizQuestionWidget extends BaseQuestionWidget {
                 borderRadius: BorderRadius.circular(16),
               ),
             ),
-            child: Text(
-              hasSelection ? '¡VERIFICAR! ✓' : 'Elige una opción',
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  hasSelection
+                      ? (english ? 'CHECK!' : '¡VERIFICAR!')
+                      : (english ? 'Choose an option' : 'Elige una opción'),
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                if (hasSelection) ...[
+                  const SizedBox(width: 8),
+                  const Icon(Icons.check_rounded),
+                ],
+              ],
             ),
           ),
         ),

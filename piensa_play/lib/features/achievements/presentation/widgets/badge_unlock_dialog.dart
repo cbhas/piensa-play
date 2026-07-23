@@ -60,6 +60,7 @@ class BadgeUnlockDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final english = Localizations.localeOf(context).languageCode == 'en';
     return Dialog(
       backgroundColor: Colors.transparent,
       child: Container(
@@ -87,13 +88,26 @@ class BadgeUnlockDialog extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             // Título
-            const Text(
-                  '🎉 ¡Nuevo Logro!',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
+            Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.celebration_rounded,
+                      color: AppTheme.accentYellow,
+                      size: 26,
+                    ),
+                    const SizedBox(width: 10),
+                    Flexible(
+                      child: Text(
+                        english ? 'New Achievement!' : '¡Nuevo Logro!',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
                 )
                 .animate()
                 .fadeIn(duration: 400.ms)
@@ -192,9 +206,12 @@ class BadgeUnlockDialog extends StatelessWidget {
                       borderRadius: BorderRadius.circular(30),
                     ),
                   ),
-                  child: const Text(
-                    '¡Genial!',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  child: Text(
+                    english ? 'Awesome!' : '¡Genial!',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 )
                 .animate()

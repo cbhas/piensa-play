@@ -23,6 +23,8 @@ class QuizFeedbackPage extends StatelessWidget {
     final questions = VeracidadvilleQuizData.getQuestions();
     final question = questions[questionIndex];
     final isLastQuestion = questionIndex >= questions.length - 1;
+    final locale = Localizations.localeOf(context);
+    final english = locale.languageCode == 'en';
 
     return Scaffold(
       body: Container(
@@ -53,13 +55,13 @@ class QuizFeedbackPage extends StatelessWidget {
                   padding: const EdgeInsets.all(20),
                   child: Column(
                     children: [
-                      _buildResultCard(),
+                      _buildResultCard(english),
                       const SizedBox(height: 24),
-                      _buildNewsCard(question),
+                      _buildNewsCard(question, locale, english),
                       const SizedBox(height: 24),
-                      _buildElementsGrid(question),
+                      _buildElementsGrid(question, english),
                       const SizedBox(height: 30),
-                      _buildContinueButton(context, isLastQuestion),
+                      _buildContinueButton(context, isLastQuestion, english),
                     ],
                   ),
                 ),
@@ -91,9 +93,10 @@ class QuizFeedbackPage extends StatelessWidget {
               color: Colors.white.withValues(alpha: 0.3),
               shape: BoxShape.circle,
             ),
-            child: Text(
-              isCorrect ? '✅' : '❌',
-              style: const TextStyle(fontSize: 24),
+            child: Icon(
+              isCorrect ? Icons.check_circle_rounded : Icons.cancel_rounded,
+              size: 24,
+              color: Colors.white,
             ),
           ),
         ],
@@ -101,7 +104,7 @@ class QuizFeedbackPage extends StatelessWidget {
     ).animate().fadeIn(duration: 300.ms);
   }
 
-  Widget _buildResultCard() {
+  Widget _buildResultCard(bool english) {
     return Container(
       padding: const EdgeInsets.all(30),
       decoration: BoxDecoration(
@@ -117,7 +120,13 @@ class QuizFeedbackPage extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Text(isCorrect ? '🎉' : '💪', style: const TextStyle(fontSize: 80))
+          Icon(
+                isCorrect
+                    ? Icons.celebration_rounded
+                    : Icons.thumb_up_rounded,
+                size: 80,
+                color: isCorrect ? Colors.green : Colors.orange,
+              )
               .animate(onPlay: (controller) => controller.repeat(reverse: true))
               .scale(
                 duration: 1000.ms,
@@ -126,7 +135,9 @@ class QuizFeedbackPage extends StatelessWidget {
               ),
           const SizedBox(height: 20),
           Text(
-            isCorrect ? '¡Correcto!' : '¡Casi lo logras!',
+            isCorrect
+                ? (english ? 'Correct!' : '¡Correcto!')
+                : (english ? 'So close!' : '¡Casi lo logras!'),
             style: TextStyle(
               fontSize: 32,
               fontWeight: FontWeight.bold,
@@ -136,8 +147,12 @@ class QuizFeedbackPage extends StatelessWidget {
           const SizedBox(height: 12),
           Text(
             isCorrect
-                ? '¡Excelente trabajo detectando la información falsa!'
-                : 'Revisa los elementos marcados y aprende de tus errores',
+                ? (english
+                      ? 'Great job spotting the false information!'
+                      : '¡Excelente trabajo detectando la información falsa!')
+                : (english
+                      ? 'Review the marked elements and learn from your mistakes'
+                      : 'Revisa los elementos marcados y aprende de tus errores'),
             style: TextStyle(fontSize: 16, color: Colors.grey[600]),
             textAlign: TextAlign.center,
           ),
@@ -150,7 +165,7 @@ class QuizFeedbackPage extends StatelessWidget {
     );
   }
 
-  Widget _buildNewsCard(QuizQuestion question) {
+  Widget _buildNewsCard(QuizQuestion question, Locale locale, bool english) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -180,14 +195,18 @@ class QuizFeedbackPage extends StatelessWidget {
                 topRight: Radius.circular(24),
               ),
             ),
-            child: const Row(
+            child: Row(
               children: [
-                Text('📰', style: TextStyle(fontSize: 28)),
-                SizedBox(width: 12),
+                const Icon(
+                  Icons.newspaper_rounded,
+                  size: 28,
+                  color: Colors.white,
+                ),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    'LA NOTICIA',
-                    style: TextStyle(
+                    english ? 'THE NEWS' : 'LA NOTICIA',
+                    style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
@@ -203,7 +222,7 @@ class QuizFeedbackPage extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  question.newsTitle,
+                  question.newsTitle.resolve(locale),
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -213,7 +232,7 @@ class QuizFeedbackPage extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  question.newsContent,
+                  question.newsContent.resolve(locale),
                   style: TextStyle(
                     fontSize: 15,
                     color: Colors.grey[700],
@@ -228,30 +247,30 @@ class QuizFeedbackPage extends StatelessWidget {
     ).animate().slideY(delay: 400.ms, begin: 0.2, duration: 400.ms);
   }
 
-  Widget _buildElementsGrid(QuizQuestion question) {
+  Widget _buildElementsGrid(QuizQuestion question, bool english) {
     final elementData = [
       {
         'id': 'author',
-        'emoji': '👤',
-        'title': 'Autor',
+        'icon': Icons.person_rounded,
+        'title': english ? 'Author' : 'Autor',
         'color': const Color(0xFF6EC6FF),
       },
       {
         'id': 'source',
-        'emoji': '🔗',
-        'title': 'Fuente',
+        'icon': Icons.link_rounded,
+        'title': english ? 'Source' : 'Fuente',
         'color': const Color(0xFFA4D65E),
       },
       {
         'id': 'image',
-        'emoji': '🖼️',
-        'title': 'Imagen',
+        'icon': Icons.image_rounded,
+        'title': english ? 'Image' : 'Imagen',
         'color': const Color(0xFFFFB74D),
       },
       {
         'id': 'data',
-        'emoji': '📊',
-        'title': 'Datos',
+        'icon': Icons.bar_chart_rounded,
+        'title': english ? 'Data' : 'Datos',
         'color': const Color(0xFFE91E63),
       },
     ];
@@ -265,14 +284,18 @@ class QuizFeedbackPage extends StatelessWidget {
             color: Colors.white,
             borderRadius: BorderRadius.circular(16),
           ),
-          child: const Row(
+          child: Row(
             children: [
-              Text('🎯', style: TextStyle(fontSize: 24)),
-              SizedBox(width: 12),
+              const Icon(
+                Icons.track_changes_rounded,
+                size: 24,
+                color: Colors.black87,
+              ),
+              const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  'Elementos Analizados',
-                  style: TextStyle(
+                  english ? 'Elements Analyzed' : 'Elementos Analizados',
+                  style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                     color: Colors.black87,
@@ -300,12 +323,13 @@ class QuizFeedbackPage extends StatelessWidget {
             final isCorrect = element.isCorrect;
 
             return _buildFeedbackElementCard(
-              emoji: data['emoji'] as String,
+              icon: data['icon'] as IconData,
               title: data['title'] as String,
               color: data['color'] as Color,
               wasSelected: wasSelected,
               isCorrect: isCorrect,
               index: index,
+              english: english,
             );
           }).toList(),
         ),
@@ -314,12 +338,13 @@ class QuizFeedbackPage extends StatelessWidget {
   }
 
   Widget _buildFeedbackElementCard({
-    required String emoji,
+    required IconData icon,
     required String title,
     required Color color,
     required bool wasSelected,
     required bool isCorrect,
     required int index,
+    required bool english,
   }) {
     // Determine the state
     final showAsCorrect = wasSelected && isCorrect;
@@ -328,29 +353,29 @@ class QuizFeedbackPage extends StatelessWidget {
 
     Color cardColor;
     Color borderColor;
-    String statusEmoji;
+    IconData statusIcon;
     String statusText;
 
     if (showAsCorrect) {
       cardColor = const Color(0xFFE8F5E9);
       borderColor = Colors.green;
-      statusEmoji = '✅';
-      statusText = '¡Correcto!';
+      statusIcon = Icons.check_circle_rounded;
+      statusText = english ? 'Correct!' : '¡Correcto!';
     } else if (showAsIncorrect) {
       cardColor = const Color(0xFFFFEBEE);
       borderColor = Colors.red;
-      statusEmoji = '❌';
-      statusText = 'Incorrecto';
+      statusIcon = Icons.cancel_rounded;
+      statusText = english ? 'Incorrect' : 'Incorrecto';
     } else if (showAsMissed) {
       cardColor = const Color(0xFFFFF3E0);
       borderColor = Colors.orange;
-      statusEmoji = '⚠️';
-      statusText = 'Faltó';
+      statusIcon = Icons.warning_amber_rounded;
+      statusText = english ? 'Missed' : 'Faltó';
     } else {
       cardColor = Colors.white;
       borderColor = Colors.grey[300]!;
-      statusEmoji = '⚪';
-      statusText = 'Correcto';
+      statusIcon = Icons.radio_button_unchecked_rounded;
+      statusText = english ? 'Correct' : 'Correcto';
     }
 
     return Container(
@@ -381,10 +406,7 @@ class QuizFeedbackPage extends StatelessWidget {
                         shape: BoxShape.circle,
                       ),
                       child: Center(
-                        child: Text(
-                          emoji,
-                          style: const TextStyle(fontSize: 32),
-                        ),
+                        child: Icon(icon, size: 32, color: color),
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -421,7 +443,7 @@ class QuizFeedbackPage extends StatelessWidget {
               Positioned(
                 top: 8,
                 right: 8,
-                child: Text(statusEmoji, style: const TextStyle(fontSize: 24)),
+                child: Icon(statusIcon, size: 24, color: borderColor),
               ),
             ],
           ),
@@ -434,7 +456,11 @@ class QuizFeedbackPage extends StatelessWidget {
         );
   }
 
-  Widget _buildContinueButton(BuildContext context, bool isLastQuestion) {
+  Widget _buildContinueButton(
+    BuildContext context,
+    bool isLastQuestion,
+    bool english,
+  ) {
     return Container(
           width: double.infinity,
           height: 60,
@@ -459,22 +485,34 @@ class QuizFeedbackPage extends StatelessWidget {
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const MissionResultsPage(
+                      builder: (context) => MissionResultsPage(
                         correctAnswers: 3,
                         incorrectAnswers: 0,
                         totalQuestions: 3,
                         missionId: 'fake_news',
                         missionName: 'Veracidadville',
-                        primaryColor: Color(0xFFFDD835),
+                        primaryColor: const Color(0xFFFDD835),
                         secondaryColor: AppTheme.accentGreen,
-                        perfectMessage: '¡Eres un maestro detective!',
-                        goodMessage: 'Has protegido Veracidadville',
-                        tryAgainMessage: '¡Sigue practicando!',
-                        learningPoints: [
-                          'Verifica siempre la fuente de información',
-                          'Desconfía de lenguaje muy emocional',
-                          'Las promesas mágicas suelen ser falsas',
-                        ],
+                        perfectMessage: english
+                            ? 'You are a master detective!'
+                            : '¡Eres un maestro detective!',
+                        goodMessage: english
+                            ? 'You protected Veracidadville'
+                            : 'Has protegido Veracidadville',
+                        tryAgainMessage: english
+                            ? 'Keep practicing!'
+                            : '¡Sigue practicando!',
+                        learningPoints: english
+                            ? const [
+                                'Always verify the source of information',
+                                'Be wary of very emotional language',
+                                'Magic promises are usually false',
+                              ]
+                            : const [
+                                'Verifica siempre la fuente de información',
+                                'Desconfía de lenguaje muy emocional',
+                                'Las promesas mágicas suelen ser falsas',
+                              ],
                       ),
                     ),
                   );
@@ -493,7 +531,9 @@ class QuizFeedbackPage extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    isLastQuestion ? 'Ver Resultados' : 'Siguiente Pregunta',
+                    isLastQuestion
+                        ? (english ? 'See Results' : 'Ver Resultados')
+                        : (english ? 'Next Question' : 'Siguiente Pregunta'),
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,

@@ -12,6 +12,7 @@ class TrueFalseIntroPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
+    final english = Localizations.localeOf(context).languageCode == 'en';
 
     return Scaffold(
       appBar: AppBar(
@@ -19,9 +20,9 @@ class TrueFalseIntroPage extends StatelessWidget {
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: const Text(
-          'Misión: Titular Engañoso',
-          style: TextStyle(color: Colors.white),
+        title: Text(
+          english ? 'Mission: Misleading Headline' : 'Misión: Titular Engañoso',
+          style: const TextStyle(color: Colors.white),
         ),
         backgroundColor: AppTheme.primaryDark,
         elevation: 0,
@@ -41,18 +42,18 @@ class TrueFalseIntroPage extends StatelessWidget {
         child: SafeArea(
           child: Column(
             children: [
-              _buildHeader(),
+              _buildHeader(english),
               Expanded(
                 child: SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
                   padding: const EdgeInsets.all(20),
                   child: Column(
                     children: [
-                      _buildHeroSection(size),
+                      _buildHeroSection(size, english),
                       const SizedBox(height: 30),
-                      _buildInstructionCards(),
+                      _buildInstructionCards(english),
                       const SizedBox(height: 30),
-                      _buildStartButton(context),
+                      _buildStartButton(context, english),
                     ],
                   ),
                 ),
@@ -64,7 +65,7 @@ class TrueFalseIntroPage extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(bool english) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
       child: Row(
@@ -73,9 +74,9 @@ class TrueFalseIntroPage extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Detector de Verdades',
-                style: TextStyle(
+              Text(
+                english ? 'Truth Detector' : 'Detector de Verdades',
+                style: const TextStyle(
                   fontSize: 26,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
@@ -91,9 +92,9 @@ class TrueFalseIntroPage extends StatelessWidget {
                   color: const Color(0xFF66BB6A),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Text(
-                  'Verdadero o Falso',
-                  style: TextStyle(
+                child: Text(
+                  english ? 'True or False' : 'Verdadero o Falso',
+                  style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
@@ -108,7 +109,11 @@ class TrueFalseIntroPage extends StatelessWidget {
                   color: Colors.white.withValues(alpha: 0.2),
                   shape: BoxShape.circle,
                 ),
-                child: const Text('🎯', style: TextStyle(fontSize: 32)),
+                child: const Icon(
+                  Icons.track_changes_rounded,
+                  size: 32,
+                  color: Colors.white,
+                ),
               )
               .animate(onPlay: (controller) => controller.repeat())
               .shimmer(
@@ -120,7 +125,7 @@ class TrueFalseIntroPage extends StatelessWidget {
     ).animate().fadeIn(duration: 400.ms);
   }
 
-  Widget _buildHeroSection(Size size) {
+  Widget _buildHeroSection(Size size, bool english) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
@@ -144,7 +149,11 @@ class TrueFalseIntroPage extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Text('✅', style: TextStyle(fontSize: 60))
+              const Icon(
+                    Icons.check_circle_rounded,
+                    size: 60,
+                    color: Colors.white,
+                  )
                   .animate(
                     onPlay: (controller) => controller.repeat(reverse: true),
                   )
@@ -154,7 +163,7 @@ class TrueFalseIntroPage extends StatelessWidget {
                     end: const Offset(1.1, 1.1),
                   ),
               const SizedBox(width: 20),
-              const Text('❌', style: TextStyle(fontSize: 60))
+              const Icon(Icons.cancel_rounded, size: 60, color: Colors.white)
                   .animate(
                     onPlay: (controller) => controller.repeat(reverse: true),
                   )
@@ -167,9 +176,9 @@ class TrueFalseIntroPage extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          const Text(
-            '¿Verdadero o Falso?',
-            style: TextStyle(
+          Text(
+            english ? 'True or False?' : '¿Verdadero o Falso?',
+            style: const TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
               color: Colors.white,
@@ -177,9 +186,11 @@ class TrueFalseIntroPage extends StatelessWidget {
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 12),
-          const Text(
-            'Lee las noticias, analiza las pistas y decide si son verdaderas o falsas',
-            style: TextStyle(fontSize: 16, color: Colors.white),
+          Text(
+            english
+                ? 'Read the news, analyze the clues, and decide if they are true or false'
+                : 'Lee las noticias, analiza las pistas y decide si son verdaderas o falsas',
+            style: const TextStyle(fontSize: 16, color: Colors.white),
             textAlign: TextAlign.center,
           ),
         ],
@@ -191,24 +202,28 @@ class TrueFalseIntroPage extends StatelessWidget {
     );
   }
 
-  Widget _buildInstructionCards() {
+  Widget _buildInstructionCards(bool english) {
     final instructions = [
       {
-        'emoji': '📖',
-        'title': 'Lee la Noticia',
-        'description': 'Analiza el título, contenido y autor',
+        'icon': Icons.article_rounded,
+        'title': english ? 'Read the News' : 'Lee la Noticia',
+        'description': english
+            ? 'Analyze the title, content, and author'
+            : 'Analiza el título, contenido y autor',
         'color': const Color(0xFF42A5F5),
       },
       {
-        'emoji': '🔍',
-        'title': 'Revisa las Pistas',
-        'description': 'Busca señales de noticias falsas',
+        'icon': Icons.search_rounded,
+        'title': english ? 'Check the Clues' : 'Revisa las Pistas',
+        'description': english
+            ? 'Look for signs of fake news'
+            : 'Busca señales de noticias falsas',
         'color': const Color(0xFFFFCA28),
       },
       {
-        'emoji': '🤔',
-        'title': 'Decide',
-        'description': '¿Es verdadera o falsa?',
+        'icon': Icons.psychology_alt_rounded,
+        'title': english ? 'Decide' : 'Decide',
+        'description': english ? 'Is it true or false?' : '¿Es verdadera o falsa?',
         'color': const Color(0xFFEC407A),
       },
     ];
@@ -218,22 +233,24 @@ class TrueFalseIntroPage extends StatelessWidget {
         final index = entry.key;
         final instruction = entry.value;
         return _buildInstructionCard(
-          emoji: instruction['emoji'] as String,
+          icon: instruction['icon'] as IconData,
           title: instruction['title'] as String,
           description: instruction['description'] as String,
           color: instruction['color'] as Color,
           index: index,
+          english: english,
         );
       }).toList(),
     );
   }
 
   Widget _buildInstructionCard({
-    required String emoji,
+    required IconData icon,
     required String title,
     required String description,
     required Color color,
     required int index,
+    required bool english,
   }) {
     return Container(
           margin: const EdgeInsets.only(bottom: 16),
@@ -270,7 +287,7 @@ class TrueFalseIntroPage extends StatelessWidget {
                   ],
                 ),
                 child: Center(
-                  child: Text(emoji, style: const TextStyle(fontSize: 32)),
+                  child: Icon(icon, size: 32, color: Colors.white),
                 ),
               ),
               const SizedBox(width: 16),
@@ -290,7 +307,7 @@ class TrueFalseIntroPage extends StatelessWidget {
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
-                            'Paso ${index + 1}',
+                            english ? 'Step ${index + 1}' : 'Paso ${index + 1}',
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
@@ -325,7 +342,7 @@ class TrueFalseIntroPage extends StatelessWidget {
         .fadeIn();
   }
 
-  Widget _buildStartButton(BuildContext context) {
+  Widget _buildStartButton(BuildContext context, bool english) {
     return Container(
           width: double.infinity,
           height: 60,
@@ -353,8 +370,12 @@ class TrueFalseIntroPage extends StatelessWidget {
                 // Validate questions before starting
                 if (questions.isEmpty) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Error: No hay preguntas disponibles'),
+                    SnackBar(
+                      content: Text(
+                        english
+                            ? 'Error: No questions available'
+                            : 'Error: No hay preguntas disponibles',
+                      ),
                       backgroundColor: Colors.red,
                     ),
                   );
@@ -375,9 +396,9 @@ class TrueFalseIntroPage extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text(
-                    '¡Comenzar Misión!',
-                    style: TextStyle(
+                  Text(
+                    english ? 'Start Mission!' : '¡Comenzar Misión!',
+                    style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,

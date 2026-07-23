@@ -1,49 +1,68 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:piensa_play/core/services/logger_service.dart';
 
-/// Service to manage mission progress persistence
+import 'app_data_service.dart';
+import 'logger_service.dart';
+import 'user_id_provider.dart';
+
+/// Firestore es la fuente de verdad; SharedPreferences es su espejo offline.
 class MissionProgressService {
-  static const String _keyPrefix = 'mission_completed_';
+  static const _keyPrefix = 'mission_completed_';
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  /// Check if a mission is completed
   Future<bool> isMissionCompleted(String missionId) async {
+    for (final category in AppDataService.instance.missionCategories) {
+      for (final mission in category.missions) {
+        if (mission.id == missionId && mission.isCompleted) return true;
+      }
+    }
+
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getBool('$_keyPrefix$missionId') ?? false;
+    final local = prefs.getBool('$_keyPrefix$missionId') ?? false;
+    try {
+      final snapshot = await _firestore
+          .collection('users')
+          .doc(UserIdProvider.currentUserId)
+          .collection('mission_progress')
+          .doc(missionId)
+          .get();
+      final remote = snapshot.data()?['isCompleted'] == true;
+      if (remote && !local) {
+        await prefs.setBool('$_keyPrefix$missionId', true);
+      }
+      return remote;
+    } catch (error) {
+      AppLogger.warning('PROGRESS: using offline mirror: $error');
+      return local;
+    }
   }
 
-  /// Mark a mission as completed
+  /// Solo refleja localmente una finalizacion ya reclamada por
+  /// GamificationService.
   Future<void> completeMission(String missionId) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('$_keyPrefix$missionId', true);
-    AppLogger.success('Mission completed: $missionId');
+    AppDataService.instance.markMissionCompleted(missionId);
   }
 
-  /// Get all completed missions for a category
   Future<Map<String, bool>> getCategoryProgress(List<String> missionIds) async {
-    final prefs = await SharedPreferences.getInstance();
-    final Map<String, bool> progress = {};
-
-    for (final missionId in missionIds) {
-      progress[missionId] = prefs.getBool('$_keyPrefix$missionId') ?? false;
-    }
-
-    return progress;
+    final result = <String, bool>{};
+    await Future.wait(
+      missionIds.map((id) async => result[id] = await isMissionCompleted(id)),
+    );
+    return result;
   }
 
-  /// Reset progress for a specific mission (for testing)
   Future<void> resetMission(String missionId) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('$_keyPrefix$missionId');
-    AppLogger.refresh('Mission reset: $missionId');
   }
 
-  /// Reset all progress (for testing)
   Future<void> resetAllProgress() async {
     final prefs = await SharedPreferences.getInstance();
     final keys = prefs.getKeys().where((key) => key.startsWith(_keyPrefix));
     for (final key in keys) {
       await prefs.remove(key);
     }
-    AppLogger.refresh('All mission progress reset');
   }
 }

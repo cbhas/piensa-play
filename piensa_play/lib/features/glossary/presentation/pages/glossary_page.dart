@@ -113,6 +113,7 @@ class _GlossaryPageState extends State<GlossaryPage> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final english = Localizations.localeOf(context).languageCode == 'en';
 
     return Scaffold(
       backgroundColor: isDark
@@ -138,11 +139,11 @@ class _GlossaryPageState extends State<GlossaryPage> {
                   icon: const Icon(Icons.arrow_back, color: Colors.white),
                   onPressed: () => Navigator.pop(context),
                 ),
-                const Expanded(
+                Expanded(
                   child: Text(
-                    'Glosario',
+                    english ? 'Glossary' : 'Glosario',
                     textAlign: TextAlign.center,
-                    style: TextStyle(
+                    style: const TextStyle(
                       color: Colors.white,
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
@@ -164,7 +165,7 @@ class _GlossaryPageState extends State<GlossaryPage> {
             child: TextField(
               controller: _searchController,
               decoration: InputDecoration(
-                hintText: 'Buscar término...',
+                hintText: english ? 'Search for a term...' : 'Buscar término...',
                 hintStyle: TextStyle(
                   color: isDark
                       ? AppTheme.textSecondaryDark
@@ -276,7 +277,9 @@ class _GlossaryPageState extends State<GlossaryPage> {
                                 ),
                                 const SizedBox(height: 16),
                                 Text(
-                                  'No se encontraron términos',
+                                  english
+                                      ? 'No terms found'
+                                      : 'No se encontraron términos',
                                   style: TextStyle(
                                     fontSize: 16,
                                     color: Colors.grey.shade600,

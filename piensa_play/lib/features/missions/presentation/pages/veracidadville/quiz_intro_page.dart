@@ -9,6 +9,7 @@ class QuizIntroPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
+    final english = Localizations.localeOf(context).languageCode == 'en';
 
     return Scaffold(
       appBar: AppBar(
@@ -16,9 +17,9 @@ class QuizIntroPage extends StatelessWidget {
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: const Text(
-          'Misión: Fake News',
-          style: TextStyle(color: Colors.white),
+        title: Text(
+          english ? 'Mission: Fake News' : 'Misión: Fake News',
+          style: const TextStyle(color: Colors.white),
         ),
         backgroundColor: AppTheme.primaryDark,
         elevation: 0,
@@ -38,18 +39,18 @@ class QuizIntroPage extends StatelessWidget {
         child: SafeArea(
           child: Column(
             children: [
-              _buildHeader(),
+              _buildHeader(english),
               Expanded(
                 child: SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
                   padding: const EdgeInsets.all(20),
                   child: Column(
                     children: [
-                      _buildHeroSection(size),
+                      _buildHeroSection(size, english),
                       const SizedBox(height: 30),
-                      _buildInstructionCards(),
+                      _buildInstructionCards(english),
                       const SizedBox(height: 30),
-                      _buildStartButton(context),
+                      _buildStartButton(context, english),
                     ],
                   ),
                 ),
@@ -61,7 +62,7 @@ class QuizIntroPage extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(bool english) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
       child: Row(
@@ -88,9 +89,9 @@ class QuizIntroPage extends StatelessWidget {
                   color: const Color(0xFFFDD835),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Text(
-                  'Verifica o Falla',
-                  style: TextStyle(
+                child: Text(
+                  english ? 'Verify or Fail' : 'Verifica o Falla',
+                  style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
                     color: Colors.black87,
@@ -105,7 +106,11 @@ class QuizIntroPage extends StatelessWidget {
                   color: Colors.white.withValues(alpha: 0.2),
                   shape: BoxShape.circle,
                 ),
-                child: const Text('🔍', style: TextStyle(fontSize: 32)),
+                child: const Icon(
+                  Icons.search_rounded,
+                  size: 32,
+                  color: Colors.white,
+                ),
               )
               .animate(onPlay: (controller) => controller.repeat())
               .shimmer(
@@ -117,7 +122,7 @@ class QuizIntroPage extends StatelessWidget {
     ).animate().fadeIn(duration: 400.ms);
   }
 
-  Widget _buildHeroSection(Size size) {
+  Widget _buildHeroSection(Size size, bool english) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
@@ -138,7 +143,11 @@ class QuizIntroPage extends StatelessWidget {
       ),
       child: Column(
         children: [
-          const Text('🎯', style: TextStyle(fontSize: 80))
+          const Icon(
+            Icons.track_changes_rounded,
+            size: 80,
+            color: Colors.black87,
+          )
               .animate(onPlay: (controller) => controller.repeat(reverse: true))
               .scale(
                 duration: 1500.ms,
@@ -146,9 +155,11 @@ class QuizIntroPage extends StatelessWidget {
                 end: const Offset(1.1, 1.1),
               ),
           const SizedBox(height: 16),
-          const Text(
-            '¡Conviértete en un Detective de Noticias!',
-            style: TextStyle(
+          Text(
+            english
+                ? 'Become a News Detective!'
+                : '¡Conviértete en un Detective de Noticias!',
+            style: const TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
               color: Colors.black87,
@@ -156,9 +167,11 @@ class QuizIntroPage extends StatelessWidget {
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 12),
-          const Text(
-            'Aprende a identificar información falsa y protege tu ciudad',
-            style: TextStyle(fontSize: 16, color: Colors.black87),
+          Text(
+            english
+                ? 'Learn to spot false information and protect your city'
+                : 'Aprende a identificar información falsa y protege tu ciudad',
+            style: const TextStyle(fontSize: 16, color: Colors.black87),
             textAlign: TextAlign.center,
           ),
         ],
@@ -170,24 +183,30 @@ class QuizIntroPage extends StatelessWidget {
     );
   }
 
-  Widget _buildInstructionCards() {
+  Widget _buildInstructionCards(bool english) {
     final instructions = [
       {
-        'emoji': '📰',
-        'title': 'Lee la Noticia',
-        'description': 'Analiza cuidadosamente cada artículo',
+        'icon': Icons.newspaper_rounded,
+        'title': english ? 'Read the News' : 'Lee la Noticia',
+        'description': english
+            ? 'Carefully analyze each article'
+            : 'Analiza cuidadosamente cada artículo',
         'color': const Color(0xFF6EC6FF),
       },
       {
-        'emoji': '🔎',
-        'title': 'Busca Pistas',
-        'description': 'Encuentra elementos sospechosos',
+        'icon': Icons.search_rounded,
+        'title': english ? 'Look for Clues' : 'Busca Pistas',
+        'description': english
+            ? 'Find suspicious elements'
+            : 'Encuentra elementos sospechosos',
         'color': const Color(0xFFA4D65E),
       },
       {
-        'emoji': '✅',
-        'title': 'Selecciona',
-        'description': 'Marca los elementos falsos',
+        'icon': Icons.check_circle_rounded,
+        'title': english ? 'Select' : 'Selecciona',
+        'description': english
+            ? 'Mark the false elements'
+            : 'Marca los elementos falsos',
         'color': const Color(0xFFE91E63),
       },
     ];
@@ -197,22 +216,24 @@ class QuizIntroPage extends StatelessWidget {
         final index = entry.key;
         final instruction = entry.value;
         return _buildInstructionCard(
-          emoji: instruction['emoji'] as String,
+          icon: instruction['icon'] as IconData,
           title: instruction['title'] as String,
           description: instruction['description'] as String,
           color: instruction['color'] as Color,
           index: index,
+          english: english,
         );
       }).toList(),
     );
   }
 
   Widget _buildInstructionCard({
-    required String emoji,
+    required IconData icon,
     required String title,
     required String description,
     required Color color,
     required int index,
+    required bool english,
   }) {
     return Container(
           margin: const EdgeInsets.only(bottom: 16),
@@ -249,7 +270,7 @@ class QuizIntroPage extends StatelessWidget {
                   ],
                 ),
                 child: Center(
-                  child: Text(emoji, style: const TextStyle(fontSize: 32)),
+                  child: Icon(icon, size: 32, color: Colors.white),
                 ),
               ),
               const SizedBox(width: 16),
@@ -269,7 +290,7 @@ class QuizIntroPage extends StatelessWidget {
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
-                            'Paso ${index + 1}',
+                            english ? 'Step ${index + 1}' : 'Paso ${index + 1}',
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
@@ -304,7 +325,7 @@ class QuizIntroPage extends StatelessWidget {
         .fadeIn();
   }
 
-  Widget _buildStartButton(BuildContext context) {
+  Widget _buildStartButton(BuildContext context, bool english) {
     return Container(
           width: double.infinity,
           height: 60,
@@ -339,9 +360,9 @@ class QuizIntroPage extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text(
-                    '¡Comenzar Misión!',
-                    style: TextStyle(
+                  Text(
+                    english ? 'Start Mission!' : '¡Comenzar Misión!',
+                    style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,

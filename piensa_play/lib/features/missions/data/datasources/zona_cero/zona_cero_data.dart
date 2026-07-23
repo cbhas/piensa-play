@@ -1,3 +1,5 @@
+import '../../../../../core/localization/localized_text.dart';
+
 class WordTrailPhrase {
   final String phrase;
   final bool isHarmful;
@@ -11,10 +13,10 @@ class WordTrailPhrase {
 }
 
 class StereotypeStatement {
-  final String text;
+  final LocalizedText text;
   final bool isInclusive;
-  final String replacement;
-  final String hint;
+  final LocalizedText replacement;
+  final LocalizedText hint;
 
   const StereotypeStatement({
     required this.text,
@@ -25,8 +27,8 @@ class StereotypeStatement {
 }
 
 class StereotypeScene {
-  final String title;
-  final String description;
+  final LocalizedText title;
+  final LocalizedText description;
   final List<StereotypeStatement> statements;
 
   const StereotypeScene({
@@ -95,77 +97,164 @@ class ZonaCeroData {
   static List<StereotypeScene> stereotypeScenes() {
     return [
       StereotypeScene(
-        title: 'En el parque',
-        description:
-            'Mira quién juega. Cambia ideas que dejen a alguien fuera.',
+        title: const LocalizedText(es: 'En el parque', en: 'At the park'),
+        description: const LocalizedText(
+          es: 'Mira quién juega. Cambia ideas que dejen a alguien fuera.',
+          en: 'Look at who is playing. Change ideas that leave someone out.',
+        ),
         statements: const [
           StereotypeStatement(
-            text: 'Niña jugando con muñecas',
+            text: LocalizedText(
+              es: 'Niña jugando con muñecas',
+              en: 'A girl playing with dolls',
+            ),
             isInclusive: false,
-            replacement: 'Niñas y niños pueden jugar con lo que quieran',
-            hint: 'Los juguetes son para todos.',
+            replacement: LocalizedText(
+              es: 'Niñas y niños pueden jugar con lo que quieran',
+              en: 'Girls and boys can play with whatever they want',
+            ),
+            hint: LocalizedText(
+              es: 'Los juguetes son para todos.',
+              en: 'Toys are for everyone.',
+            ),
           ),
           StereotypeStatement(
-            text: 'Niño jugando fútbol',
+            text: LocalizedText(
+              es: 'Niño jugando fútbol',
+              en: 'A boy playing soccer',
+            ),
             isInclusive: false,
-            replacement: 'Todos pueden jugar fútbol si quieren',
-            hint: 'El deporte es para divertirse.',
+            replacement: LocalizedText(
+              es: 'Todos pueden jugar fútbol si quieren',
+              en: 'Anyone can play soccer if they want to',
+            ),
+            hint: LocalizedText(
+              es: 'El deporte es para divertirse.',
+              en: 'Sports are for having fun.',
+            ),
           ),
           StereotypeStatement(
-            text: 'Niños y niñas leyendo juntos',
+            text: LocalizedText(
+              es: 'Niños y niñas leyendo juntos',
+              en: 'Boys and girls reading together',
+            ),
             isInclusive: true,
-            replacement: 'Niños y niñas leyendo juntos',
-            hint: 'Leer en equipo ya es inclusivo.',
+            replacement: LocalizedText(
+              es: 'Niños y niñas leyendo juntos',
+              en: 'Boys and girls reading together',
+            ),
+            hint: LocalizedText(
+              es: 'Leer en equipo ya es inclusivo.',
+              en: 'Reading as a team is already inclusive.',
+            ),
           ),
         ],
       ),
       StereotypeScene(
-        title: 'En la escuela',
-        description:
-            'Mira el salón y elige palabras que incluyan a todos.',
+        title: const LocalizedText(es: 'En la escuela', en: 'At school'),
+        description: const LocalizedText(
+          es: 'Mira el salón y elige palabras que incluyan a todos.',
+          en: 'Look at the classroom and choose words that include everyone.',
+        ),
         statements: const [
           StereotypeStatement(
-            text: 'Solo los grandes pueden liderar el equipo',
+            text: LocalizedText(
+              es: 'Solo los grandes pueden liderar el equipo',
+              en: 'Only the older kids can lead the team',
+            ),
             isInclusive: false,
-            replacement: 'Cualquiera puede liderar si escucha y apoya',
-            hint: 'Liderar es compartir, no mandar.',
+            replacement: LocalizedText(
+              es: 'Cualquiera puede liderar si escucha y apoya',
+              en: 'Anyone can lead if they listen and support others',
+            ),
+            hint: LocalizedText(
+              es: 'Liderar es compartir, no mandar.',
+              en: 'Leading is about sharing, not ordering.',
+            ),
           ),
           StereotypeStatement(
-            text: 'Todos pueden opinar y participar',
+            text: LocalizedText(
+              es: 'Todos pueden opinar y participar',
+              en: 'Everyone can share their opinion and take part',
+            ),
             isInclusive: true,
-            replacement: 'Todos pueden opinar y participar',
-            hint: 'La voz de todos suma.',
+            replacement: LocalizedText(
+              es: 'Todos pueden opinar y participar',
+              en: 'Everyone can share their opinion and take part',
+            ),
+            hint: LocalizedText(
+              es: 'La voz de todos suma.',
+              en: 'Everyone\'s voice matters.',
+            ),
           ),
           StereotypeStatement(
-            text: 'Los chicos no lloran',
+            text: LocalizedText(
+              es: 'Los chicos no lloran',
+              en: 'Boys don\'t cry',
+            ),
             isInclusive: false,
-            replacement: 'Sentir y llorar es para todos',
-            hint: 'Sentir no tiene género.',
+            replacement: LocalizedText(
+              es: 'Sentir y llorar es para todos',
+              en: 'Feeling and crying are for everyone',
+            ),
+            hint: LocalizedText(
+              es: 'Sentir no tiene género.',
+              en: 'Feelings have no gender.',
+            ),
           ),
         ],
       ),
       StereotypeScene(
-        title: 'En casa',
-        description:
-            'Haz que las tareas sean justas y todos ayuden.',
+        title: const LocalizedText(es: 'En casa', en: 'At home'),
+        description: const LocalizedText(
+          es: 'Haz que las tareas sean justas y todos ayuden.',
+          en: 'Make chores fair so everyone helps out.',
+        ),
         statements: const [
           StereotypeStatement(
-            text: 'Solo mamá cocina',
+            text: LocalizedText(
+              es: 'Solo mamá cocina',
+              en: 'Only mom cooks',
+            ),
             isInclusive: false,
-            replacement: 'Cocinar es para quien quiera ayudar',
-            hint: 'Cuidar es tarea de todos.',
+            replacement: LocalizedText(
+              es: 'Cocinar es para quien quiera ayudar',
+              en: 'Cooking is for whoever wants to help',
+            ),
+            hint: LocalizedText(
+              es: 'Cuidar es tarea de todos.',
+              en: 'Caring is everyone\'s job.',
+            ),
           ),
           StereotypeStatement(
-            text: 'Todos ordenan sus cosas',
+            text: LocalizedText(
+              es: 'Todos ordenan sus cosas',
+              en: 'Everyone tidies up their own things',
+            ),
             isInclusive: true,
-            replacement: 'Todos ordenan sus cosas',
-            hint: 'Compartir tareas es justo.',
+            replacement: LocalizedText(
+              es: 'Todos ordenan sus cosas',
+              en: 'Everyone tidies up their own things',
+            ),
+            hint: LocalizedText(
+              es: 'Compartir tareas es justo.',
+              en: 'Sharing chores is fair.',
+            ),
           ),
           StereotypeStatement(
-            text: 'Los niños no ponen la mesa',
+            text: LocalizedText(
+              es: 'Los niños no ponen la mesa',
+              en: 'Boys don\'t set the table',
+            ),
             isInclusive: false,
-            replacement: 'Poner la mesa es trabajo en equipo',
-            hint: 'Cooperar hace la casa feliz.',
+            replacement: LocalizedText(
+              es: 'Poner la mesa es trabajo en equipo',
+              en: 'Setting the table is teamwork',
+            ),
+            hint: LocalizedText(
+              es: 'Cooperar hace la casa feliz.',
+              en: 'Cooperating makes a happy home.',
+            ),
           ),
         ],
       ),

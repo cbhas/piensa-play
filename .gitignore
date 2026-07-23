@@ -1,0 +1,19 @@
+# IDE and local operating-system state
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Local credentials and Firebase service accounts
+**/serviceAccountKey.json
+**/*service-account*.json
+.env
+.env.*
+!.env.example
+
+# Node dependencies used by catalogue scripts
+scripts/node_modules/
+
+# Generated exports and local evidence
+coverage/
+*.log

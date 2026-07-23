@@ -9,6 +9,7 @@ class ProgressHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final userName = AppDataService.instance.userProfile?.name;
+    final english = Localizations.localeOf(context).languageCode == 'en';
 
     return Container(
       width: double.infinity,
@@ -43,9 +44,9 @@ class ProgressHeader extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Mi Progreso',
-                style: TextStyle(
+              Text(
+                english ? 'My Progress' : 'Mi Progreso',
+                style: const TextStyle(
                   color: Colors.white,
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
@@ -53,8 +54,8 @@ class ProgressHeader extends StatelessWidget {
               ),
               Text(
                 userName != null && userName.isNotEmpty
-                    ? '¡Hola, $userName!'
-                    : '¡Hola!',
+                    ? (english ? 'Hi, $userName!' : '¡Hola, $userName!')
+                    : (english ? 'Hi!' : '¡Hola!'),
                 style: const TextStyle(color: Colors.white70, fontSize: 14),
               ),
             ],

@@ -16,6 +16,8 @@ class CiberseguridadIntroPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
+    final locale = Localizations.localeOf(context);
+    final english = locale.languageCode == 'en';
 
     return Scaffold(
       appBar: AppBar(
@@ -52,11 +54,11 @@ class CiberseguridadIntroPage extends StatelessWidget {
                   padding: const EdgeInsets.all(20),
                   child: Column(
                     children: [
-                      _buildHeroSection(size),
+                      _buildHeroSection(size, english),
                       const SizedBox(height: 30),
-                      _buildInstructionCards(),
+                      _buildInstructionCards(locale, english),
                       const SizedBox(height: 30),
-                      _buildStartButton(context),
+                      _buildStartButton(context, english),
                     ],
                   ),
                 ),
@@ -112,10 +114,11 @@ class CiberseguridadIntroPage extends StatelessWidget {
                   color: Colors.white.withValues(alpha: 0.2),
                   shape: BoxShape.circle,
                 ),
-                child: const Text(
-                  '🛡️',
-                  style: TextStyle(fontSize: 32),
-                ), // Emoji principal sugerido
+                child: const Icon(
+                  Icons.shield_rounded,
+                  size: 32,
+                  color: Colors.white,
+                ),
               )
               .animate(onPlay: (controller) => controller.repeat())
               .shimmer(
@@ -127,7 +130,7 @@ class CiberseguridadIntroPage extends StatelessWidget {
     ).animate().fadeIn(duration: 400.ms);
   }
 
-  Widget _buildHeroSection(Size size) {
+  Widget _buildHeroSection(Size size, bool english) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
@@ -150,7 +153,7 @@ class CiberseguridadIntroPage extends StatelessWidget {
       ),
       child: Column(
         children: [
-          const Text('💻', style: TextStyle(fontSize: 80)) // Emoji relevante
+          const Icon(Icons.computer_rounded, size: 80, color: Colors.white)
               .animate(onPlay: (controller) => controller.repeat(reverse: true))
               .scale(
                 duration: 1500.ms,
@@ -182,7 +185,7 @@ class CiberseguridadIntroPage extends StatelessWidget {
     );
   }
 
-  Widget _buildInstructionCards() {
+  Widget _buildInstructionCards(Locale locale, bool english) {
     return Column(
       children: CiberseguridadQuizData.instructions.asMap().entries.map((
         entry,
@@ -190,39 +193,40 @@ class CiberseguridadIntroPage extends StatelessWidget {
         final index = entry.key;
         final instruction = CiberseguridadQuizData.instructions[index];
         return _buildInstructionCard(
-          emoji: _getInstructionEmoji(index),
-          title: _getInstructionTitle(index),
-          description: instruction,
+          icon: _getInstructionIcon(index),
+          title: _getInstructionTitle(index, english),
+          description: instruction.resolve(locale),
           color: _getInstructionColor(index),
           index: index,
+          english: english,
         );
       }).toList(),
     );
   }
 
-  String _getInstructionEmoji(int index) {
+  IconData _getInstructionIcon(int index) {
     switch (index) {
       case 0:
-        return '📧';
+        return Icons.mail_rounded;
       case 1:
-        return '🤔';
+        return Icons.psychology_alt_rounded;
       case 2:
-        return '🚩';
+        return Icons.flag_rounded;
       default:
-        return '💡';
+        return Icons.lightbulb_rounded;
     }
   }
 
-  String _getInstructionTitle(int index) {
+  String _getInstructionTitle(int index, bool english) {
     switch (index) {
       case 0:
-        return 'Analiza el Mensaje';
+        return english ? 'Analyze the Message' : 'Analiza el Mensaje';
       case 1:
-        return 'Busca Señales';
+        return english ? 'Look for Signs' : 'Busca Señales';
       case 2:
-        return 'Marca el Peligro';
+        return english ? 'Flag the Danger' : 'Marca el Peligro';
       default:
-        return 'Instrucción';
+        return english ? 'Instruction' : 'Instrucción';
     }
   }
 
@@ -240,11 +244,12 @@ class CiberseguridadIntroPage extends StatelessWidget {
   }
 
   Widget _buildInstructionCard({
-    required String emoji,
+    required IconData icon,
     required String title,
     required String description,
     required Color color,
     required int index,
+    required bool english,
   }) {
     return Container(
           margin: const EdgeInsets.only(bottom: 16),
@@ -281,7 +286,7 @@ class CiberseguridadIntroPage extends StatelessWidget {
                   ],
                 ),
                 child: Center(
-                  child: Text(emoji, style: const TextStyle(fontSize: 32)),
+                  child: Icon(icon, size: 32, color: Colors.white),
                 ),
               ),
               const SizedBox(width: 16),
@@ -301,7 +306,7 @@ class CiberseguridadIntroPage extends StatelessWidget {
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
-                            'Paso ${index + 1}',
+                            english ? 'Step ${index + 1}' : 'Paso ${index + 1}',
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
@@ -336,7 +341,7 @@ class CiberseguridadIntroPage extends StatelessWidget {
         .fadeIn();
   }
 
-  Widget _buildStartButton(BuildContext context) {
+  Widget _buildStartButton(BuildContext context, bool english) {
     return Container(
           width: double.infinity,
           height: 60,
@@ -380,9 +385,9 @@ class CiberseguridadIntroPage extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text(
-                    '¡Iniciar Defensa!',
-                    style: TextStyle(
+                  Text(
+                    english ? 'Start Defense!' : '¡Iniciar Defensa!',
+                    style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,

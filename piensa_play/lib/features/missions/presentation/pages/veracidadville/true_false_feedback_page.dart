@@ -23,6 +23,8 @@ class TrueFalseFeedbackPage extends StatelessWidget {
       builder: (context, provider, child) {
         final question = provider.currentQuestion;
         final isLastQuestion = provider.isLastQuestion;
+        final locale = Localizations.localeOf(context);
+        final english = locale.languageCode == 'en';
 
         return Scaffold(
           body: Container(
@@ -53,14 +55,15 @@ class TrueFalseFeedbackPage extends StatelessWidget {
                       padding: const EdgeInsets.all(20),
                       child: Column(
                         children: [
-                          _buildResultCard(),
+                          _buildResultCard(english),
                           const SizedBox(height: 24),
-                          _buildExplanationCard(question),
+                          _buildExplanationCard(question, locale, english),
                           const SizedBox(height: 30),
                           _buildContinueButton(
                             context,
                             isLastQuestion,
                             provider,
+                            english,
                           ),
                         ],
                       ),
@@ -95,9 +98,10 @@ class TrueFalseFeedbackPage extends StatelessWidget {
               color: Colors.white.withValues(alpha: 0.3),
               shape: BoxShape.circle,
             ),
-            child: Text(
-              isCorrect ? '✅' : '❌',
-              style: const TextStyle(fontSize: 24),
+            child: Icon(
+              isCorrect ? Icons.check_circle_rounded : Icons.cancel_rounded,
+              size: 24,
+              color: Colors.white,
             ),
           ),
         ],
@@ -105,7 +109,7 @@ class TrueFalseFeedbackPage extends StatelessWidget {
     ).animate().fadeIn(duration: 300.ms);
   }
 
-  Widget _buildResultCard() {
+  Widget _buildResultCard(bool english) {
     return Container(
       padding: const EdgeInsets.all(30),
       decoration: BoxDecoration(
@@ -121,7 +125,13 @@ class TrueFalseFeedbackPage extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Text(isCorrect ? '🎉' : '💪', style: const TextStyle(fontSize: 80))
+          Icon(
+                isCorrect
+                    ? Icons.celebration_rounded
+                    : Icons.thumb_up_rounded,
+                size: 80,
+                color: isCorrect ? Colors.green : Colors.orange,
+              )
               .animate(onPlay: (controller) => controller.repeat(reverse: true))
               .scale(
                 duration: 1000.ms,
@@ -130,7 +140,9 @@ class TrueFalseFeedbackPage extends StatelessWidget {
               ),
           const SizedBox(height: 20),
           Text(
-            isCorrect ? '¡Correcto!' : '¡Casi lo logras!',
+            isCorrect
+                ? (english ? 'Correct!' : '¡Correcto!')
+                : (english ? 'So close!' : '¡Casi lo logras!'),
             style: TextStyle(
               fontSize: 32,
               fontWeight: FontWeight.bold,
@@ -140,8 +152,12 @@ class TrueFalseFeedbackPage extends StatelessWidget {
           const SizedBox(height: 12),
           Text(
             isCorrect
-                ? '¡Excelente trabajo detectando la verdad!'
-                : 'Revisa las pistas para mejorar',
+                ? (english
+                      ? 'Great job spotting the truth!'
+                      : '¡Excelente trabajo detectando la verdad!')
+                : (english
+                      ? 'Review the clues to improve'
+                      : 'Revisa las pistas para mejorar'),
             style: TextStyle(fontSize: 16, color: Colors.grey[600]),
             textAlign: TextAlign.center,
           ),
@@ -154,7 +170,11 @@ class TrueFalseFeedbackPage extends StatelessWidget {
     );
   }
 
-  Widget _buildExplanationCard(QuizQuestion question) {
+  Widget _buildExplanationCard(
+    QuizQuestion question,
+    Locale locale,
+    bool english,
+  ) {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -181,13 +201,17 @@ class TrueFalseFeedbackPage extends StatelessWidget {
                   ),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Text('💡', style: TextStyle(fontSize: 28)),
+                child: const Icon(
+                  Icons.lightbulb_rounded,
+                  size: 28,
+                  color: Colors.white,
+                ),
               ),
               const SizedBox(width: 12),
-              const Expanded(
+              Expanded(
                 child: Text(
-                  'Explicación',
-                  style: TextStyle(
+                  english ? 'Explanation' : 'Explicación',
+                  style: const TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
                     color: Colors.black87,
@@ -225,7 +249,9 @@ class TrueFalseFeedbackPage extends StatelessWidget {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    'Esta noticia es ${(question.correctAnswer ?? false) ? "VERDADERA" : "FALSA"}',
+                    english
+                        ? 'This news is ${(question.correctAnswer ?? false) ? "TRUE" : "FALSE"}'
+                        : 'Esta noticia es ${(question.correctAnswer ?? false) ? "VERDADERA" : "FALSA"}',
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -239,9 +265,9 @@ class TrueFalseFeedbackPage extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 20),
-          const Text(
-            'Las pistas clave eran:',
-            style: TextStyle(
+          Text(
+            english ? 'The key clues were:' : 'Las pistas clave eran:',
+            style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
               color: Colors.black87,
@@ -250,7 +276,7 @@ class TrueFalseFeedbackPage extends StatelessWidget {
           const SizedBox(height: 12),
           ...?question.clues?.asMap().entries.map((entry) {
             final index = entry.key;
-            final clue = entry.value;
+            final clue = entry.value.resolve(locale);
             return Padding(
                   padding: const EdgeInsets.only(bottom: 10),
                   child: Row(
@@ -296,6 +322,7 @@ class TrueFalseFeedbackPage extends StatelessWidget {
     BuildContext context,
     bool isLastQuestion,
     QuizProvider provider,
+    bool english,
   ) {
     return Container(
           width: double.infinity,
@@ -329,14 +356,26 @@ class TrueFalseFeedbackPage extends StatelessWidget {
                         missionName: 'Veracidadville',
                         primaryColor: const Color(0xFFFDD835),
                         secondaryColor: AppTheme.accentGreen,
-                        perfectMessage: '¡Eres un maestro detective!',
-                        goodMessage: 'Has protegido Veracidadville',
-                        tryAgainMessage: '¡Sigue practicando!',
-                        learningPoints: [
-                          'Verifica siempre la fuente de información',
-                          'Desconfía de lenguaje muy emocional',
-                          'Las promesas mágicas suelen ser falsas',
-                        ],
+                        perfectMessage: english
+                            ? 'You are a master detective!'
+                            : '¡Eres un maestro detective!',
+                        goodMessage: english
+                            ? 'You protected Veracidadville'
+                            : 'Has protegido Veracidadville',
+                        tryAgainMessage: english
+                            ? 'Keep practicing!'
+                            : '¡Sigue practicando!',
+                        learningPoints: english
+                            ? const [
+                                'Always verify the source of information',
+                                'Be wary of very emotional language',
+                                'Magic promises are usually false',
+                              ]
+                            : const [
+                                'Verifica siempre la fuente de información',
+                                'Desconfía de lenguaje muy emocional',
+                                'Las promesas mágicas suelen ser falsas',
+                              ],
                       ),
                     ),
                   );
@@ -356,7 +395,9 @@ class TrueFalseFeedbackPage extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    isLastQuestion ? 'Ver Resultados' : 'Siguiente Pregunta',
+                    isLastQuestion
+                        ? (english ? 'See Results' : 'Ver Resultados')
+                        : (english ? 'Next Question' : 'Siguiente Pregunta'),
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,

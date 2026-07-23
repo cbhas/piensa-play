@@ -1,0 +1,51 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function owns(userId) {
+      return signedIn() && request.auth.uid == userId;
+    }
+
+    // Catalogos educativos: lectura para usuarios anonimos autenticados y
+    // escritura exclusivamente desde Admin SDK/scripts de despliegue.
+    match /{collection}/{document} {
+      allow read: if signedIn() && collection in [
+        'missions',
+        'unified_questions',
+        'questions',
+        'daily_questions',
+        'badges',
+        'shop_items',
+        'glossary',
+        'learn_content'
+      ];
+      allow write: if false;
+    }
+
+    // Cada instalacion solo accede a sus propios datos.
+    match /users/{userId}/{document=**} {
+      allow read, create, update, delete: if owns(userId);
+    }
+
+    // Capsula no enumerable y de alta entropia. Conocer el codigo es necesario
+    // para leerla; no contiene el UID de origen en la respuesta de la UI y se
+    // elimina al consumirse.
+    match /recovery_capsules/{code} {
+      allow list: if false;
+      allow get: if signedIn();
+      allow create: if signedIn()
+        && request.resource.data.ownerId == request.auth.uid
+        && request.resource.data.schemaVersion == 2
+        && request.resource.data.expiresAt is timestamp;
+      allow update: if false;
+      allow delete: if signedIn();
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

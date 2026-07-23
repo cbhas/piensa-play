@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:piensa_play/core/services/logger_service.dart';
 import '../../../../../core/theme/app_theme.dart';
+import '../../../../../core/services/mission_progress_service.dart';
 import '../../../../../core/services/gamification_service.dart';
 import '../../../../../core/services/user_id_provider.dart';
 import '../../../../achievements/presentation/widgets/badge_unlock_dialog.dart';
@@ -63,6 +64,7 @@ class MissionResultsPage extends StatefulWidget {
 }
 
 class _MissionResultsPageState extends State<MissionResultsPage> {
+  final _progressService = MissionProgressService();
   final _gamificationService = GamificationService();
   final _missionsRepository = MissionsRepository();
 
@@ -74,8 +76,9 @@ class _MissionResultsPageState extends State<MissionResultsPage> {
   }
 
   Future<void> _completeMission() async {
-    // El progreso se persiste a través de GamificationService.completeMission
-    // (fuente única: caché de AppDataService + Firestore en segundo plano).
+    // GamificationService es el único punto de escritura de la recompensa
+    // (caché de AppDataService + Firestore). MissionProgressService solo
+    // refleja el resultado en SharedPreferences como espejo local.
     Mission? mission = widget.mission;
     MissionCategory? category = widget.category;
 
@@ -104,16 +107,17 @@ class _MissionResultsPageState extends State<MissionResultsPage> {
     // Procesar gamificación si tenemos los datos
     if (mission != null && category != null) {
       AppLogger.log('GAMIFICATION: Processing completion for ${mission.id}');
-      final unlockedBadges = await _gamificationService.completeMission(
+      final reward = await _gamificationService.completeMissionWithResult(
         mission: mission,
         category: category,
       );
+      await _progressService.completeMission(widget.missionId);
 
       // Mostrar badges desbloqueados después de un breve delay
-      if (unlockedBadges.isNotEmpty && mounted) {
-        await Future.delayed(const Duration(seconds: 2));
+      if (reward.unlockedBadges.isNotEmpty && mounted) {
+        await Future.delayed(const Duration(milliseconds: 700));
         if (mounted) {
-          await BadgeUnlockDialog.showMultiple(context, unlockedBadges);
+          await BadgeUnlockDialog.showMultiple(context, reward.unlockedBadges);
         }
       }
     } else {
@@ -197,14 +201,15 @@ class _MissionResultsPageState extends State<MissionResultsPage> {
       ),
       child: Column(
         children: [
-          // Emoji - animación sutil inmediata
-          Text(
+          // Ícono - animación sutil inmediata
+          Icon(
                 isPerfect
-                    ? '🏆'
+                    ? Icons.emoji_events_rounded
                     : isGood
-                    ? '🎉'
-                    : '💪',
-                style: const TextStyle(fontSize: 80),
+                    ? Icons.celebration_rounded
+                    : Icons.thumb_up_rounded,
+                size: 80,
+                color: Colors.white,
               )
               .animate(onPlay: (c) => c.repeat(reverse: true))
               .scale(
@@ -429,7 +434,11 @@ class _MissionResultsPageState extends State<MissionResultsPage> {
                       ),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Text('💡', style: TextStyle(fontSize: 28)),
+                    child: const Icon(
+                      Icons.lightbulb_rounded,
+                      size: 28,
+                      color: Colors.white,
+                    ),
                   ),
                   const SizedBox(width: 12),
                   const Text(

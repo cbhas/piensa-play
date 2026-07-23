@@ -28,25 +28,14 @@ class BadgeGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final english = Localizations.localeOf(context).languageCode == 'en';
+    final dark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: AppTheme.accentYellow.withValues(alpha: 0.4),
-          width: 2.5,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: AppTheme.accentYellow.withValues(alpha: 0.15),
-            blurRadius: 15,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      child: Column(
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
@@ -54,25 +43,19 @@ class BadgeGrid extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [AppTheme.accentYellow, AppTheme.accentGreen],
-                  ),
+                  color: AppTheme.goldFill(dark),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.emoji_events,
-                  color: Colors.white,
+                  color: AppTheme.goldText(dark),
                   size: 20,
                 ),
               ),
               const SizedBox(width: 12),
-              const Text(
-                'Insignias',
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: AppTheme.primaryDark,
-                ),
+              Text(
+                english ? 'Badges' : 'Insignias',
+                style: Theme.of(context).textTheme.titleLarge,
               ),
             ],
           ),
@@ -99,7 +82,9 @@ class BadgeGrid extends StatelessWidget {
               );
             },
           ),
-        ],
+            ],
+          ),
+        ),
       ),
     );
   }

@@ -1,15 +1,22 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:piensa_play/core/services/firestore_provider.dart';
-import 'package:piensa_play/core/services/logger_service.dart';
-import 'package:piensa_play/core/services/user_id_provider.dart';
-import 'package:piensa_play/core/services/gamification_service.dart';
-import 'package:piensa_play/core/services/app_data_service.dart';
-import 'package:piensa_play/core/services/widget_service.dart';
-import 'package:piensa_play/features/achievements/domain/entities/achievement.dart';
-import 'package:piensa_play/features/missions/domain/entities/unified_question.dart';
 
-/// Servicio para gestionar la pregunta diaria
-/// Usa pool de 30 preguntas, selección por día del mes
+import '../domain/reward_policy.dart';
+import '../../features/achievements/domain/entities/achievement.dart';
+import '../../features/missions/domain/entities/unified_question.dart';
+import 'app_data_service.dart';
+import 'connectivity_service.dart';
+import 'firestore_provider.dart';
+import 'logger_service.dart';
+import 'user_id_provider.dart';
+import 'widget_service.dart';
+
+/// Pregunta diaria estable e idempotente.
+///
+/// Igual que [GamificationService], tiene dos caminos de escritura: una
+/// transaccion cuando hay red y un camino optimista cuando no la hay
+/// (`runTransaction` no funciona offline). Ambos usan [DailyRewardPolicy], de
+/// modo que el calculo de racha y la guarda de "ya respondio hoy" son
+/// identicos en los dos.
 class DailyQuestionService {
   static final DailyQuestionService _instance =
       DailyQuestionService._internal();
@@ -17,234 +24,366 @@ class DailyQuestionService {
   DailyQuestionService._internal();
 
   final FirebaseFirestore _firestore = FirestoreProvider.instance;
-  final GamificationService _gamificationService = GamificationService();
-
-  // Cache local
   UnifiedQuestion? _todaysQuestion;
   DateTime? _lastFetchDate;
 
-  /// Obtiene la fecha de hoy como string (YYYY-MM-DD)
-  String get _todayString {
-    final now = DateTime.now();
-    return '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
-  }
+  String get _todayString => _dateString(DateTime.now());
 
-  /// Genera un índice pseudoaleatorio basado en la fecha
-  /// Todos los usuarios obtienen el mismo índice el mismo día
+  String _dateString(DateTime date) =>
+      '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+
+  String get _yesterdayString =>
+      _dateString(DateTime.now().subtract(const Duration(days: 1)));
+
   int _getDailyIndex(int poolSize) {
     final now = DateTime.now();
-    // Hash simple: año * 10000 + mes * 100 + día
-    final dateHash = now.year * 10000 + now.month * 100 + now.day;
-    return dateHash % poolSize;
+    return (now.year * 10000 + now.month * 100 + now.day) % poolSize;
   }
 
-  /// Referencia a daily_progress del usuario
-  DocumentReference _dailyProgressRef(String userId) {
-    return _firestore
-        .collection('users')
-        .doc(userId)
-        .collection('daily_progress')
-        .doc('current');
-  }
+  DocumentReference<Map<String, dynamic>> _dailyProgressRef(String userId) =>
+      _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('daily_progress')
+          .doc('current');
 
-  /// Verifica si ya respondió hoy
+  DocumentReference<Map<String, dynamic>> _achievementRef(String userId) =>
+      _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('achievements')
+          .doc('current');
+
   Future<bool> hasAnsweredToday() async {
     try {
-      final userId = UserIdProvider.currentUserId;
-      final doc = await _dailyProgressRef(userId).get();
-
-      if (!doc.exists) return false;
-
-      final data = doc.data() as Map<String, dynamic>?;
-      if (data == null) return false;
-
-      final lastAnswered = data['lastAnsweredDate'] as String?;
-      return lastAnswered == _todayString;
-    } catch (e) {
-      AppLogger.error('DAILY: Error checking if answered today: $e');
+      final snapshot = await _dailyProgressRef(
+        UserIdProvider.currentUserId,
+      ).get();
+      return snapshot.data()?['lastAnsweredDate'] == _todayString;
+    } catch (error) {
+      AppLogger.warning('DAILY: answer state unavailable: $error');
       return false;
     }
   }
 
-  /// Obtiene la pregunta del día desde pool de daily_questions
-  /// Selección consistente: día 1 → daily_01, día 15 → daily_15, etc.
-  Future<UnifiedQuestion?> getTodaysQuestion() async {
-    try {
-      // Si ya tenemos la pregunta de hoy en cache, retornarla
-      final now = DateTime.now();
-      if (_todaysQuestion != null &&
-          _lastFetchDate != null &&
-          _lastFetchDate!.year == now.year &&
-          _lastFetchDate!.month == now.month &&
-          _lastFetchDate!.day == now.day) {
-        return _todaysQuestion;
-      }
-
-      // Cargar todas las preguntas del pool y seleccionar una basada en la fecha
-      final snapshot = await _firestore.collection('daily_questions').get();
-
-      if (snapshot.docs.isEmpty) {
-        AppLogger.error('DAILY: No questions in daily_questions pool');
-        return null;
-      }
-
-      // Selección pseudoaleatoria pero consistente para todos
-      final index = _getDailyIndex(snapshot.docs.length);
-      final selectedDoc = snapshot.docs[index];
-
-      AppLogger.log(
-        'DAILY: Selected question index $index of ${snapshot.docs.length}',
-      );
-
-      _todaysQuestion = UnifiedQuestion.fromJson(selectedDoc.data());
-
-      _lastFetchDate = now;
-
-      AppLogger.log('DAILY: Today\'s question: ${_todaysQuestion?.title}');
+  Future<UnifiedQuestion?> getTodaysQuestion({bool english = false}) async {
+    final now = DateTime.now();
+    if (_todaysQuestion != null &&
+        _lastFetchDate != null &&
+        _dateString(_lastFetchDate!) == _dateString(now)) {
       return _todaysQuestion;
-    } catch (e) {
-      AppLogger.error('DAILY: Error getting today\'s question: $e');
-      return null;
+    }
+
+    try {
+      // El orden por ID hace que el indice diario sea igual en cada dispositivo.
+      final snapshot = await _firestore
+          .collection('daily_questions')
+          .orderBy(FieldPath.documentId)
+          .get();
+      if (snapshot.docs.isEmpty) return _offlineQuestion(english);
+
+      final selected = snapshot.docs[_getDailyIndex(snapshot.docs.length)];
+      _todaysQuestion = UnifiedQuestion.fromJson({
+        'id': selected.id,
+        ...selected.data(),
+      });
+      _lastFetchDate = now;
+      return _todaysQuestion;
+    } catch (error) {
+      AppLogger.warning('DAILY: using offline question: $error');
+      _todaysQuestion = _offlineQuestion(english);
+      _lastFetchDate = now;
+      return _todaysQuestion;
     }
   }
 
-  /// Registra la respuesta y otorga recompensas usando GamificationService
+  /// Registra la respuesta del dia y otorga recompensas una sola vez.
+  ///
+  /// Una segunda llamada el mismo dia devuelve cero y no altera contadores,
+  /// tanto online como offline.
   Future<Map<String, int>> submitAnswer(bool isCorrect) async {
+    if (ConnectivityService.instance.isOnline) {
+      try {
+        return await _submitAtomically(isCorrect);
+      } catch (error) {
+        AppLogger.warning(
+          'DAILY: transaccion no disponible, usando camino offline: $error',
+        );
+      }
+    }
+    return _submitOptimistically(isCorrect);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Camino atomico (requiere conexion)
+  // ---------------------------------------------------------------------------
+
+  Future<Map<String, int>> _submitAtomically(bool isCorrect) async {
+    final userId = UserIdProvider.currentUserId;
+    final progressRef = _dailyProgressRef(userId);
+    final achievementRef = _achievementRef(userId);
+
+    var xpAwarded = 0;
+    var coinsAwarded = 0;
+    var streak = 0;
+    var bestStreak = 0;
+    var totalAnswered = 0;
+    var updatedAchievement = Achievement.initial();
+
+    await _firestore.runTransaction((transaction) async {
+      final progressSnapshot = await transaction.get(progressRef);
+      final achievementSnapshot = await transaction.get(achievementRef);
+      final progress = progressSnapshot.data() ?? const <String, dynamic>{};
+
+      updatedAchievement = achievementSnapshot.exists
+          ? Achievement.fromJson(achievementSnapshot.data()!)
+          : Achievement.initial();
+
+      final decision = DailyRewardPolicy.decide(
+        isCorrect: isCorrect,
+        today: _todayString,
+        yesterday: _yesterdayString,
+        lastAnsweredDate: progress['lastAnsweredDate'] as String?,
+        currentStreak: progress['streak'] as int? ?? 0,
+        currentBestStreak: progress['bestStreak'] as int? ?? 0,
+        currentTotalAnswered: progress['totalAnswered'] as int? ?? 0,
+        currentTotalCorrect: progress['totalCorrect'] as int? ?? 0,
+      );
+      streak = decision.streak;
+      bestStreak = decision.bestStreak;
+      totalAnswered = decision.totalAnswered;
+      if (!decision.grantReward) return;
+      xpAwarded = decision.xp;
+      coinsAwarded = decision.coins;
+
+      final totalXP = updatedAchievement.totalXP + xpAwarded;
+      updatedAchievement = updatedAchievement.copyWith(
+        totalXP: totalXP,
+        coins: updatedAchievement.coins + coinsAwarded,
+        currentLevel: Achievement.calculateLevel(totalXP),
+      );
+
+      transaction.set(progressRef, {
+        'lastAnsweredDate': _todayString,
+        'streak': streak,
+        'bestStreak': bestStreak,
+        'totalAnswered': totalAnswered,
+        'totalCorrect': decision.totalCorrect,
+        'lastUpdated': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+      transaction.set(achievementRef, {
+        ...updatedAchievement.toJson(),
+        'lastUpdated': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    });
+
+    if (xpAwarded > 0 || coinsAwarded > 0) {
+      AppDataService.instance.updateAchievement(updatedAchievement);
+      AppDataService.instance.updateDailyProgress(
+        streak: streak,
+        bestStreak: bestStreak,
+        totalAnswered: totalAnswered,
+      );
+      await _updateWidget(streak);
+    }
+
+    return {
+      'xp': xpAwarded,
+      'coins': coinsAwarded,
+      'streak': streak,
+      'totalXP': updatedAchievement.totalXP,
+      'totalCoins': updatedAchievement.coins,
+    };
+  }
+
+  // ---------------------------------------------------------------------------
+  // Camino optimista (funciona sin conexion)
+  //
+  // La racha es el gancho diario de la app: perderla por estar sin red seria
+  // peor que arriesgar una carrera entre dispositivos, que aqui es improbable
+  // (una respuesta al dia, por usuario).
+  // ---------------------------------------------------------------------------
+
+  Future<Map<String, int>> _submitOptimistically(bool isCorrect) async {
     try {
       final userId = UserIdProvider.currentUserId;
 
-      // Calcular recompensas
-      final xp = isCorrect
-          ? GamificationConfig.xpPerDailyCorrect
-          : GamificationConfig.xpPerDailyIncorrect;
-      final coins = isCorrect
-          ? GamificationConfig.coinsPerDailyCorrect
-          : GamificationConfig.coinsPerDailyIncorrect;
+      // Lectura offline-ok: sale de la persistencia local de Firestore.
+      final progressSnapshot = await _dailyProgressRef(userId).get();
+      final progress = progressSnapshot.data() ?? const <String, dynamic>{};
 
-      // Obtener progreso actual del usuario
-      final progressDoc = await _dailyProgressRef(userId).get();
-
-      int currentStreak = 0;
-      int bestStreak = 0;
-      int totalAnswered = 0;
-      int totalCorrect = 0;
-      String? lastAnsweredDate;
-
-      if (progressDoc.exists) {
-        final data = progressDoc.data() as Map<String, dynamic>?;
-        if (data != null) {
-          currentStreak = data['streak'] ?? 0;
-          bestStreak = data['bestStreak'] ?? 0;
-          totalAnswered = data['totalAnswered'] ?? 0;
-          totalCorrect = data['totalCorrect'] ?? 0;
-          lastAnsweredDate = data['lastAnsweredDate'] as String?;
-        }
-      }
-
-      // Calcular nuevo streak
-      final yesterday = DateTime.now().subtract(const Duration(days: 1));
-      final yesterdayString =
-          '${yesterday.year}-${yesterday.month.toString().padLeft(2, '0')}-${yesterday.day.toString().padLeft(2, '0')}';
-
-      int newStreak;
-      if (lastAnsweredDate == yesterdayString) {
-        newStreak = currentStreak + 1;
-      } else if (lastAnsweredDate == _todayString) {
-        newStreak = currentStreak;
-      } else {
-        newStreak = 1;
-      }
-
-      final newBestStreak = newStreak > bestStreak ? newStreak : bestStreak;
-
-      // Leer XP/monedas actuales (lectura: offline-ok vía caché de Firestore)
-      final achievement = await _gamificationService.getAchievement();
-      final newTotalXP = achievement.totalXP + xp;
-      final newCoins = achievement.coins + coins;
-      final newLevel = Achievement.calculateLevel(newTotalXP);
-
-      // 1. Actualizar caché de AppDataService primero -> UI inmediata, offline-ok
-      AppDataService.instance.updateAchievement(
-        achievement.copyWith(
-          totalXP: newTotalXP,
-          coins: newCoins,
-          currentLevel: newLevel,
-        ),
+      final decision = DailyRewardPolicy.decide(
+        isCorrect: isCorrect,
+        today: _todayString,
+        yesterday: _yesterdayString,
+        lastAnsweredDate: progress['lastAnsweredDate'] as String?,
+        currentStreak: progress['streak'] as int? ?? 0,
+        currentBestStreak: progress['bestStreak'] as int? ?? 0,
+        currentTotalAnswered: progress['totalAnswered'] as int? ?? 0,
+        currentTotalCorrect: progress['totalCorrect'] as int? ?? 0,
       );
+
+      // Se lee de Firestore (offline sale de la persistencia local) en vez de
+      // la cache en memoria: si la cache viniera fria devolveria
+      // Achievement.initial() y la escritura reiniciaria el XP real a 0.
+      final current = await _loadAchievement(userId);
+
+      // Ya respondio hoy: no se altera nada.
+      if (!decision.grantReward) {
+        return {
+          'xp': 0,
+          'coins': 0,
+          'streak': decision.streak,
+          'totalXP': current.totalXP,
+          'totalCoins': current.coins,
+        };
+      }
+
+      final totalXP = current.totalXP + decision.xp;
+      final updated = current.copyWith(
+        totalXP: totalXP,
+        coins: current.coins + decision.coins,
+        currentLevel: Achievement.calculateLevel(totalXP),
+      );
+
+      // 1. Cache primero -> UI inmediata, online u offline.
+      AppDataService.instance.updateAchievement(updated);
       AppDataService.instance.updateDailyProgress(
-        streak: newStreak,
-        bestStreak: newBestStreak,
-        totalAnswered: totalAnswered + 1,
+        streak: decision.streak,
+        bestStreak: decision.bestStreak,
+        totalAnswered: decision.totalAnswered,
       );
 
-      // 2. Persistir en segundo plano (se sincroniza al reconectar, sin
-      //    bloquear: con persistencia activada el Future no resuelve offline).
+      // 2. Persistencia en segundo plano: se encola y sincroniza al reconectar.
+      //    No se hace `await`: con persistencia activada el Future no resuelve
+      //    mientras se esta offline.
       _dailyProgressRef(userId)
           .set({
             'lastAnsweredDate': _todayString,
-            'streak': newStreak,
-            'bestStreak': newBestStreak,
-            'totalAnswered': totalAnswered + 1,
-            'totalCorrect': totalCorrect + (isCorrect ? 1 : 0),
+            'streak': decision.streak,
+            'bestStreak': decision.bestStreak,
+            'totalAnswered': decision.totalAnswered,
+            'totalCorrect': decision.totalCorrect,
             'lastUpdated': FieldValue.serverTimestamp(),
           }, SetOptions(merge: true))
           .catchError((e) {
             AppLogger.error('DAILY: Error persisting daily progress: $e');
           });
 
-      _firestore
-          .collection('users')
-          .doc(userId)
-          .collection('achievements')
-          .doc('current')
+      _achievementRef(userId)
           .set({
-            'totalXP': newTotalXP,
-            'coins': newCoins,
-            'currentLevel': newLevel,
+            ...updated.toJson(),
             'lastUpdated': FieldValue.serverTimestamp(),
           }, SetOptions(merge: true))
           .catchError((e) {
             AppLogger.error('DAILY: Error persisting achievement: $e');
           });
 
-      // 3. Actualizar widget de pantalla de inicio (local, no bloqueante de red)
-      await WidgetService().markAsCompleted(newStreak);
+      await _updateWidget(decision.streak);
 
       AppLogger.success(
-        'DAILY: Rewards granted - XP: +$xp, Coins: +$coins, Streak: $newStreak',
+        'DAILY: Rewards granted (offline) - XP: +${decision.xp}, '
+        'Coins: +${decision.coins}, Streak: ${decision.streak}',
       );
 
       return {
-        'xp': xp,
-        'coins': coins,
-        'streak': newStreak,
-        'totalXP': newTotalXP,
-        'totalCoins': newCoins,
+        'xp': decision.xp,
+        'coins': decision.coins,
+        'streak': decision.streak,
+        'totalXP': updated.totalXP,
+        'totalCoins': updated.coins,
       };
-    } catch (e) {
-      AppLogger.error('DAILY: Error submitting answer: $e');
+    } catch (error) {
+      AppLogger.error('DAILY: Error submitting answer: $error');
       return {'xp': 0, 'coins': 0, 'streak': 0};
     }
   }
 
-  /// Obtiene el tiempo restante hasta la próxima pregunta
-  Duration getTimeUntilNextQuestion() {
-    final now = DateTime.now();
-    final tomorrow = DateTime(now.year, now.month, now.day + 1);
-    return tomorrow.difference(now);
+  Future<Achievement> _loadAchievement(String userId) async {
+    try {
+      final snapshot = await _achievementRef(userId).get();
+      if (snapshot.exists) return Achievement.fromJson(snapshot.data()!);
+    } catch (error) {
+      AppLogger.warning('DAILY: achievement unavailable: $error');
+    }
+    return Achievement.initial();
   }
 
-  /// Obtiene el streak actual
-  Future<int> getStreak() async {
+  Future<void> _updateWidget(int streak) async {
     try {
-      final userId = UserIdProvider.currentUserId;
-      final doc = await _dailyProgressRef(userId).get();
-
-      if (!doc.exists) return 0;
-      final data = doc.data() as Map<String, dynamic>?;
-      return data?['streak'] ?? 0;
-    } catch (e) {
-      return 0;
+      await WidgetService().markAsCompleted(streak);
+    } catch (error) {
+      AppLogger.warning('DAILY: widget update skipped: $error');
     }
   }
+
+  Duration getTimeUntilNextQuestion() {
+    final now = DateTime.now();
+    return DateTime(now.year, now.month, now.day + 1).difference(now);
+  }
+
+  Future<int> getStreak() async {
+    try {
+      final snapshot = await _dailyProgressRef(
+        UserIdProvider.currentUserId,
+      ).get();
+      return snapshot.data()?['streak'] as int? ?? 0;
+    } catch (_) {
+      return AppDataService.instance.dailyStreak;
+    }
+  }
+
+  UnifiedQuestion _offlineQuestion(bool english) => english
+      ? const UnifiedQuestion(
+          id: 'offline_daily_source',
+          type: QuestionType.quiz,
+          title:
+              'A surprising post has no author or source. What do you do first?',
+          subtitle: 'Apply PIENSA before sharing.',
+          options: [
+            AnswerOption(
+              id: 'share',
+              text: 'Share it because it seems urgent',
+              isCorrect: false,
+            ),
+            AnswerOption(
+              id: 'verify',
+              text: 'Look for the original source and another trusted one',
+              isCorrect: true,
+            ),
+            AnswerOption(
+              id: 'likes',
+              text: 'Check if it has a lot of likes',
+              isCorrect: false,
+            ),
+          ],
+          explanation:
+              'Popularity is not evidence. Identify the source and look for corroboration.',
+        )
+      : const UnifiedQuestion(
+          id: 'offline_daily_source',
+          type: QuestionType.quiz,
+          title:
+              'Una publicacion sorprendente no incluye autor ni fuente. ¿Que haces primero?',
+          subtitle: 'Aplica PIENSA antes de compartir.',
+          options: [
+            AnswerOption(
+              id: 'share',
+              text: 'La comparto porque parece urgente',
+              isCorrect: false,
+            ),
+            AnswerOption(
+              id: 'verify',
+              text: 'Busco la fuente original y otra fuente confiable',
+              isCorrect: true,
+            ),
+            AnswerOption(
+              id: 'likes',
+              text: 'Reviso si tiene muchos me gusta',
+              isCorrect: false,
+            ),
+          ],
+          explanation:
+              'La popularidad no es evidencia. Identifica la fuente y busca corroboracion.',
+        );
 }

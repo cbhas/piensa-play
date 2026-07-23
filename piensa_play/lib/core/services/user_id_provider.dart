@@ -1,20 +1,40 @@
-// lib/core/services/user_id_provider.dart
+import 'dart:math';
+
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'auth_service.dart';
 
-/// Helper to get the current user ID
-/// Returns the Firebase UID if signed in, otherwise returns a fallback ID
+/// Identidad estable para el modo sin conexion.
+///
+/// Nunca usa un identificador global compartido. Cuando Firebase Auth esta
+/// disponible se utiliza su UID; en una primera apertura offline se conserva
+/// un ID aleatorio exclusivo de esta instalacion.
 class UserIdProvider {
+  static const _offlineIdKey = 'offline_installation_id';
   static final AuthService _authService = AuthService();
+  static String? _offlineId;
 
-  /// Get current user ID
-  /// Returns Firebase UID or 'user123' as fallback
+  static Future<void> initialize() async {
+    final prefs = await SharedPreferences.getInstance();
+    _offlineId = prefs.getString(_offlineIdKey);
+    if (_offlineId != null) return;
+
+    final random = Random.secure();
+    final bytes = List<int>.generate(20, (_) => random.nextInt(256));
+    _offlineId =
+        'offline_${bytes.map((value) => value.toRadixString(16).padLeft(2, '0')).join()}';
+    await prefs.setString(_offlineIdKey, _offlineId!);
+  }
+
   static String get currentUserId {
-    return _authService.currentUserId ?? 'user123';
+    final firebaseId = _authService.currentUserId;
+    if (firebaseId != null) return firebaseId;
+    final offlineId = _offlineId;
+    if (offlineId == null) {
+      throw StateError('UserIdProvider.initialize() must run before the app');
+    }
+    return offlineId;
   }
 
-  /// Check if using real Firebase UID (not fallback)
-  static bool get isUsingFirebaseUid {
-    return _authService.currentUserId != null;
-  }
+  static bool get isUsingFirebaseUid => _authService.currentUserId != null;
 }

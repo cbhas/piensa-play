@@ -1,11 +1,11 @@
 {
-    "name": "Piensa Play",
-    "short_name": "Piensa Play",
+    "name": "PiensaPlay",
+    "short_name": "PiensaPlay",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#FFFFFF",
+    "background_color": "#132757",
     "theme_color": "#132757",
-    "description": "Piensa Play — aprende ciberseguridad y pensamiento crítico jugando.",
+    "description": "Juego bilingüe de alfabetización mediática e informacional.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

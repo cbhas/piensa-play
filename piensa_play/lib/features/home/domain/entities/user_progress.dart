@@ -15,8 +15,10 @@ class UserProgress {
   factory UserProgress.fromJson(Map<String, dynamic> json) => UserProgress(
     generalProgress: (json['generalProgress'] as num?)?.toDouble() ?? 0.0,
     monthlyProgress: Map<String, double>.from(
-        (json['monthlyProgress'] as Map?)?.map(
-                (k, v) => MapEntry(k.toString(), (v as num).toDouble())) ??
-            {}),
+      (json['monthlyProgress'] as Map?)?.map(
+            (k, v) => MapEntry(k.toString(), (v as num).toDouble()),
+          ) ??
+          {},
+    ),
   );
 }

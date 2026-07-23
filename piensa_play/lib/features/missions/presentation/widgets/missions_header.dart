@@ -6,6 +6,7 @@ class MissionsHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final english = Localizations.localeOf(context).languageCode == 'en';
     return Container(
       width: double.infinity,
       decoration: const BoxDecoration(color: AppTheme.tertiaryDark),
@@ -31,9 +32,9 @@ class MissionsHeader extends StatelessWidget {
           ),
           const SizedBox(width: 16),
           // Título
-          const Text(
-            'Misiones',
-            style: TextStyle(
+          Text(
+            english ? 'Missions' : 'Misiones',
+            style: const TextStyle(
               color: Colors.white,
               fontSize: 24,
               fontWeight: FontWeight.bold,

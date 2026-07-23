@@ -321,6 +321,11 @@ class AppDataService {
     _achievement = newAchievement;
   }
 
+  /// Actualiza el perfil cacheado despues de editar nombre o avatar.
+  void updateUserProfile(UserProfile profile) {
+    _userProfile = profile;
+  }
+
   /// Update cached badges (after unlocking a badge)
   void updateBadges(List<Badge> newBadges) {
     _badges = newBadges;

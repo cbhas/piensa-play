@@ -1,22 +1,22 @@
-// lib/features/home/presentation/pages/home_page.dart
-
 import 'package:flutter/material.dart';
-import 'package:piensa_play/core/services/firestore_provider.dart';
-import 'package:piensa_play/core/services/logger_service.dart';
-import '../../../../core/theme/app_theme.dart';
-import '../../../../core/theme/app_animations.dart';
-import '../../../../core/services/user_id_provider.dart';
-import '../../../../core/services/daily_question_service.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+
+import '../../../../core/localization/app_locale.dart';
+import '../../../../core/routes/app_routes.dart';
 import '../../../../core/services/app_data_service.dart';
-import '../../../../core/services/audio_service.dart';
+import '../../../../core/services/daily_question_service.dart';
+import '../../../../core/services/user_id_provider.dart';
+import '../../../../core/theme/app_animations.dart';
+import '../../../../core/theme/app_theme.dart';
 import '../../../daily_question/presentation/pages/daily_question_page.dart';
+import '../../../flagship/data/flagship_content.dart';
+import '../../../flagship/data/flagship_progress_service.dart';
 import '../../../missions/domain/entities/unified_question.dart';
+import '../../../onboarding/data/repositories/onboarding_repository_impl.dart';
+import '../../../onboarding/domain/entities/user_profile.dart';
 import '../../domain/entities/user_progress.dart';
-import '../widgets/dashboard_header.dart';
-import '../widgets/mission_banner.dart';
-import '../widgets/dashboard_card.dart';
+import '../../domain/usecases/get_user_progress.dart';
 import '../widgets/progress_circle.dart';
-import '../widgets/custom_bottom_nav_bar.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -26,278 +26,638 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final DailyQuestionService _dailyService = DailyQuestionService();
+  final _daily = DailyQuestionService();
+  final _flagshipProgress = FlagshipProgressService();
+  final _profiles = OnboardingRepositoryImpl();
+  final _getUserProgress = GetUserProgress();
 
-  // Use Firebase Anonymous Auth UID instead of hardcoded ID
-  String get userId => UserIdProvider.currentUserId;
-
-  UserProgress? _progress;
-  String? _avatarId;
-  String? _avatarPath;
-  String? _userName;
-  bool _isLoading = true;
-
-  // Daily Question state
+  UserProfile? _profile;
+  UnifiedQuestion? _dailyQuestion;
   bool _dailyAnswered = false;
   int _dailyStreak = 0;
-  UnifiedQuestion? _dailyQuestion;
+  Set<String> _completed = {};
+  UserProgress? _userProgress;
+  bool _loading = true;
+  bool _initialized = false;
 
   @override
-  void initState() {
-    super.initState();
-    _loadFromCache();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_initialized) {
+      _initialized = true;
+      _load();
+    }
   }
 
-  /// El home se renderiza SIEMPRE desde la caché de AppDataService (cargada en
-  /// el splash): perfil, progreso, racha y progreso de misiones ya están en
-  /// memoria. No hace lecturas secuenciales a Firestore ni muestra spinner.
-  /// Solo la pregunta diaria y el "respondió hoy" se cargan en segundo plano.
-  void _loadFromCache() {
-    final app = AppDataService.instance;
+  Future<void> _load() async {
+    final cached = AppDataService.instance.userProfile;
+    final english = Localizations.localeOf(context).languageCode == 'en';
+    final results = await Future.wait<dynamic>([
+      cached == null ? _profiles.getUserProfile() : Future.value(cached),
+      _daily.hasAnsweredToday(),
+      _daily.getStreak(),
+      _daily.getTodaysQuestion(english: english),
+      _flagshipProgress.completedMissions(),
+      _getUserProgress.execute(UserIdProvider.currentUserId),
+    ]);
+    if (!mounted) return;
     setState(() {
-      _userName = app.userProfile?.name;
-      _avatarId = app.userProfile?.avatarId;
-      _progress = app.userProgress;
-      _dailyStreak = app.dailyStreak;
-      _isLoading = false;
+      _profile = results[0] as UserProfile?;
+      _dailyAnswered = results[1] as bool;
+      _dailyStreak = results[2] as int;
+      _dailyQuestion = results[3] as UnifiedQuestion?;
+      _completed = results[4] as Set<String>;
+      _userProgress = results[5] as UserProgress?;
+      _loading = false;
     });
-    _refreshInBackground();
   }
 
-  Future<void> _refreshInBackground() async {
-    final app = AppDataService.instance;
-
-    // Si el perfil no está en caché (p. ej. recién terminó el onboarding),
-    // refrescarlo (lee SharedPreferences, es rápido) y actualizar la UI.
-    if (app.userProfile == null) {
-      try {
-        await app.refreshProfile();
-        final profile = app.userProfile;
-        if (mounted && profile != null) {
-          setState(() {
-            _userName = profile.name;
-            _avatarId = profile.avatarId;
-          });
-        }
-      } catch (e) {
-        AppLogger.warning('HOME: Error refrescando perfil: $e');
-      }
-    }
-
-    await _loadDailyQuestionData();
+  String _avatarPath(String? id) {
+    const valid = {'cocodrilo', 'jaguar', 'pajaro', 'tortuga'};
+    return 'assets/avatars/${valid.contains(id) ? id : 'cocodrilo'}.png';
   }
 
-  Future<void> _loadDailyQuestionData() async {
-    try {
-      final dailyAnswered = await _dailyService.hasAnsweredToday();
-      final dailyQuestion = await _dailyService.getTodaysQuestion();
-
-      if (mounted) {
-        setState(() {
-          _dailyAnswered = dailyAnswered;
-          _dailyQuestion = dailyQuestion;
-        });
-      }
-    } catch (e) {
-      AppLogger.warning('HOME: Error loading daily question: $e');
-    }
-  }
-
-  String _getAvatarPath(String? avatarId) {
-    if (avatarId == null || avatarId.isEmpty) {
-      return 'assets/avatars/cocodrilo.png';
-    }
-    final validIds = ['cocodrilo', 'jaguar', 'pajaro', 'tortuga'];
-    if (!validIds.contains(avatarId)) {
-      return 'assets/avatars/cocodrilo.png';
-    }
-    return 'assets/avatars/$avatarId.png';
-  }
-
-  String _getMissionsSubtitle() {
-    final categories = AppDataService.instance.missionCategories;
-    int totalMissions = 0;
-    int completedMissions = 0;
-
-    for (final category in categories) {
-      totalMissions += category.missions.length;
-      completedMissions += category.missions.where((m) => m.isCompleted).length;
-    }
-
-    if (completedMissions == totalMissions && totalMissions > 0) {
-      return '¡Todas completas!';
-    }
-    return '$completedMissions de $totalMissions';
-  }
-
-  double _calculateMissionProgress() {
-    final categories = AppDataService.instance.missionCategories;
-    int totalMissions = 0;
-    int completedMissions = 0;
-
-    for (final category in categories) {
-      totalMissions += category.missions.length;
-      completedMissions += category.missions.where((m) => m.isCompleted).length;
-    }
-
-    if (totalMissions == 0) return 0.0;
-    return completedMissions / totalMissions;
-  }
-
-  Future<void> _onDailyBannerTap() async {
-    if (_dailyAnswered) {
-      // Ya respondió, ir a logros
-      Navigator.pushNamed(context, '/achievements');
-    } else if (_dailyQuestion != null) {
-      // Abrir pregunta diaria
-      final result = await Navigator.push<bool>(
-        context,
-        MaterialPageRoute(
-          builder: (context) => DailyQuestionPage(question: _dailyQuestion!),
+  Future<void> _chooseAvatar() async {
+    final selected = await showModalBottomSheet<String>(
+      context: context,
+      showDragHandle: true,
+      builder: (context) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                context.strings.t('avatarLabel'),
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              const SizedBox(height: 18),
+              Wrap(
+                spacing: 14,
+                runSpacing: 14,
+                children: ['cocodrilo', 'jaguar', 'pajaro', 'tortuga']
+                    .map(
+                      (id) => InkWell(
+                        onTap: () => Navigator.pop(context, id),
+                        borderRadius: BorderRadius.circular(22),
+                        child: Container(
+                          width: 74,
+                          height: 74,
+                          padding: const EdgeInsets.all(7),
+                          decoration: BoxDecoration(
+                            color: AppTheme.accentGreen.withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(22),
+                            border: Border.all(
+                              color: _profile?.avatarId == id
+                                  ? AppTheme.primaryDark
+                                  : Colors.transparent,
+                              width: 2,
+                            ),
+                          ),
+                          child: Image.asset(_avatarPath(id)),
+                        ),
+                      ),
+                    )
+                    .toList(),
+              ),
+            ],
+          ),
         ),
-      );
-
-      // Si respondió, refrescar desde la caché (submitAnswer ya actualizó
-      // racha/monedas/XP en AppDataService) y recargar el estado diario.
-      if (result == true) {
-        _loadFromCache();
-      }
-    }
+      ),
+    );
+    if (selected == null || _profile == null) return;
+    final updated = _profile!.copyWith(avatarId: selected);
+    await _profiles.saveUserProfile(updated);
+    AppDataService.instance.updateUserProfile(updated);
+    if (mounted) setState(() => _profile = updated);
   }
 
-  Future<void> _onAvatarChanged(String avatarId, String assetPath) async {
-    // Actualizar UI inmediatamente
-    setState(() {
-      _avatarId = avatarId;
-      _avatarPath = assetPath;
-    });
-
-    // Guardar en Firebase
-    try {
-      await FirestoreProvider.instance
-          .collection('users')
-          .doc(userId)
-          .collection('profile')
-          .doc('data')
-          .update({'avatarId': avatarId, 'avatarPath': assetPath});
-
-      // Reproducir sonido de confirmación
-      AudioService().playCorrect();
-
-      AppLogger.success('HOME: Avatar changed to $avatarId');
-    } catch (e) {
-      AppLogger.error('HOME: Error saving avatar: $e');
+  Future<void> _openDaily() async {
+    if (_dailyAnswered || _dailyQuestion == null) {
+      Navigator.pushNamed(context, AppRoutes.achievements);
+      return;
     }
+    final answered = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (_) => DailyQuestionPage(question: _dailyQuestion!),
+      ),
+    );
+    if (answered == true) await _load();
   }
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final strings = context.strings;
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final achievement = AppDataService.instance.achievement;
+    final cityProgress = (_completed.length / FlagshipContent.missions.length)
+        .clamp(0.0, 1.0);
 
     return Scaffold(
-      backgroundColor: isDark
-          ? AppTheme.backgroundDark
-          : AppTheme.backgroundLight,
-      body: _isLoading
+      body: _loading
           ? const Center(child: CircularProgressIndicator())
-          : Column(
-              children: [
-                DashboardHeader(
-                  avatarPath: _avatarPath ?? _getAvatarPath(_avatarId),
-                  userName: _userName,
-                  currentAvatarId: _avatarId ?? 'cocodrilo',
-                  onAvatarChanged: _onAvatarChanged,
-                ).slideFromTop(duration: const Duration(milliseconds: 400)),
-                Expanded(
-                  child: SingleChildScrollView(
-                    child: Column(
+          : RefreshIndicator(
+              onRefresh: _load,
+              child: CustomScrollView(
+                slivers: [
+                  SliverToBoxAdapter(
+                    child: _HomeHeader(
+                      name: _profile?.name.isNotEmpty == true
+                          ? _profile!.name
+                          : strings.t('explorer'),
+                      avatarPath: _avatarPath(_profile?.avatarId),
+                      level: achievement.currentLevel,
+                      coins: achievement.coins,
+                      onAvatarTap: _chooseAvatar,
+                    ),
+                  ),
+                  SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(20, 22, 20, 36),
+                    sliver: SliverList.list(
                       children: [
-                        MissionBanner(
-                          isAvailable:
-                              !_dailyAnswered && _dailyQuestion != null,
-                          isCompleted: _dailyAnswered,
+                        Text(
+                          strings.t('homeQuestion'),
+                          style: Theme.of(context).textTheme.headlineMedium,
+                        ).fadeInSlide(),
+                        const SizedBox(height: 18),
+                        _CityHeroCard(
+                          progress: cityProgress,
+                          onTap: () async {
+                            await Navigator.pushNamed(
+                              context,
+                              AppRoutes.missions,
+                            );
+                            await _load();
+                          },
+                        ).fadeInSlide(delay: 60.ms),
+                        const SizedBox(height: 16),
+                        _ClassicMissionsCard(
+                          onTap: () => Navigator.pushNamed(
+                            context,
+                            AppRoutes.legacyMissions,
+                          ),
+                        ).fadeInSlide(delay: 90.ms),
+                        const SizedBox(height: 16),
+                        _PiensaMethodCard().fadeInSlide(delay: 120.ms),
+                        const SizedBox(height: 16),
+                        _DailyCard(
+                          answered: _dailyAnswered,
                           streak: _dailyStreak,
-                          timeRemaining: _dailyAnswered
-                              ? _dailyService.getTimeUntilNextQuestion()
-                              : null,
-                          onPressed: () => _onDailyBannerTap(),
-                        ).fadeInSlide(delay: const Duration(milliseconds: 200)),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
-                          child: GridView.count(
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            crossAxisCount: 2,
-                            crossAxisSpacing: 16,
-                            mainAxisSpacing: 16,
-                            childAspectRatio: 1.1,
-                            children: [
-                              DashboardCard(
-                                title: 'Aprende',
-                                subtitle: 'Videos y tips',
-                                icon: Icons.videogame_asset,
-                                color: AppTheme.accentGreen,
-                                borderColor: AppTheme.accentGreen,
-                                onTap: () {
-                                  Navigator.pushNamed(context, '/learn');
-                                },
-                              ).staggeredEntry(index: 0),
-                              DashboardCard(
-                                title: 'Glosario',
-                                subtitle:
-                                    '${AppDataService.instance.glossaryTerms.length} términos',
-                                icon: Icons.book,
-                                color: AppTheme.accentBlue,
-                                borderColor: AppTheme.accentBlue,
-                                onTap: () {
-                                  Navigator.pushNamed(context, '/glossary');
-                                },
-                              ).staggeredEntry(index: 1),
-                              DashboardCard(
-                                title: 'Logros',
-                                subtitle:
-                                    'Nivel ${AppDataService.instance.achievement.currentLevel}',
-                                icon: Icons.emoji_events,
-                                color: AppTheme.accentYellow,
-                                borderColor: AppTheme.accentYellow,
-                                onTap: () {
-                                  Navigator.pushNamed(context, '/achievements');
-                                },
-                              ).staggeredEntry(index: 2),
-                              DashboardCard(
-                                title: 'Misiones',
-                                subtitle: _getMissionsSubtitle(),
-                                icon: Icons.star,
-                                color: AppTheme.accentPink,
-                                borderColor: AppTheme.accentPink,
-                                onTap: () {
-                                  Navigator.pushNamed(context, '/missions');
-                                },
-                              ).staggeredEntry(index: 3),
-                            ],
+                          onTap: _openDaily,
+                        ).fadeInSlide(delay: 180.ms),
+                        const SizedBox(height: 22),
+                        GridView.count(
+                          crossAxisCount: 2,
+                          crossAxisSpacing: 12,
+                          mainAxisSpacing: 12,
+                          childAspectRatio: 1.28,
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          children: [
+                            _QuickCard(
+                              title: strings.t('learn'),
+                              icon: Icons.play_lesson_outlined,
+                              fill: AppTheme.blueFill(dark),
+                              iconColor: AppTheme.blueText(dark),
+                              onTap: () =>
+                                  Navigator.pushNamed(context, AppRoutes.learn),
+                            ),
+                            _QuickCard(
+                              title: strings.t('glossary'),
+                              icon: Icons.menu_book_outlined,
+                              fill: AppTheme.greenFill(dark),
+                              iconColor: AppTheme.greenText(dark),
+                              onTap: () => Navigator.pushNamed(
+                                context,
+                                AppRoutes.glossary,
+                              ),
+                            ),
+                            _QuickCard(
+                              title: strings.t('achievements'),
+                              icon: Icons.emoji_events_outlined,
+                              fill: AppTheme.goldFill(dark),
+                              iconColor: AppTheme.goldText(dark),
+                              onTap: () => Navigator.pushNamed(
+                                context,
+                                AppRoutes.achievements,
+                              ),
+                            ),
+                            _QuickCard(
+                              title: strings.t('shop'),
+                              icon: Icons.storefront_rounded,
+                              fill: AppTheme.coralFill(dark),
+                              iconColor: AppTheme.coralText(dark),
+                              onTap: () =>
+                                  Navigator.pushNamed(context, AppRoutes.shop),
+                            ),
+                          ].animate(interval: 60.ms).fadeIn(duration: 300.ms).scale(
+                            begin: const Offset(0.92, 0.92),
+                            curve: Curves.easeOutBack,
                           ),
                         ),
-                        ProgressCircle(
-                          progress: _calculateMissionProgress(),
-                          monthlyProgress: _progress?.monthlyProgress ?? {},
-                        ).scaleIn(delay: const Duration(milliseconds: 500)),
-                        const SizedBox(height: 80),
+                        if (_userProgress != null)
+                          ProgressCircle(
+                            progress: _userProgress!.generalProgress,
+                            monthlyProgress: _userProgress!.monthlyProgress,
+                          ).fadeInSlide(delay: 240.ms),
                       ],
                     ),
                   ),
+                ],
+              ),
+            ),
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: 0,
+        destinations: [
+          NavigationDestination(
+            icon: const Icon(Icons.home_outlined),
+            selectedIcon: const Icon(Icons.home_rounded),
+            label: strings.t('appName'),
+          ),
+          NavigationDestination(
+            icon: const Icon(Icons.location_city_outlined),
+            label: strings.t('missions'),
+          ),
+          NavigationDestination(
+            icon: const Icon(Icons.tune_rounded),
+            label: strings.t('settings'),
+          ),
+        ],
+        onDestinationSelected: (index) {
+          if (index == 1) Navigator.pushNamed(context, AppRoutes.missions);
+          if (index == 2) Navigator.pushNamed(context, AppRoutes.settings);
+        },
+      ),
+    );
+  }
+}
+
+class _HomeHeader extends StatelessWidget {
+  final String name;
+  final String avatarPath;
+  final int level;
+  final int coins;
+  final VoidCallback onAvatarTap;
+
+  const _HomeHeader({
+    required this.name,
+    required this.avatarPath,
+    required this.level,
+    required this.coins,
+    required this.onAvatarTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.fromLTRB(
+        20,
+        MediaQuery.paddingOf(context).top + 18,
+        20,
+        22,
+      ),
+      decoration: const BoxDecoration(
+        color: AppTheme.primaryDark,
+        borderRadius: BorderRadius.vertical(bottom: Radius.circular(32)),
+      ),
+      child: Row(
+        children: [
+          Semantics(
+            button: true,
+            label: context.strings.t('changeAvatar'),
+            child: InkWell(
+              onTap: onAvatarTap,
+              borderRadius: BorderRadius.circular(22),
+              child: Container(
+                width: 64,
+                height: 64,
+                padding: const EdgeInsets.all(5),
+                decoration: BoxDecoration(
+                  color: AppTheme.accentGreen,
+                  borderRadius: BorderRadius.circular(22),
+                  boxShadow: AppTheme.softShadow,
+                ),
+                child: Image.asset(avatarPath),
+              ),
+            ),
+          ).scaleIn(),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  context.strings.t('hello', {'name': name}),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 21,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.local_fire_department_rounded,
+                      color: AppTheme.accentYellow,
+                      size: 16,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      context.strings.t('levelCoins', {
+                        'level': '$level',
+                        'coins': '$coins',
+                      }),
+                      style: const TextStyle(color: Colors.white70),
+                    ),
+                  ],
                 ),
               ],
             ),
-      bottomNavigationBar: CustomBottomNavBar(
-        currentIndex: 0,
-        onTap: (index) {
-          if (index == 1) {
-            Navigator.pushReplacementNamed(context, '/shop');
-          } else if (index == 2) {
-            Navigator.pushReplacementNamed(context, '/settings');
-          }
-          // index == 0 is already on home
-        },
+          ).fadeInSlide(delay: 80.ms),
+          IconButton(
+            color: Colors.white,
+            onPressed: () => Navigator.pushNamed(context, AppRoutes.settings),
+            icon: const Icon(Icons.settings_outlined),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CityHeroCard extends StatelessWidget {
+  final double progress;
+  final VoidCallback onTap;
+  const _CityHeroCard({required this.progress, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final strings = context.strings;
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.all(22),
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [AppTheme.secondaryDark, AppTheme.primaryDark],
+            ),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      strings.t('cityTitle'),
+                      style: Theme.of(
+                        context,
+                      ).textTheme.titleLarge?.copyWith(color: Colors.white),
+                    ),
+                    const SizedBox(height: 7),
+                    Text(
+                      strings.t('citySubtitle'),
+                      style: const TextStyle(color: Colors.white70),
+                    ),
+                    const SizedBox(height: 18),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(99),
+                      child: LinearProgressIndicator(
+                        value: progress,
+                        minHeight: 9,
+                        backgroundColor: Colors.white24,
+                        valueColor: const AlwaysStoppedAnimation(
+                          AppTheme.accentGreen,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 9),
+                    Text(
+                      '${(progress * 100).round()}% · ${strings.t('enterCity')}',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 14),
+              Container(
+                width: 72,
+                height: 72,
+                decoration: BoxDecoration(
+                  color: AppTheme.accentYellow,
+                  borderRadius: BorderRadius.circular(22),
+                ),
+                child: const Icon(
+                  Icons.location_city_rounded,
+                  color: AppTheme.primaryDark,
+                  size: 38,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ClassicMissionsCard extends StatelessWidget {
+  final VoidCallback onTap;
+  const _ClassicMissionsCard({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final strings = context.strings;
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(18),
+          child: Row(
+            children: [
+              Container(
+                width: 52,
+                height: 52,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: AppTheme.greenFill(dark),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                ),
+                child: Icon(
+                  Icons.explore_rounded,
+                  color: AppTheme.greenText(dark),
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      strings.t('classicMissions'),
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      strings.t('classicMissionsSubtitle'),
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                Icons.chevron_right_rounded,
+                color: Theme.of(context).textTheme.bodyMedium?.color,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _PiensaMethodCard extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(18),
+        child: Row(
+          children: [
+            CircleAvatar(
+              radius: 25,
+              backgroundColor: AppTheme.greenFill(dark),
+              child: Icon(
+                Icons.psychology_alt_rounded,
+                color: AppTheme.greenText(dark),
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    context.strings.t('methodTitle'),
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(context.strings.t('methodBody')),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _DailyCard extends StatelessWidget {
+  final bool answered;
+  final int streak;
+  final VoidCallback onTap;
+  const _DailyCard({
+    required this.answered,
+    required this.streak,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      child: ListTile(
+        onTap: onTap,
+        contentPadding: const EdgeInsets.all(16),
+        leading: Container(
+          width: 52,
+          height: 52,
+          decoration: BoxDecoration(
+            color: AppTheme.goldFill(dark),
+            borderRadius: BorderRadius.circular(17),
+          ),
+          child: Icon(
+            answered ? Icons.check_circle_rounded : Icons.bolt_rounded,
+            color: AppTheme.goldText(dark),
+          ),
+        ),
+        title: Text(
+          context.strings.t('dailyChallenge'),
+          style: const TextStyle(fontWeight: FontWeight.w900),
+        ),
+        subtitle: Text(context.strings.t('dailyReady')),
+        trailing: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(
+              Icons.local_fire_department_rounded,
+              color: Colors.orange,
+            ),
+            Text(
+              '$streak',
+              style: const TextStyle(fontWeight: FontWeight.w900),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _QuickCard extends StatelessWidget {
+  final String title;
+  final IconData icon;
+  final Color fill;
+  final Color iconColor;
+  final VoidCallback onTap;
+  const _QuickCard({
+    required this.title,
+    required this.icon,
+    required this.fill,
+    required this.iconColor,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: fill,
+                  borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+                ),
+                child: Icon(icon, color: iconColor),
+              ),
+              Text(title, style: Theme.of(context).textTheme.titleMedium),
+            ],
+          ),
+        ),
       ),
     );
   }

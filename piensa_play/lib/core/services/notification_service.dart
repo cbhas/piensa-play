@@ -35,8 +35,8 @@ class NotificationService {
 
     // Configurar timezone local (America/Lima para Perú)
     // Esto es necesario para que las notificaciones se programen correctamente
-    tz.setLocalLocation(tz.getLocation('America/Lima'));
-    AppLogger.log('NOTIFICATIONS: Timezone set to America/Lima');
+    tz.setLocalLocation(tz.getLocation('America/Guayaquil'));
+    AppLogger.log('NOTIFICATIONS: Timezone set to America/Guayaquil');
 
     // Configuración para Android
     const androidSettings = AndroidInitializationSettings(

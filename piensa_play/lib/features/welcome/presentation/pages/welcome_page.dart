@@ -1,253 +1,340 @@
 import 'package:flutter/material.dart';
-import 'package:piensa_play/core/constants/app_constants.dart';
-import 'package:piensa_play/core/theme/app_theme.dart';
-import 'package:piensa_play/core/services/audio_service.dart';
-import 'package:piensa_play/core/services/logger_service.dart';
-import 'package:piensa_play/features/welcome/domain/usecases/get_welcome_config.dart';
-import 'package:piensa_play/features/welcome/domain/usecases/show_tutorial.dart';
-import 'package:piensa_play/features/welcome/domain/usecases/start_adventure.dart';
-import 'package:piensa_play/features/welcome/domain/entities/welcome_config.dart';
-import 'package:piensa_play/core/routes/app_routes.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:provider/provider.dart';
 
-class WelcomePage extends StatefulWidget {
+import '../../../../core/constants/app_constants.dart';
+import '../../../../core/localization/app_locale.dart';
+import '../../../../core/routes/app_routes.dart';
+import '../../../../core/theme/app_animations.dart';
+import '../../../../core/theme/app_theme.dart';
+import '../../../../core/widgets/decorative_shapes.dart';
+
+class WelcomePage extends StatelessWidget {
   const WelcomePage({super.key});
 
   @override
-  State<WelcomePage> createState() => _WelcomePageState();
-}
-
-class _WelcomePageState extends State<WelcomePage> {
-  late final GetWelcomeConfig _getWelcomeConfig;
-  late final StartAdventure _startAdventure;
-  late final ShowTutorial _showTutorial;
-  late final WelcomeConfig _config;
-
-  @override
-  void initState() {
-    super.initState();
-    _getWelcomeConfig = GetWelcomeConfig();
-    _startAdventure = StartAdventure();
-    _showTutorial = ShowTutorial();
-    _config = _getWelcomeConfig.execute();
-
-    // Auto-play welcome audio
-    _playWelcomeAudio();
-  }
-
-  Future<void> _playWelcomeAudio() async {
-    try {
-      await AudioService().playMascotAudio('bienvenida.mp3');
-    } catch (e) {
-      AppLogger.error('Error playing welcome audio: $e');
-    }
-  }
-
-  Future<void> _onStartPressed() async {
-    await _startAdventure.execute();
-    if (mounted) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('¡Comenzando aventura!')));
-      Navigator.of(context).pushReplacementNamed(AppRoutes.onboarding);
-    }
-  }
-
-  Future<void> _onTutorialPressed() async {
-    await _showTutorial.execute();
-    if (mounted) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Mostrando tutorial')));
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final strings = context.strings;
+    final locale = context.watch<AppLocaleController>();
     return Scaffold(
       body: Container(
         decoration: AppTheme.gradientBackground,
         child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Spacer(),
-                _buildMascotContainer(),
-                const SizedBox(height: 50),
-                _buildTitle(),
-                const SizedBox(height: 20),
-                _buildSubtitle(),
-                const Spacer(),
-                _buildStartButton(),
-                const SizedBox(height: 16),
-                _buildTutorialButton(),
-                const SizedBox(height: 30),
-                _buildLanguageSelector(),
-                const SizedBox(height: 30),
-              ],
-            ),
+          child: Stack(
+            children: [
+              const Positioned(
+                top: -80,
+                right: -70,
+                child: _Glow(size: 220, color: AppTheme.accentBlue),
+              ),
+              const Positioned(
+                bottom: 40,
+                left: -100,
+                child: _Glow(size: 260, color: AppTheme.accentGreen),
+              ),
+              const Positioned(
+                top: 130,
+                left: 18,
+                child: Sparkle(size: 20, color: AppTheme.accentYellow),
+              ),
+              const Positioned(
+                top: 90,
+                right: 40,
+                child: Sparkle(size: 14, color: AppTheme.accentPink),
+              ),
+              SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(24, 18, 24, 28),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minHeight:
+                        MediaQuery.sizeOf(context).height -
+                        MediaQuery.paddingOf(context).vertical -
+                        46,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Row(
+                        children: [
+                          const _BrandMark(),
+                          const SizedBox(width: 10),
+                          Text(
+                            strings.t('appName'),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 22,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                          const Spacer(),
+                          _LanguageButton(locale: locale),
+                        ],
+                      ),
+                      const SizedBox(height: 26),
+                      Center(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 7,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppTheme.accentYellow,
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                          child: Text(
+                            locale.isEnglish
+                                ? 'PLAY YOUR PART · UNESCO 2026'
+                                : 'PARTICIPA · UNESCO 2026',
+                            style: const TextStyle(
+                              color: AppTheme.tertiaryDark,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 0.8,
+                            ),
+                          ),
+                        ),
+                      ).animate().fadeIn(duration: 400.ms).slideY(
+                        begin: -0.3,
+                        end: 0,
+                        curve: Curves.easeOutBack,
+                      ),
+                      const SizedBox(height: 18),
+                      Center(
+                        child: Stack(
+                          alignment: Alignment.bottomCenter,
+                          children: [
+                            Container(
+                              width: 190,
+                              height: 190,
+                              decoration: BoxDecoration(
+                                color: AppTheme.accentGreen,
+                                shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: AppTheme.accentGreen.withValues(
+                                      alpha: 0.25,
+                                    ),
+                                    blurRadius: 50,
+                                    spreadRadius: 8,
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Semantics(
+                              label: 'PiensaPlay mascot',
+                              image: true,
+                              child: Image.asset(
+                                AppConstants.mascotEmoji,
+                                width: 210,
+                                height: 220,
+                                fit: BoxFit.contain,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ).scaleIn(delay: 120.ms, duration: 550.ms),
+                      const SizedBox(height: 18),
+                      Text(
+                        strings.t('welcomeTitle'),
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.displaySmall
+                            ?.copyWith(color: Colors.white, fontSize: 38),
+                      ).fadeInSlide(delay: 250.ms),
+                      const SizedBox(height: 12),
+                      Text(
+                        strings.t('welcomeBody'),
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 16,
+                          height: 1.5,
+                        ),
+                      ).fadeInSlide(delay: 320.ms),
+                      const SizedBox(height: 22),
+                      const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          _FeaturePill(
+                            icon: Icons.language_rounded,
+                            label: 'ES · EN',
+                          ),
+                          SizedBox(width: 8),
+                          _FeaturePill(
+                            icon: Icons.offline_bolt_outlined,
+                            label: 'OFFLINE',
+                          ),
+                          SizedBox(width: 8),
+                          _FeaturePill(
+                            icon: Icons.shield_outlined,
+                            label: 'SAFE',
+                          ),
+                        ],
+                      ).fadeInSlide(delay: 380.ms),
+                      const SizedBox(height: 28),
+                      ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.accentYellow,
+                          foregroundColor: AppTheme.tertiaryDark,
+                        ),
+                        onPressed: () => Navigator.of(
+                          context,
+                        ).pushReplacementNamed(AppRoutes.onboarding),
+                        icon: const Icon(Icons.arrow_forward_rounded),
+                        label: Text(strings.t('startAdventure')),
+                      ).fadeInSlide(delay: 440.ms),
+                      const SizedBox(height: 10),
+                      OutlinedButton.icon(
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Colors.white,
+                          side: const BorderSide(color: Colors.white54),
+                        ),
+                        onPressed: () =>
+                            Navigator.of(context).pushNamed(AppRoutes.demo),
+                        icon: const Icon(Icons.play_circle_outline_rounded),
+                        label: Text(strings.t('tryDemo')),
+                      ).fadeInSlide(delay: 500.ms),
+                      const SizedBox(height: 18),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(
+                            Icons.privacy_tip_outlined,
+                            color: Colors.white54,
+                            size: 16,
+                          ),
+                          const SizedBox(width: 7),
+                          Flexible(
+                            child: Text(
+                              strings.t('privacyNote'),
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                color: Colors.white54,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
     );
   }
+}
 
-  Widget _buildMascotContainer() {
-    return SizedBox(
-      width: 180,
-      height: 220,
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          Positioned(
-            bottom: 0,
-            left: 0,
-            child: Container(
-              width: 180,
-              height: 180,
-              decoration: BoxDecoration(
-                color: AppTheme.mascotBackground,
-                shape: BoxShape.circle,
-                boxShadow: AppTheme.defaultShadow,
-              ),
-            ),
+class _LanguageButton extends StatelessWidget {
+  final AppLocaleController locale;
+  const _LanguageButton({required this.locale});
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: context.strings.t('language'),
+      child: InkWell(
+        onTap: locale.toggle,
+        borderRadius: BorderRadius.circular(999),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 9),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(999),
+            border: Border.all(color: Colors.white24),
           ),
-          Positioned(
-            bottom: 0,
-            left: 0,
-            child: SizedBox(
-              width: 180,
-              height: 220,
-              child: Transform.scale(
-                scale: 1.3,
-                alignment: Alignment.bottomCenter,
-                child: Image.asset(
-                  AppConstants.mascotEmoji,
-                  width: 180,
-                  height: 180,
-                  fit: BoxFit.contain,
+          child: Row(
+            children: [
+              const Icon(Icons.language_rounded, color: Colors.white, size: 18),
+              const SizedBox(width: 7),
+              Text(
+                locale.isEnglish ? 'EN' : 'ES',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w900,
                 ),
               ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _BrandMark extends StatelessWidget {
+  const _BrandMark();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 38,
+      height: 38,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: AppTheme.accentGreen,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: const Text(
+        'P',
+        style: TextStyle(
+          color: AppTheme.primaryDark,
+          fontSize: 22,
+          fontWeight: FontWeight.w900,
+        ),
+      ),
+    );
+  }
+}
+
+class _FeaturePill extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  const _FeaturePill({required this.icon, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: AppTheme.accentGreen, size: 15),
+          const SizedBox(width: 5),
+          Text(
+            label,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 10,
+              fontWeight: FontWeight.w900,
             ),
           ),
         ],
       ),
     );
   }
+}
 
-  Widget _buildTitle() {
-    return Text(
-      _config.title,
-      textAlign: TextAlign.center,
-      style: const TextStyle(
-        fontSize: 36,
-        fontWeight: FontWeight.bold,
-        color: Colors.white,
-        height: 1.2,
+class _Glow extends StatelessWidget {
+  final double size;
+  final Color color;
+  const _Glow({required this.size, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        shape: BoxShape.circle,
       ),
-    );
-  }
-
-  Widget _buildSubtitle() {
-    return Text(
-      _config.subtitle,
-      textAlign: TextAlign.center,
-      style: const TextStyle(fontSize: 18, color: Colors.white, height: 1.5),
-    );
-  }
-
-  Widget _buildStartButton() {
-    return SizedBox(
-      width: double.infinity,
-      height: 56,
-      child: ElevatedButton(
-        onPressed: _onStartPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppTheme.accentYellow,
-          foregroundColor: AppTheme.secondaryDark,
-          elevation: 8,
-          shadowColor: Colors.black.withValues(alpha: 0.3),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(28),
-          ),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              _config.startButtonLabel,
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 0.5,
-              ),
-            ),
-            const SizedBox(width: 8),
-            const Icon(Icons.arrow_forward, size: 24),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTutorialButton() {
-    return SizedBox(
-      width: double.infinity,
-      height: 56,
-      child: OutlinedButton(
-        onPressed: _onTutorialPressed,
-        style: OutlinedButton.styleFrom(
-          foregroundColor: Colors.white,
-          side: const BorderSide(color: AppTheme.accentGreen, width: 2),
-          backgroundColor: AppTheme.accentGreen.withValues(alpha: 0.3),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(28),
-          ),
-        ),
-        child: Text(
-          _config.tutorialButtonLabel,
-          style: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-            letterSpacing: 0.5,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildLanguageSelector() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Container(
-          width: 24,
-          height: 24,
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            shape: BoxShape.circle,
-          ),
-          child: const Center(
-            child: Icon(
-              Icons.language,
-              size: 16,
-              color: AppTheme.secondaryDark,
-            ),
-          ),
-        ),
-        const SizedBox(width: 8),
-        Text(
-          _config.currentLanguage,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        const SizedBox(width: 4),
-        const Icon(Icons.arrow_drop_down, color: Colors.white),
-      ],
     );
   }
 }

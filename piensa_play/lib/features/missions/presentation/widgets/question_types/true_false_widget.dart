@@ -20,6 +20,7 @@ class TrueFalseWidget extends BaseQuestionWidget {
 
   @override
   Widget build(BuildContext context) {
+    final english = Localizations.localeOf(context).languageCode == 'en';
     return Container(
       color: Colors.white,
       child: Column(
@@ -32,10 +33,11 @@ class TrueFalseWidget extends BaseQuestionWidget {
                 children: [
                   const SizedBox(height: 20),
 
-                  // Emoji grande
-                  const Text(
-                    '🔍',
-                    style: TextStyle(fontSize: 56),
+                  // Ícono grande
+                  const Icon(
+                    Icons.search_rounded,
+                    size: 56,
+                    color: AppTheme.primaryDark,
                   ).animate().scale(duration: 300.ms, curve: Curves.elasticOut),
 
                   const SizedBox(height: 20),
@@ -67,7 +69,11 @@ class TrueFalseWidget extends BaseQuestionWidget {
                       ),
                       child: Column(
                         children: [
-                          const Text('📰', style: TextStyle(fontSize: 28)),
+                          const Icon(
+                            Icons.newspaper_rounded,
+                            size: 28,
+                            color: AppTheme.primaryDark,
+                          ),
                           const SizedBox(height: 12),
                           Text(
                             _shortenText(question.content!, 220),
@@ -88,9 +94,13 @@ class TrueFalseWidget extends BaseQuestionWidget {
                   // Botones V/F grandes
                   Row(
                     children: [
-                      Expanded(child: _buildButton(isTrue: true)),
+                      Expanded(
+                        child: _buildButton(isTrue: true, english: english),
+                      ),
                       const SizedBox(width: 16),
-                      Expanded(child: _buildButton(isTrue: false)),
+                      Expanded(
+                        child: _buildButton(isTrue: false, english: english),
+                      ),
                     ],
                   ),
                 ],
@@ -99,7 +109,7 @@ class TrueFalseWidget extends BaseQuestionWidget {
           ),
 
           // Botón verificar
-          if (!isAnswered) _buildVerifyButton(),
+          if (!isAnswered) _buildVerifyButton(english),
         ],
       ),
     );
@@ -110,7 +120,7 @@ class TrueFalseWidget extends BaseQuestionWidget {
     return '${text.substring(0, maxLength)}...';
   }
 
-  Widget _buildButton({required bool isTrue}) {
+  Widget _buildButton({required bool isTrue, required bool english}) {
     final isSelected = selectedAnswer == isTrue;
     final isCorrect = question.correctBoolAnswer == isTrue;
 
@@ -155,7 +165,7 @@ class TrueFalseWidget extends BaseQuestionWidget {
               boxShadow: isSelected
                   ? [
                       BoxShadow(
-                        color: baseColor.withOpacity(0.4),
+                        color: baseColor.withValues(alpha: 0.4),
                         blurRadius: 12,
                         offset: const Offset(0, 4),
                       ),
@@ -165,17 +175,16 @@ class TrueFalseWidget extends BaseQuestionWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(
-                  isTrue ? '✓' : '✗',
-                  style: TextStyle(
-                    fontSize: 40,
-                    fontWeight: FontWeight.bold,
-                    color: isHighlighted ? Colors.white : baseColor,
-                  ),
+                Icon(
+                  isTrue ? Icons.check_rounded : Icons.close_rounded,
+                  size: 40,
+                  color: isHighlighted ? Colors.white : baseColor,
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  isTrue ? 'VERDADERO' : 'FALSO',
+                  isTrue
+                      ? (english ? 'TRUE' : 'VERDADERO')
+                      : (english ? 'FALSE' : 'FALSO'),
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
@@ -192,7 +201,7 @@ class TrueFalseWidget extends BaseQuestionWidget {
         .scale(begin: const Offset(0.9, 0.9));
   }
 
-  Widget _buildVerifyButton() {
+  Widget _buildVerifyButton(bool english) {
     final hasSelection = selectedAnswer != null;
 
     return Container(
@@ -219,9 +228,24 @@ class TrueFalseWidget extends BaseQuestionWidget {
                 borderRadius: BorderRadius.circular(16),
               ),
             ),
-            child: Text(
-              hasSelection ? '¡VERIFICAR! ✓' : 'Elige una opción',
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  hasSelection
+                      ? (english ? 'CHECK!' : '¡VERIFICAR!')
+                      : (english ? 'Choose an option' : 'Elige una opción'),
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                if (hasSelection) ...[
+                  const SizedBox(width: 8),
+                  const Icon(Icons.check_rounded),
+                ],
+              ],
             ),
           ),
         ),

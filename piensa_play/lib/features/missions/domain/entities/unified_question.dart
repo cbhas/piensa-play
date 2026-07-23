@@ -1,6 +1,6 @@
-/// Modelo unificado de pregunta para el sistema de misiones
-/// Soporta todos los tipos: quiz, trueFalse, wordSelection, stereotype,
-/// classify, fillBlank, matchPairs
+// Modelo unificado de pregunta para el sistema de misiones.
+// Soporta todos los tipos: quiz, trueFalse, wordSelection, stereotype,
+// classify, fillBlank, matchPairs.
 
 enum QuestionType {
   quiz, // Selección múltiple

@@ -23,20 +23,26 @@ class ZonaCeroMapPage extends StatefulWidget {
 
 class _ZonaCeroMapPageState extends State<ZonaCeroMapPage> {
   String? selectedMissionId;
-  String selectedMissionTitle = 'Elige una aventura';
-  String selectedMissionDescription = 'Toca un punto del mapa para comenzar';
+  String? selectedMissionTitle;
+  String? selectedMissionDescription;
 
   bool wordTrailCompleted = false;
   bool stereotypeCompleted = false;
 
-  final Map<String, Map<String, String>> missionData = {
+  bool get _english => Localizations.localeOf(context).languageCode == 'en';
+
+  Map<String, Map<String, String>> get _missionData => {
     'words': {
-      'title': 'El sendero de las palabras',
-      'description': 'Elige si las frases hieren o ayudan',
+      'title': _english ? 'The trail of words' : 'El sendero de las palabras',
+      'description': _english
+          ? 'Decide if the phrases hurt or help'
+          : 'Elige si las frases hieren o ayudan',
     },
     'stereotypes': {
-      'title': 'Rompe estereotipos',
-      'description': 'Cambia ideas injustas por mensajes amables',
+      'title': _english ? 'Break stereotypes' : 'Rompe estereotipos',
+      'description': _english
+          ? 'Turn unfair ideas into kind messages'
+          : 'Cambia ideas injustas por mensajes amables',
     },
   };
 
@@ -45,14 +51,19 @@ class _ZonaCeroMapPageState extends State<ZonaCeroMapPage> {
     final selected = missions.firstWhere((element) => element.id == missionId);
     if (selected.type == MissionNodeType.locked) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Completa la misión anterior para desbloquear.'),
-          duration: Duration(seconds: 2),
+        SnackBar(
+          content: Text(
+            _english
+                ? 'Complete the previous mission to unlock this one.'
+                : 'Completa la misión anterior para desbloquear.',
+          ),
+          duration: const Duration(seconds: 2),
         ),
       );
       return;
     }
 
+    final missionData = _missionData;
     setState(() {
       selectedMissionId = missionId;
       selectedMissionTitle = missionData[missionId]!['title']!;
@@ -102,8 +113,14 @@ class _ZonaCeroMapPageState extends State<ZonaCeroMapPage> {
             audioFileName: 'zona_cero_odio.mp3',
           ),
           MissionBanner(
-            missionTitle: selectedMissionTitle,
-            missionDescription: selectedMissionDescription,
+            missionTitle:
+                selectedMissionTitle ??
+                (_english ? 'Choose an adventure' : 'Elige una aventura'),
+            missionDescription:
+                selectedMissionDescription ??
+                (_english
+                    ? 'Tap a point on the map to start'
+                    : 'Toca un punto del mapa para comenzar'),
             backgroundColor: widget.categoryColor,
           ),
           Expanded(
@@ -118,7 +135,6 @@ class _ZonaCeroMapPageState extends State<ZonaCeroMapPage> {
                     ),
                   ),
                 ),
-                Container(color: Colors.white.withValues(alpha: 0.1)),
                 SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
                   child: SizedBox(
@@ -167,12 +183,14 @@ class _ZonaCeroMapPageState extends State<ZonaCeroMapPage> {
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
-            children: const [
-              Icon(Icons.menu_book, color: AppTheme.primaryDark, size: 18),
-              SizedBox(width: 8),
+            children: [
+              const Icon(Icons.menu_book, color: AppTheme.primaryDark, size: 18),
+              const SizedBox(width: 8),
               Text(
-                'Bosque de los Ecos Digitales',
-                style: TextStyle(
+                _english
+                    ? 'Forest of Digital Echoes'
+                    : 'Bosque de los Ecos Digitales',
+                style: const TextStyle(
                   color: AppTheme.primaryDark,
                   fontWeight: FontWeight.bold,
                   fontSize: 12,
@@ -259,14 +277,18 @@ class _ZonaCeroMapPageState extends State<ZonaCeroMapPage> {
           onTap: () {
             if (mission.type == MissionNodeType.chest) {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('¡Sorpresa guardada para más tarde!'),
-                  duration: Duration(seconds: 2),
+                SnackBar(
+                  content: Text(
+                    _english
+                        ? 'Surprise saved for later!'
+                        : '¡Sorpresa guardada para más tarde!',
+                  ),
+                  duration: const Duration(seconds: 2),
                 ),
               );
               return;
             }
-            if (!missionData.containsKey(mission.id)) return;
+            if (!_missionData.containsKey(mission.id)) return;
             _selectMission(mission.id);
           },
           // onPlay navega directamente a la misión
@@ -274,14 +296,18 @@ class _ZonaCeroMapPageState extends State<ZonaCeroMapPage> {
             if (mission.type == MissionNodeType.locked) return;
             if (mission.type == MissionNodeType.chest) {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('¡Sorpresa guardada para más tarde!'),
-                  duration: Duration(seconds: 2),
+                SnackBar(
+                  content: Text(
+                    _english
+                        ? 'Surprise saved for later!'
+                        : '¡Sorpresa guardada para más tarde!',
+                  ),
+                  duration: const Duration(seconds: 2),
                 ),
               );
               return;
             }
-            if (missionData.containsKey(mission.id)) {
+            if (_missionData.containsKey(mission.id)) {
               _selectMission(mission.id);
             }
           },

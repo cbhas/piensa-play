@@ -166,9 +166,10 @@ class _UnifiedMissionPageState extends State<UnifiedMissionPage> {
                       ],
                     ),
                     child: Center(
-                      child: Text(
-                        _getMissionEmoji(),
-                        style: const TextStyle(fontSize: 60),
+                      child: Icon(
+                        _getMissionIcon(),
+                        size: 60,
+                        color: categoryColor,
                       ),
                     ),
                   ).animate().scale(duration: 400.ms, curve: Curves.elasticOut),
@@ -477,29 +478,6 @@ class _UnifiedMissionPageState extends State<UnifiedMissionPage> {
   }
 
   /// Obtener las opciones seleccionadas actualmente
-  List<AnswerOption> _getSelectedOptions() {
-    switch (currentQuestion.type) {
-      case QuestionType.quiz:
-      case QuestionType.stereotype:
-        return currentQuestion.options
-            .where((o) => _selectedOptionIds.contains(o.id))
-            .toList();
-      case QuestionType.trueFalse:
-        if (_selectedBoolAnswer == null) return [];
-        final answerId = _selectedBoolAnswer! ? 'true' : 'false';
-        return currentQuestion.options.where((o) => o.id == answerId).toList();
-      case QuestionType.wordSelection:
-        return currentQuestion.options
-            .where((o) => _selectedWords.contains(o.text))
-            .toList();
-      case QuestionType.classify:
-      case QuestionType.fillBlank:
-      case QuestionType.matchPairs:
-        // Estos tipos no usan opciones tradicionales
-        return [];
-    }
-  }
-
   /// Toggle selección de opción (para quiz múltiple)
   void _onOptionToggle(bool isCorrect, String? optionId) {
     if (optionId == null) return;
@@ -741,16 +719,16 @@ class _UnifiedMissionPageState extends State<UnifiedMissionPage> {
     );
   }
 
-  String _getMissionEmoji() {
+  IconData _getMissionIcon() {
     switch (widget.mission.type) {
       case MissionType.quiz:
-        return '📰';
+        return Icons.newspaper_rounded;
       case MissionType.trueFalse:
-        return '✅';
+        return Icons.fact_check_rounded;
       case MissionType.wordSelection:
-        return '🔤';
+        return Icons.text_fields_rounded;
       case MissionType.stereotype:
-        return '🎭';
+        return Icons.theater_comedy_rounded;
     }
   }
 }

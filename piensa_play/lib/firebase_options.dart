@@ -83,5 +83,4 @@ class DefaultFirebaseOptions {
     authDomain: 'piensa-play-6b08c.firebaseapp.com',
     storageBucket: 'piensa-play-6b08c.firebasestorage.app',
   );
-
 }

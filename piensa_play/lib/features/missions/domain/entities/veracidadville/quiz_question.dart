@@ -1,22 +1,23 @@
+import '../../../../../core/localization/localized_text.dart';
 import 'quiz_element.dart';
 import 'question_type.dart';
 
 class QuizQuestion {
   final String id;
-  final String newsTitle;
-  final String newsContent;
-  final String newsSource;
-  final String newsDate;
-  final String newsAuthor;
-  final String newsShares;
+  final LocalizedText newsTitle;
+  final LocalizedText newsContent;
+  final LocalizedText newsSource;
+  final LocalizedText newsDate;
+  final LocalizedText newsAuthor;
+  final LocalizedText newsShares;
   final String? newsImage;
   final List<QuizElement> elements;
-  final String explanation;
+  final LocalizedText explanation;
 
   // NEW: Optional fields for unified model
   final QuestionType type; // Type of question
   final bool? correctAnswer; // For trueFalse type
-  final List<String>? clues; // For trueFalse type (hints)
+  final List<LocalizedText>? clues; // For trueFalse type (hints)
 
   const QuizQuestion({
     required this.id,
@@ -38,39 +39,41 @@ class QuizQuestion {
 
   Map<String, dynamic> toJson() => {
     'id': id,
-    'newsTitle': newsTitle,
-    'newsContent': newsContent,
-    'newsSource': newsSource,
-    'newsDate': newsDate,
-    'newsAuthor': newsAuthor,
-    'newsShares': newsShares,
+    'newsTitle': newsTitle.toJson(),
+    'newsContent': newsContent.toJson(),
+    'newsSource': newsSource.toJson(),
+    'newsDate': newsDate.toJson(),
+    'newsAuthor': newsAuthor.toJson(),
+    'newsShares': newsShares.toJson(),
     'newsImage': newsImage,
     'elements': elements.map((e) => e.toJson()).toList(),
-    'explanation': explanation,
+    'explanation': explanation.toJson(),
     'type': type.toJson(),
     'correctAnswer': correctAnswer,
-    'clues': clues,
+    'clues': clues?.map((c) => c.toJson()).toList(),
   };
 
   factory QuizQuestion.fromJson(Map<String, dynamic> json) => QuizQuestion(
     id: json['id'] ?? '',
-    newsTitle: json['newsTitle'] ?? '',
-    newsContent: json['newsContent'] ?? '',
-    newsSource: json['newsSource'] ?? '',
-    newsDate: json['newsDate'] ?? '',
-    newsAuthor: json['newsAuthor'] ?? '',
-    newsShares: json['newsShares'] ?? '',
+    newsTitle: LocalizedText.fromJson(json['newsTitle']),
+    newsContent: LocalizedText.fromJson(json['newsContent']),
+    newsSource: LocalizedText.fromJson(json['newsSource']),
+    newsDate: LocalizedText.fromJson(json['newsDate']),
+    newsAuthor: LocalizedText.fromJson(json['newsAuthor']),
+    newsShares: LocalizedText.fromJson(json['newsShares']),
     newsImage: json['newsImage'],
     elements:
         (json['elements'] as List<dynamic>?)
             ?.map((e) => QuizElement.fromJson(e as Map<String, dynamic>))
             .toList() ??
         [],
-    explanation: json['explanation'] ?? '',
+    explanation: LocalizedText.fromJson(json['explanation']),
     type: json['type'] != null
         ? QuestionTypeExtension.fromJson(json['type'] as String)
         : QuestionType.quiz,
     correctAnswer: json['correctAnswer'] as bool?,
-    clues: (json['clues'] as List<dynamic>?)?.cast<String>(),
+    clues: (json['clues'] as List<dynamic>?)
+        ?.map((c) => LocalizedText.fromJson(c))
+        .toList(),
   );
 }

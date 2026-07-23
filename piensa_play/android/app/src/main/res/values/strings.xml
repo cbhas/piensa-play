@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Piensa Play</string>
+    <string name="app_name">PiensaPlay</string>
     <string name="widget_description">Muestra tu racha de aprendizaje con la vizcacha mascota</string>
 </resources>

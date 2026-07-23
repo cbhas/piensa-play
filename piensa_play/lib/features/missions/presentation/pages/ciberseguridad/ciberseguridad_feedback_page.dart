@@ -6,6 +6,7 @@ import '../../../domain/entities/veracidadville/quiz_element.dart';
 import 'ciberseguridad_question_page.dart';
 import '../shared/mission_results_page.dart';
 import '../../../domain/entities/mission.dart'; // Import Mission entity
+import '../../../../../core/widgets/icon_from_name.dart';
 
 class CiberseguridadFeedbackPage extends StatelessWidget {
   final Mission currentMission;
@@ -38,6 +39,8 @@ class CiberseguridadFeedbackPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final questions = currentMission.questions ?? [];
+    final locale = Localizations.localeOf(context);
+    final english = locale.languageCode == 'en';
     if (questionIndex >= questions.length || questionIndex < 0) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         Navigator.pushReplacement(
@@ -51,14 +54,26 @@ class CiberseguridadFeedbackPage extends StatelessWidget {
               missionName: 'Ciberseguridad',
               primaryColor: AppTheme.accentRed,
               secondaryColor: const Color(0xFFFFD93D),
-              perfectMessage: '¡Eres un guardián del ciberespacio!',
-              goodMessage: 'Has defendido tus datos con éxito',
-              tryAgainMessage: '¡Sigue practicando!',
-              learningPoints: [
-                'No confíes en remitentes desconocidos',
-                'Revisa los enlaces antes de hacer clic',
-                'Cuidado con las solicitudes urgentes',
-              ],
+              perfectMessage: english
+                  ? 'You are a cyberspace guardian!'
+                  : '¡Eres un guardián del ciberespacio!',
+              goodMessage: english
+                  ? 'You defended your data successfully'
+                  : 'Has defendido tus datos con éxito',
+              tryAgainMessage: english
+                  ? 'Keep practicing!'
+                  : '¡Sigue practicando!',
+              learningPoints: english
+                  ? const [
+                      'Do not trust unknown senders',
+                      'Check links before clicking',
+                      'Be careful with urgent requests',
+                    ]
+                  : const [
+                      'No confíes en remitentes desconocidos',
+                      'Revisa los enlaces antes de hacer clic',
+                      'Cuidado con las solicitudes urgentes',
+                    ],
             ),
           ),
         );
@@ -91,23 +106,24 @@ class CiberseguridadFeedbackPage extends StatelessWidget {
         child: SafeArea(
           child: Column(
             children: [
-              _buildHeader(),
+              _buildHeader(english),
               Expanded(
                 child: SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
                   padding: const EdgeInsets.all(20),
                   child: Column(
                     children: [
-                      _buildResultCard(),
+                      _buildResultCard(english),
                       const SizedBox(height: 24),
-                      _buildNewsCard(question),
+                      _buildNewsCard(question, locale, english),
                       const SizedBox(height: 24),
-                      _buildElementsGrid(question),
+                      _buildElementsGrid(question, locale, english),
                       const SizedBox(height: 30),
                       _buildContinueButton(
                         context,
                         isLastQuestion,
                         questions.length,
+                        english,
                       ),
                     ],
                   ),
@@ -120,15 +136,15 @@ class CiberseguridadFeedbackPage extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(bool english) {
     return Container(
       padding: const EdgeInsets.all(20),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const Text(
-            'Misión Ciberseguridad',
-            style: TextStyle(
+          Text(
+            english ? 'Cybersecurity Mission' : 'Misión Ciberseguridad',
+            style: const TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
               color: Colors.white,
@@ -140,9 +156,10 @@ class CiberseguridadFeedbackPage extends StatelessWidget {
               color: Colors.white.withValues(alpha: 0.3),
               shape: BoxShape.circle,
             ),
-            child: Text(
-              isCorrect ? '✅' : '❌',
-              style: const TextStyle(fontSize: 24),
+            child: Icon(
+              isCorrect ? Icons.check_circle_rounded : Icons.cancel_rounded,
+              size: 24,
+              color: Colors.white,
             ),
           ),
         ],
@@ -150,7 +167,7 @@ class CiberseguridadFeedbackPage extends StatelessWidget {
     ).animate().fadeIn(duration: 300.ms);
   }
 
-  Widget _buildResultCard() {
+  Widget _buildResultCard(bool english) {
     return Container(
       padding: const EdgeInsets.all(30),
       decoration: BoxDecoration(
@@ -166,7 +183,13 @@ class CiberseguridadFeedbackPage extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Text(isCorrect ? '🎉' : '💪', style: const TextStyle(fontSize: 80))
+          Icon(
+                isCorrect
+                    ? Icons.celebration_rounded
+                    : Icons.thumb_up_rounded,
+                size: 80,
+                color: isCorrect ? Colors.green : Colors.orange,
+              )
               .animate(onPlay: (controller) => controller.repeat(reverse: true))
               .scale(
                 duration: 1000.ms,
@@ -175,7 +198,9 @@ class CiberseguridadFeedbackPage extends StatelessWidget {
               ),
           const SizedBox(height: 20),
           Text(
-            isCorrect ? '¡Amenaza Neutralizada!' : '¡Amenaza Detectada!',
+            isCorrect
+                ? (english ? 'Threat Neutralized!' : '¡Amenaza Neutralizada!')
+                : (english ? 'Threat Detected!' : '¡Amenaza Detectada!'),
             style: TextStyle(
               fontSize: 32,
               fontWeight: FontWeight.bold,
@@ -185,8 +210,12 @@ class CiberseguridadFeedbackPage extends StatelessWidget {
           const SizedBox(height: 12),
           Text(
             isCorrect
-                ? '¡Excelente trabajo protegiendo el ciberespacio!'
-                : 'Revisa los elementos marcados y aprende a defenderte mejor',
+                ? (english
+                      ? 'Great job protecting cyberspace!'
+                      : '¡Excelente trabajo protegiendo el ciberespacio!')
+                : (english
+                      ? 'Review the marked elements and learn to defend yourself better'
+                      : 'Revisa los elementos marcados y aprende a defenderte mejor'),
             style: TextStyle(fontSize: 16, color: Colors.grey[600]),
             textAlign: TextAlign.center,
           ),
@@ -199,7 +228,7 @@ class CiberseguridadFeedbackPage extends StatelessWidget {
     );
   }
 
-  Widget _buildNewsCard(QuizQuestion question) {
+  Widget _buildNewsCard(QuizQuestion question, Locale locale, bool english) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -229,14 +258,18 @@ class CiberseguridadFeedbackPage extends StatelessWidget {
                 topRight: Radius.circular(24),
               ),
             ),
-            child: const Row(
+            child: Row(
               children: [
-                Text('🚨', style: TextStyle(fontSize: 28)),
-                SizedBox(width: 12),
+                const Icon(
+                  Icons.warning_amber_rounded,
+                  size: 28,
+                  color: Colors.white,
+                ),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    'EL MENSAJE',
-                    style: TextStyle(
+                    english ? 'THE MESSAGE' : 'EL MENSAJE',
+                    style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
@@ -252,7 +285,7 @@ class CiberseguridadFeedbackPage extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  question.newsTitle,
+                  question.newsTitle.resolve(locale),
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -262,7 +295,7 @@ class CiberseguridadFeedbackPage extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  question.newsContent,
+                  question.newsContent.resolve(locale),
                   style: TextStyle(
                     fontSize: 15,
                     color: Colors.grey[700],
@@ -277,7 +310,7 @@ class CiberseguridadFeedbackPage extends StatelessWidget {
     ).animate().slideY(delay: 400.ms, begin: 0.2, duration: 400.ms);
   }
 
-  Widget _buildElementsGrid(QuizQuestion question) {
+  Widget _buildElementsGrid(QuizQuestion question, Locale locale, bool english) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -287,14 +320,18 @@ class CiberseguridadFeedbackPage extends StatelessWidget {
             color: Colors.white,
             borderRadius: BorderRadius.circular(16),
           ),
-          child: const Row(
+          child: Row(
             children: [
-              Text('🎯', style: TextStyle(fontSize: 24)),
-              SizedBox(width: 12),
+              const Icon(
+                Icons.track_changes_rounded,
+                size: 24,
+                color: AppTheme.accentRed,
+              ),
+              const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  'Elementos Analizados',
-                  style: TextStyle(
+                  english ? 'Elements Analyzed' : 'Elementos Analizados',
+                  style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                     color: Colors.black87,
@@ -324,6 +361,8 @@ class CiberseguridadFeedbackPage extends StatelessWidget {
               isCorrect: isCorrect,
               index: index,
               color: _elementColors[index % _elementColors.length],
+              locale: locale,
+              english: english,
             );
           }).toList(),
         ),
@@ -337,6 +376,8 @@ class CiberseguridadFeedbackPage extends StatelessWidget {
     required bool isCorrect,
     required int index,
     required Color color,
+    required Locale locale,
+    required bool english,
   }) {
     final showAsCorrect = wasSelected && isCorrect;
     final showAsIncorrect = wasSelected && !isCorrect;
@@ -345,29 +386,29 @@ class CiberseguridadFeedbackPage extends StatelessWidget {
 
     Color cardColor;
     Color borderColor;
-    String statusEmoji;
+    IconData statusIcon;
     String statusText;
 
     if (showAsCorrect) {
       cardColor = const Color(0xFFE8F5E9);
       borderColor = Colors.green;
-      statusEmoji = '✅';
-      statusText = '¡Correcto!';
+      statusIcon = Icons.check_circle_rounded;
+      statusText = english ? 'Correct!' : '¡Correcto!';
     } else if (showAsIncorrect) {
       cardColor = const Color(0xFFFFEBEE);
       borderColor = Colors.red;
-      statusEmoji = '❌';
-      statusText = 'Incorrecto';
+      statusIcon = Icons.cancel_rounded;
+      statusText = english ? 'Incorrect' : 'Incorrecto';
     } else if (showAsMissed) {
       cardColor = const Color(0xFFFFF3E0);
       borderColor = Colors.orange;
-      statusEmoji = '⚠️';
-      statusText = 'Faltó';
+      statusIcon = Icons.warning_amber_rounded;
+      statusText = english ? 'Missed' : 'Faltó';
     } else {
       cardColor = Colors.white;
       borderColor = Colors.grey[300]!;
-      statusEmoji = '⚪';
-      statusText = 'Correcto';
+      statusIcon = Icons.radio_button_unchecked_rounded;
+      statusText = english ? 'Correct' : 'Correcto';
     }
 
     return Container(
@@ -398,15 +439,16 @@ class CiberseguridadFeedbackPage extends StatelessWidget {
                         shape: BoxShape.circle,
                       ),
                       child: Center(
-                        child: Text(
-                          element.icon,
-                          style: const TextStyle(fontSize: 32),
+                        child: Icon(
+                          iconFromName(element.icon),
+                          size: 32,
+                          color: color,
                         ),
                       ),
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      element.text,
+                      element.text.resolve(locale),
                       style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -438,7 +480,7 @@ class CiberseguridadFeedbackPage extends StatelessWidget {
               Positioned(
                 top: 8,
                 right: 8,
-                child: Text(statusEmoji, style: const TextStyle(fontSize: 24)),
+                child: Icon(statusIcon, size: 24, color: borderColor),
               ),
             ],
           ),
@@ -455,6 +497,7 @@ class CiberseguridadFeedbackPage extends StatelessWidget {
     BuildContext context,
     bool isLastQuestion,
     int totalQuestions,
+    bool english,
   ) {
     return Container(
           width: double.infinity,
@@ -488,14 +531,26 @@ class CiberseguridadFeedbackPage extends StatelessWidget {
                         missionName: 'Ciberseguridad',
                         primaryColor: AppTheme.accentRed,
                         secondaryColor: const Color(0xFFFFD93D),
-                        perfectMessage: '¡Eres un guardián del ciberespacio!',
-                        goodMessage: 'Has defendido tus datos con éxito',
-                        tryAgainMessage: '¡Sigue practicando!',
-                        learningPoints: [
-                          'No confíes en remitentes desconocidos',
-                          'Revisa los enlaces antes de hacer clic',
-                          'Cuidado con las solicitudes urgentes',
-                        ],
+                        perfectMessage: english
+                            ? 'You are a cyberspace guardian!'
+                            : '¡Eres un guardián del ciberespacio!',
+                        goodMessage: english
+                            ? 'You defended your data successfully'
+                            : 'Has defendido tus datos con éxito',
+                        tryAgainMessage: english
+                            ? 'Keep practicing!'
+                            : '¡Sigue practicando!',
+                        learningPoints: english
+                            ? const [
+                                'Do not trust unknown senders',
+                                'Check links before clicking',
+                                'Be careful with urgent requests',
+                              ]
+                            : const [
+                                'No confíes en remitentes desconocidos',
+                                'Revisa los enlaces antes de hacer clic',
+                                'Cuidado con las solicitudes urgentes',
+                              ],
                       ),
                     ),
                   );
@@ -518,7 +573,9 @@ class CiberseguridadFeedbackPage extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    isLastQuestion ? 'Ver Resultados' : 'Siguiente Amenaza',
+                    isLastQuestion
+                        ? (english ? 'See Results' : 'Ver Resultados')
+                        : (english ? 'Next Threat' : 'Siguiente Amenaza'),
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,

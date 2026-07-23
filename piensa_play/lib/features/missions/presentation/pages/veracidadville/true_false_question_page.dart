@@ -21,11 +21,17 @@ class _TrueFalseQuestionPageState extends State<TrueFalseQuestionPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       try {
         final provider = Provider.of<QuizProvider>(context, listen: false);
+        final english = Localizations.localeOf(context).languageCode == 'en';
         if (!provider.isValidQuestionIndex(provider.currentQuestionIndex)) {
-          _showErrorAndGoBack('Error: Índice de pregunta inválido');
+          _showErrorAndGoBack(
+            english ? 'Error: invalid question index' : 'Error: Índice de pregunta inválido',
+          );
         }
       } catch (e) {
-        _showErrorAndGoBack('Error: Provider no disponible');
+        final english = Localizations.localeOf(context).languageCode == 'en';
+        _showErrorAndGoBack(
+          english ? 'Error: provider unavailable' : 'Error: Provider no disponible',
+        );
       }
     });
   }
@@ -60,6 +66,8 @@ class _TrueFalseQuestionPageState extends State<TrueFalseQuestionPage> {
     return Consumer<QuizProvider>(
       builder: (context, provider, child) {
         final question = provider.currentQuestion;
+        final locale = Localizations.localeOf(context);
+        final english = locale.languageCode == 'en';
         final progress =
             (provider.currentQuestionIndex + 1) / provider.totalQuestions;
 
@@ -80,20 +88,20 @@ class _TrueFalseQuestionPageState extends State<TrueFalseQuestionPage> {
             child: SafeArea(
               child: Column(
                 children: [
-                  _buildHeader(progress),
+                  _buildHeader(progress, english),
                   Expanded(
                     child: SingleChildScrollView(
                       physics: const BouncingScrollPhysics(),
                       padding: const EdgeInsets.all(20),
                       child: Column(
                         children: [
-                          _buildWelcomeCard(),
+                          _buildWelcomeCard(english),
                           const SizedBox(height: 20),
-                          _buildNewsCard(question),
+                          _buildNewsCard(question, locale, english),
                           const SizedBox(height: 24),
-                          _buildCluesCard(question),
+                          _buildCluesCard(question, locale, english),
                           const SizedBox(height: 30),
-                          _buildAnswerButtons(),
+                          _buildAnswerButtons(english),
                         ],
                       ),
                     ),
@@ -107,7 +115,7 @@ class _TrueFalseQuestionPageState extends State<TrueFalseQuestionPage> {
     );
   }
 
-  Widget _buildHeader(double progress) {
+  Widget _buildHeader(double progress, bool english) {
     return Container(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -136,9 +144,9 @@ class _TrueFalseQuestionPageState extends State<TrueFalseQuestionPage> {
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Text(
-                      'Detecta Fake News',
-                      style: TextStyle(
+                    child: Text(
+                      english ? 'Spot Fake News' : 'Detecta Fake News',
+                      style: const TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
                         color: AppTheme.primaryDark,
@@ -160,7 +168,10 @@ class _TrueFalseQuestionPageState extends State<TrueFalseQuestionPage> {
                     ),
                   ],
                 ),
-                child: const Text('¡NUEVO!', style: TextStyle(fontSize: 20)),
+                child: Text(
+                  english ? 'NEW!' : '¡NUEVO!',
+                  style: const TextStyle(fontSize: 20),
+                ),
               ),
             ],
           ),
@@ -181,7 +192,7 @@ class _TrueFalseQuestionPageState extends State<TrueFalseQuestionPage> {
     ).animate().fadeIn(duration: 300.ms);
   }
 
-  Widget _buildWelcomeCard() {
+  Widget _buildWelcomeCard(bool english) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -192,14 +203,20 @@ class _TrueFalseQuestionPageState extends State<TrueFalseQuestionPage> {
           width: 2,
         ),
       ),
-      child: const Row(
+      child: Row(
         children: [
-          Text('💡', style: TextStyle(fontSize: 32)),
-          SizedBox(width: 12),
+          const Icon(
+            Icons.lightbulb_rounded,
+            size: 32,
+            color: AppTheme.accentBlue,
+          ),
+          const SizedBox(width: 12),
           Expanded(
             child: Text(
-              '¡Bienvenido a Veracidadville! Tu misión es detectar noticias falsas analizando pistas como la fuente, tono, lenguaje emocional o exagerado.',
-              style: TextStyle(
+              english
+                  ? 'Welcome to Veracidadville! Your mission is to spot fake news by analyzing clues like the source, tone, and emotional or exaggerated language.'
+                  : '¡Bienvenido a Veracidadville! Tu misión es detectar noticias falsas analizando pistas como la fuente, tono, lenguaje emocional o exagerado.',
+              style: const TextStyle(
                 fontSize: 14,
                 color: Colors.black87,
                 height: 1.4,
@@ -211,7 +228,7 @@ class _TrueFalseQuestionPageState extends State<TrueFalseQuestionPage> {
     ).animate().slideY(delay: 200.ms, begin: 0.2, duration: 400.ms);
   }
 
-  Widget _buildNewsCard(QuizQuestion question) {
+  Widget _buildNewsCard(QuizQuestion question, Locale locale, bool english) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -246,14 +263,18 @@ class _TrueFalseQuestionPageState extends State<TrueFalseQuestionPage> {
                     color: Colors.white,
                     shape: BoxShape.circle,
                   ),
-                  child: const Text('📱', style: TextStyle(fontSize: 24)),
+                  child: const Icon(
+                    Icons.smartphone_rounded,
+                    size: 24,
+                    color: AppTheme.primaryDark,
+                  ),
                 ),
                 const SizedBox(width: 12),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      question.newsAuthor,
+                      question.newsAuthor.resolve(locale),
                       style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
@@ -261,7 +282,7 @@ class _TrueFalseQuestionPageState extends State<TrueFalseQuestionPage> {
                       ),
                     ),
                     Text(
-                      question.newsDate,
+                      question.newsDate.resolve(locale),
                       style: TextStyle(fontSize: 12, color: Colors.grey[700]),
                     ),
                   ],
@@ -276,7 +297,7 @@ class _TrueFalseQuestionPageState extends State<TrueFalseQuestionPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  question.newsTitle,
+                  question.newsTitle.resolve(locale),
                   style: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
@@ -296,10 +317,16 @@ class _TrueFalseQuestionPageState extends State<TrueFalseQuestionPage> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Text('🍋', style: TextStyle(fontSize: 64)),
+                          Icon(
+                            Icons.image_rounded,
+                            size: 64,
+                            color: Colors.grey[400],
+                          ),
                           const SizedBox(height: 8),
                           Text(
-                            '✨ Imagen ilustrativa ✨',
+                            english
+                                ? 'Illustrative image'
+                                : 'Imagen ilustrativa',
                             style: TextStyle(
                               fontSize: 12,
                               color: Colors.grey[600],
@@ -311,7 +338,7 @@ class _TrueFalseQuestionPageState extends State<TrueFalseQuestionPage> {
                   ),
                 if (question.newsImage != null) const SizedBox(height: 16),
                 Text(
-                  question.newsContent,
+                  question.newsContent.resolve(locale),
                   style: TextStyle(
                     fontSize: 16,
                     color: Colors.grey[800],
@@ -334,7 +361,7 @@ class _TrueFalseQuestionPageState extends State<TrueFalseQuestionPage> {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        question.newsShares,
+                        question.newsShares.resolve(locale),
                         style: const TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.bold,
@@ -352,7 +379,7 @@ class _TrueFalseQuestionPageState extends State<TrueFalseQuestionPage> {
     ).animate().scale(delay: 300.ms, duration: 400.ms, curve: Curves.easeOut);
   }
 
-  Widget _buildCluesCard(QuizQuestion question) {
+  Widget _buildCluesCard(QuizQuestion question, Locale locale, bool english) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -373,13 +400,17 @@ class _TrueFalseQuestionPageState extends State<TrueFalseQuestionPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
+          Row(
             children: [
-              Text('🔍', style: TextStyle(fontSize: 28)),
-              SizedBox(width: 12),
+              const Icon(
+                Icons.search_rounded,
+                size: 28,
+                color: AppTheme.accentBlue,
+              ),
+              const SizedBox(width: 12),
               Text(
-                'PISTAS A DETECTAR:',
-                style: TextStyle(
+                english ? 'CLUES TO SPOT:' : 'PISTAS A DETECTAR:',
+                style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                   color: AppTheme.accentBlue,
@@ -390,7 +421,7 @@ class _TrueFalseQuestionPageState extends State<TrueFalseQuestionPage> {
           const SizedBox(height: 16),
           ...?question.clues?.asMap().entries.map((entry) {
             final index = entry.key;
-            final clue = entry.value;
+            final clue = entry.value.resolve(locale);
             return _buildClueItem(clue, index);
           }),
         ],
@@ -432,13 +463,13 @@ class _TrueFalseQuestionPageState extends State<TrueFalseQuestionPage> {
         .slideX(begin: 0.1, duration: 300.ms);
   }
 
-  Widget _buildAnswerButtons() {
+  Widget _buildAnswerButtons(bool english) {
     return Row(
       children: [
         Expanded(
           child:
               _buildAnswerButton(
-                    label: 'Falso',
+                    label: english ? 'False' : 'Falso',
                     icon: Icons.cancel,
                     color: const Color(0xFFEC407A),
                     answer: false,
@@ -450,7 +481,7 @@ class _TrueFalseQuestionPageState extends State<TrueFalseQuestionPage> {
         Expanded(
           child:
               _buildAnswerButton(
-                    label: 'Verdadero',
+                    label: english ? 'True' : 'Verdadero',
                     icon: Icons.check_circle,
                     color: const Color(0xFF66BB6A),
                     answer: true,

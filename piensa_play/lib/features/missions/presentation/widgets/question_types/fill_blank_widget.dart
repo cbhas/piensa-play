@@ -55,11 +55,13 @@ class _FillBlankWidgetState extends State<FillBlankWidget> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Emoji
+                  // Ícono
                   Center(
-                    child: Text('✍️', style: const TextStyle(fontSize: 48))
-                        .animate()
-                        .scale(duration: 300.ms, curve: Curves.elasticOut),
+                    child: Icon(
+                      Icons.edit_rounded,
+                      size: 48,
+                      color: AppTheme.primaryDark,
+                    ).animate().scale(duration: 300.ms, curve: Curves.elasticOut),
                   ),
                   const SizedBox(height: 16),
 
