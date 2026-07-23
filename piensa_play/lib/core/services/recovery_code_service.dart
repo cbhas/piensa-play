@@ -8,6 +8,29 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'logger_service.dart';
 import 'user_id_provider.dart';
 
+/// Resultado de intentar restaurar una cuenta.
+///
+/// Se distingue la causa porque el codigo de recuperacion es la unica via de
+/// vuelta a la cuenta: decirle "caducado" a alguien cuyo codigo sigue vigente
+/// le hace dejar de intentarlo y perder su progreso.
+enum RecoveryOutcome {
+  /// Datos restaurados. El codigo ya se consumio.
+  success,
+
+  /// No existe ninguna capsula con ese codigo (mal escrito o ya utilizado).
+  notFound,
+
+  /// La capsula existe pero paso su fecha de caducidad.
+  expired,
+
+  /// Hay demasiado progreso para restaurarlo en un solo lote. El codigo NO se
+  /// consume, asi que se puede reintentar tras corregir el limite.
+  tooLarge,
+
+  /// Fallo inesperado (red, permisos). El codigo sigue siendo valido.
+  failed,
+}
+
 /// Recuperacion mediante una capsula de datos de alta entropia.
 ///
 /// El codigo no expone el UID anterior, no permite listar cuentas, expira en
@@ -141,23 +164,25 @@ class RecoveryCodeService {
     }
   }
 
-  Future<bool> recoverAccount(String code) async {
+  Future<RecoveryOutcome> recoverAccount(String code) async {
     final normalized = _normalize(code);
-    if (normalized.length != _codeLength) return false;
+    if (normalized.length != _codeLength) return RecoveryOutcome.notFound;
+
+    final capsuleRef = _firestore
+        .collection('recovery_capsules')
+        .doc(normalized);
+    Map<String, dynamic> payload;
 
     try {
-      final capsuleRef = _firestore
-          .collection('recovery_capsules')
-          .doc(normalized);
       final capsule = await capsuleRef.get();
-      if (!capsule.exists) return false;
+      if (!capsule.exists) return RecoveryOutcome.notFound;
       final capsuleData = capsule.data()!;
       final expiresAt = capsuleData['expiresAt'] as Timestamp?;
       if (expiresAt == null || expiresAt.toDate().isBefore(DateTime.now())) {
-        return false;
+        return RecoveryOutcome.expired;
       }
 
-      final payload = Map<String, dynamic>.from(capsuleData['data'] as Map);
+      payload = Map<String, dynamic>.from(capsuleData['data'] as Map);
       final destination = _firestore
           .collection('users')
           .doc(UserIdProvider.currentUserId);
@@ -176,18 +201,37 @@ class RecoveryCodeService {
           writes++;
         }
       }
-      if (writes >= 450) {
-        throw StateError('recovery-payload-too-large');
-      }
+      // Se comprueba ANTES de escribir nada: si no cabe en un lote, se avisa
+      // sin haber tocado la capsula, de modo que el codigo sigue sirviendo.
+      if (writes >= 450) return RecoveryOutcome.tooLarge;
 
-      batch.delete(capsuleRef);
+      // El borrado de la capsula NO va en este lote a proposito. Si formara
+      // parte de la misma operacion y algo fallara despues, el usuario se
+      // quedaria sin datos y sin codigo. Primero se restauran los datos;
+      // el codigo se consume despues.
       await batch.commit();
-      await _refreshLocalProfile(payload);
-      return true;
     } catch (error) {
       AppLogger.error('RECOVERY: restore failed: $error');
-      return false;
+      return RecoveryOutcome.failed;
     }
+
+    // A partir de aqui la restauracion YA ocurrio. Nada de lo que siga puede
+    // convertir el exito en fallo: la cache local es reconstruible y el codigo
+    // ya cumplio su proposito. Devolver `failed` aqui dejaria al usuario con
+    // los datos restaurados pero convencido de que fracaso.
+    try {
+      await _refreshLocalProfile(payload);
+    } catch (error) {
+      AppLogger.warning('RECOVERY: local profile cache not updated: $error');
+    }
+
+    // Consumir el codigo es best-effort: si falla, la capsula caduca sola a los
+    // 30 dias. Perder el borrado es preferible a perder la cuenta.
+    capsuleRef.delete().catchError((error) {
+      AppLogger.warning('RECOVERY: capsule not consumed: $error');
+    });
+
+    return RecoveryOutcome.success;
   }
 
   Future<Map<String, dynamic>> _createSnapshot(String userId) async {
@@ -207,6 +251,28 @@ class RecoveryCodeService {
     if (profileDocuments is! Map || profileDocuments['data'] is! Map) return;
     final profile = Map<String, dynamic>.from(profileDocuments['data'] as Map);
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('user_profile', jsonEncode(profile));
+    await prefs.setString('user_profile', jsonEncode(_toEncodable(profile)));
+  }
+
+  /// Convierte los tipos propios de Firestore que `jsonEncode` no sabe
+  /// serializar (sobre todo [Timestamp], presente en campos como `updatedAt`).
+  ///
+  /// Sin esto, guardar el perfil restaurado lanzaba siempre
+  /// "Converting object to an encodable object failed: Instance of 'Timestamp'".
+  static dynamic _toEncodable(dynamic value) {
+    if (value is Timestamp) return value.toDate().toIso8601String();
+    if (value is DateTime) return value.toIso8601String();
+    if (value is GeoPoint) {
+      return {'latitude': value.latitude, 'longitude': value.longitude};
+    }
+    if (value is DocumentReference) return value.path;
+    if (value is Map) {
+      return {
+        for (final entry in value.entries)
+          entry.key.toString(): _toEncodable(entry.value),
+      };
+    }
+    if (value is Iterable) return value.map(_toEncodable).toList();
+    return value;
   }
 }

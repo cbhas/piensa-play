@@ -59,15 +59,36 @@ class _RecoverAccountPageState extends State<RecoverAccountPage> {
   }
 
   Future<void> _recover() async {
+    final english = Localizations.localeOf(context).languageCode == 'en';
     setState(() => _loading = true);
-    final success = await RecoveryCodeService.instance.recoverAccount(
+    final outcome = await RecoveryCodeService.instance.recoverAccount(
       _normalized,
     );
     if (!mounted) return;
-    if (!success) {
+    if (outcome != RecoveryOutcome.success) {
       setState(() {
         _loading = false;
-        _error = 'Recovery failed. The code may have expired.';
+        // Cada causa dice la verdad: antes cualquier fallo se anunciaba como
+        // "caducado" y el usuario dejaba de intentarlo aunque su codigo
+        // siguiera siendo valido.
+        _error = switch (outcome) {
+          RecoveryOutcome.expired =>
+            english
+                ? 'This code expired. Ask for a new one from the other device.'
+                : 'Este código ya venció. Pide uno nuevo desde el otro dispositivo.',
+          RecoveryOutcome.notFound =>
+            english
+                ? 'Code not found. Check the 16 characters, or it may have been used already.'
+                : 'Código no encontrado. Revisa los 16 caracteres, o quizá ya se usó.',
+          RecoveryOutcome.tooLarge =>
+            english
+                ? "There's too much progress to restore at once. Contact support."
+                : 'Hay demasiado progreso para restaurarlo de una vez. Contacta con soporte.',
+          _ =>
+            english
+                ? "Couldn't restore right now. Your code is still valid — check your connection and try again."
+                : 'No se pudo restaurar ahora. Tu código sigue siendo válido: revisa tu conexión e inténtalo de nuevo.',
+        };
       });
       return;
     }
