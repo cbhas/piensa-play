@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:piensa_play/core/theme/app_theme.dart';
 import 'package:piensa_play/core/services/shop_service.dart';
 import 'package:piensa_play/core/services/app_data_service.dart';
+import 'package:piensa_play/core/services/connectivity_service.dart';
 import 'package:piensa_play/core/services/audio_service.dart';
 import 'package:piensa_play/features/shop/domain/entities/shop_item.dart';
 import 'package:piensa_play/features/shop/presentation/widgets/shop_item_card.dart';
@@ -65,7 +66,9 @@ class _ShopPageState extends State<ShopPage>
     if (item.isPurchased) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(_english ? 'You already own this item' : 'Ya tienes este item'),
+          content: Text(
+            _english ? 'You already own this item' : 'Ya tienes este item',
+          ),
           backgroundColor: AppTheme.primaryDark,
         ),
       );
@@ -77,6 +80,23 @@ class _ShopPageState extends State<ShopPage>
         SnackBar(
           content: Text(
             _english ? 'Not enough coins' : 'No tienes suficientes monedas',
+          ),
+          backgroundColor: AppTheme.accentRed,
+        ),
+      );
+      return;
+    }
+
+    // La compra usa una transacción atómica para no gastar monedas dos veces,
+    // y eso requiere conexión. Se avisa antes de pedir confirmación en vez de
+    // fallar en silencio tras el diálogo.
+    if (!ConnectivityService.instance.isOnline) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            _english
+                ? 'You need an internet connection to buy items'
+                : 'Necesitas conexión a internet para comprar',
           ),
           backgroundColor: AppTheme.accentRed,
         ),
@@ -121,6 +141,20 @@ class _ShopPageState extends State<ShopPage>
             ),
           );
         }
+      } else if (mounted) {
+        // No debería ocurrir tras los guardas previos (saldo desincronizado,
+        // ítem ya comprado en otro dispositivo, error de red puntual). Se avisa
+        // en vez de dejar al usuario sin respuesta tras confirmar.
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              _english
+                  ? "Couldn't complete the purchase. Try again."
+                  : 'No se pudo completar la compra. Inténtalo de nuevo.',
+            ),
+            backgroundColor: AppTheme.accentRed,
+          ),
+        );
       }
     }
   }

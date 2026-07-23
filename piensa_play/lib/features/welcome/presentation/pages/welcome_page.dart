@@ -72,32 +72,35 @@ class WelcomePage extends StatelessWidget {
                       ),
                       const SizedBox(height: 26),
                       Center(
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 7,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppTheme.accentYellow,
-                            borderRadius: BorderRadius.circular(999),
-                          ),
-                          child: Text(
-                            locale.isEnglish
-                                ? 'PLAY YOUR PART · UNESCO 2026'
-                                : 'PARTICIPA · UNESCO 2026',
-                            style: const TextStyle(
-                              color: AppTheme.tertiaryDark,
-                              fontSize: 11,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: 0.8,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 7,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppTheme.accentYellow,
+                                borderRadius: BorderRadius.circular(999),
+                              ),
+                              child: Text(
+                                locale.isEnglish
+                                    ? 'PLAY YOUR PART · UNESCO 2026'
+                                    : 'PARTICIPA · UNESCO 2026',
+                                style: const TextStyle(
+                                  color: AppTheme.tertiaryDark,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: 0.8,
+                                ),
+                              ),
                             ),
+                          )
+                          .animate()
+                          .fadeIn(duration: 400.ms)
+                          .slideY(
+                            begin: -0.3,
+                            end: 0,
+                            curve: Curves.easeOutBack,
                           ),
-                        ),
-                      ).animate().fadeIn(duration: 400.ms).slideY(
-                        begin: -0.3,
-                        end: 0,
-                        curve: Curves.easeOutBack,
-                      ),
                       const SizedBox(height: 18),
                       Center(
                         child: Stack(

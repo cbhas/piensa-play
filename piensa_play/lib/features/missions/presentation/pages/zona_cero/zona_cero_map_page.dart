@@ -184,7 +184,11 @@ class _ZonaCeroMapPageState extends State<ZonaCeroMapPage> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.menu_book, color: AppTheme.primaryDark, size: 18),
+              const Icon(
+                Icons.menu_book,
+                color: AppTheme.primaryDark,
+                size: 18,
+              ),
               const SizedBox(width: 8),
               Text(
                 _english

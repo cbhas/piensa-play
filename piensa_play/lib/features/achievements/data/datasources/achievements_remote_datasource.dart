@@ -1,11 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:piensa_play/core/services/firestore_provider.dart';
 import 'package:piensa_play/core/services/logger_service.dart';
 import '../../domain/entities/achievement.dart';
 import '../../domain/entities/badge.dart';
 import '../../domain/entities/recent_activity.dart';
 
 class AchievementsRemoteDatasource {
-  final FirebaseFirestore firestore = FirebaseFirestore.instance;
+  final FirebaseFirestore firestore = FirestoreProvider.instance;
 
   // Guardar Achievement en Firestore
   Future<void> saveAchievements(String userId, Achievement achievement) async {

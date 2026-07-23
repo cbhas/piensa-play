@@ -165,7 +165,9 @@ class _GlossaryPageState extends State<GlossaryPage> {
             child: TextField(
               controller: _searchController,
               decoration: InputDecoration(
-                hintText: english ? 'Search for a term...' : 'Buscar término...',
+                hintText: english
+                    ? 'Search for a term...'
+                    : 'Buscar término...',
                 hintStyle: TextStyle(
                   color: isDark
                       ? AppTheme.textSecondaryDark

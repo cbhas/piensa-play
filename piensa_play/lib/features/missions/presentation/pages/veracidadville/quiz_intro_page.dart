@@ -144,10 +144,10 @@ class QuizIntroPage extends StatelessWidget {
       child: Column(
         children: [
           const Icon(
-            Icons.track_changes_rounded,
-            size: 80,
-            color: Colors.black87,
-          )
+                Icons.track_changes_rounded,
+                size: 80,
+                color: Colors.black87,
+              )
               .animate(onPlay: (controller) => controller.repeat(reverse: true))
               .scale(
                 duration: 1500.ms,
@@ -269,9 +269,7 @@ class QuizIntroPage extends StatelessWidget {
                     ),
                   ],
                 ),
-                child: Center(
-                  child: Icon(icon, size: 32, color: Colors.white),
-                ),
+                child: Center(child: Icon(icon, size: 32, color: Colors.white)),
               ),
               const SizedBox(width: 16),
               Expanded(

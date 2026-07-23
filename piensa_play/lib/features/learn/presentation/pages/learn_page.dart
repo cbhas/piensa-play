@@ -157,7 +157,9 @@ class _LearnPageState extends State<LearnPage> {
             child: TextField(
               controller: _searchController,
               decoration: InputDecoration(
-                hintText: _english ? 'Search content...' : 'Buscar contenido...',
+                hintText: _english
+                    ? 'Search content...'
+                    : 'Buscar contenido...',
                 hintStyle: TextStyle(
                   color: isDark
                       ? AppTheme.textSecondaryDark

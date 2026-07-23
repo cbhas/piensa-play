@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:piensa_play/core/services/firestore_provider.dart';
 
 import '../../features/missions/domain/entities/unified_question.dart';
 import 'app_data_service.dart';
@@ -6,7 +7,7 @@ import 'logger_service.dart';
 
 /// Carga preguntas unificadas desde memoria, cache local y servidor.
 class UnifiedQuestionsService {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseFirestore _firestore = FirestoreProvider.instance;
 
   Future<List<UnifiedQuestion>> getQuestionsForMission(String missionId) async {
     final cached = AppDataService.instance.getQuestionsForMission(missionId);

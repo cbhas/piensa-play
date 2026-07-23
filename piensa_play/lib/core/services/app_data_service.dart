@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:piensa_play/core/services/firestore_provider.dart';
 import 'package:piensa_play/features/missions/domain/entities/mission_category.dart';
 import 'package:piensa_play/features/missions/domain/usecases/get_mission_categories.dart';
 import 'package:piensa_play/features/achievements/domain/entities/achievement.dart';
@@ -55,6 +56,8 @@ class AppDataService {
   int _dailyStreak = 0;
   int _dailyBestStreak = 0;
   int _dailyTotalAnswered = 0;
+  int _dailyTotalCorrect = 0;
+  String? _dailyLastAnsweredDate;
 
   // Questions cache (missionId -> questions)
   Map<String, List<UnifiedQuestion>>? _questionsByMission;
@@ -81,6 +84,15 @@ class AppDataService {
   int get dailyStreak => _dailyStreak;
   int get dailyBestStreak => _dailyBestStreak;
   int get dailyTotalAnswered => _dailyTotalAnswered;
+  int get dailyTotalCorrect => _dailyTotalCorrect;
+
+  /// Última fecha respondida (`yyyy-MM-dd`), o null si nunca respondió.
+  ///
+  /// La expone la caché porque sin conexión no siempre se puede leer de
+  /// Firestore: `get()` lanza `unavailable` cuando el documento nunca estuvo
+  /// en la caché local. Es el dato que permite decidir la racha y la
+  /// idempotencia de la pregunta diaria estando offline.
+  String? get dailyLastAnsweredDate => _dailyLastAnsweredDate;
 
   /// Get questions for a specific mission (from memory, instant)
   List<UnifiedQuestion> getQuestionsForMission(String missionId) {
@@ -209,7 +221,7 @@ class AppDataService {
 
   Future<void> _loadDailyProgress() async {
     try {
-      final doc = await FirebaseFirestore.instance
+      final doc = await FirestoreProvider.instance
           .collection('users')
           .doc(_userId)
           .collection('daily_progress')
@@ -221,8 +233,10 @@ class AppDataService {
         _dailyStreak = data['streak'] ?? 0;
         _dailyBestStreak = data['bestStreak'] ?? 0;
         _dailyTotalAnswered = data['totalAnswered'] ?? 0;
+        _dailyTotalCorrect = data['totalCorrect'] ?? 0;
 
         final lastAnsweredDate = data['lastAnsweredDate'] as String?;
+        _dailyLastAnsweredDate = lastAnsweredDate;
 
         // Verificar si la racha debe perderse
         if (_dailyStreak > 0 && lastAnsweredDate != null) {
@@ -264,7 +278,7 @@ class AppDataService {
 
     try {
       // Verificar freeze streak en inventario
-      final freezeDoc = await FirebaseFirestore.instance
+      final freezeDoc = await FirestoreProvider.instance
           .collection('users')
           .doc(_userId)
           .collection('inventory')
@@ -275,7 +289,7 @@ class AppDataService {
 
       if (freezeCount > 0) {
         // Usar freeze streak para proteger la racha
-        await FirebaseFirestore.instance
+        await FirestoreProvider.instance
             .collection('users')
             .doc(_userId)
             .collection('inventory')
@@ -283,12 +297,15 @@ class AppDataService {
             .update({'count': FieldValue.increment(-1)});
 
         // Actualizar lastAnsweredDate para mantener la racha
-        await FirebaseFirestore.instance
+        await FirestoreProvider.instance
             .collection('users')
             .doc(_userId)
             .collection('daily_progress')
             .doc('current')
             .update({'lastAnsweredDate': yesterdayString});
+
+        // Mantener la caché en memoria sincronizada con Firestore
+        _streakFreezeCount = freezeCount - 1;
 
         AppLogger.success(
           'STREAK: Used freeze streak to protect streak! Remaining: ${freezeCount - 1}',
@@ -302,7 +319,7 @@ class AppDataService {
     // No hay freeze streak, resetear la racha
     AppLogger.warning('STREAK: No freeze streak available, resetting streak');
 
-    await FirebaseFirestore.instance
+    await FirestoreProvider.instance
         .collection('users')
         .doc(_userId)
         .collection('daily_progress')
@@ -331,13 +348,13 @@ class AppDataService {
   Future<void> _loadShopItems() async {
     try {
       // Load items catalog
-      final snapshot = await FirebaseFirestore.instance
+      final snapshot = await FirestoreProvider.instance
           .collection('shop_items')
           .orderBy('price')
           .get();
 
       // Load purchased items
-      final purchasedSnapshot = await FirebaseFirestore.instance
+      final purchasedSnapshot = await FirestoreProvider.instance
           .collection('users')
           .doc(_userId)
           .collection('purchased_items')
@@ -346,7 +363,7 @@ class AppDataService {
       _purchasedItemIds = purchasedSnapshot.docs.map((d) => d.id).toSet();
 
       // Load streak freeze count
-      final freezeDoc = await FirebaseFirestore.instance
+      final freezeDoc = await FirestoreProvider.instance
           .collection('users')
           .doc(_userId)
           .collection('inventory')
@@ -461,10 +478,14 @@ class AppDataService {
     required int streak,
     required int bestStreak,
     required int totalAnswered,
+    int? totalCorrect,
+    String? lastAnsweredDate,
   }) {
     _dailyStreak = streak;
     _dailyBestStreak = bestStreak;
     _dailyTotalAnswered = totalAnswered;
+    if (totalCorrect != null) _dailyTotalCorrect = totalCorrect;
+    if (lastAnsweredDate != null) _dailyLastAnsweredDate = lastAnsweredDate;
     AppLogger.success('CACHE: Daily progress updated - streak: $streak');
   }
 }

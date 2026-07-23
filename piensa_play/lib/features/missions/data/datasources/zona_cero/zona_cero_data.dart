@@ -212,10 +212,7 @@ class ZonaCeroData {
         ),
         statements: const [
           StereotypeStatement(
-            text: LocalizedText(
-              es: 'Solo mamá cocina',
-              en: 'Only mom cooks',
-            ),
+            text: LocalizedText(es: 'Solo mamá cocina', en: 'Only mom cooks'),
             isInclusive: false,
             replacement: LocalizedText(
               es: 'Cocinar es para quien quiera ayudar',

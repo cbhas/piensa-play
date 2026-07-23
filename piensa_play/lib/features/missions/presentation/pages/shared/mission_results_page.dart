@@ -76,8 +76,9 @@ class _MissionResultsPageState extends State<MissionResultsPage> {
   }
 
   Future<void> _completeMission() async {
-    // Marcar misión como completada
-
+    // GamificationService es el único punto de escritura de la recompensa
+    // (caché de AppDataService + Firestore). MissionProgressService solo
+    // refleja el resultado en SharedPreferences como espejo local.
     Mission? mission = widget.mission;
     MissionCategory? category = widget.category;
 

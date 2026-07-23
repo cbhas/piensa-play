@@ -152,13 +152,13 @@ class _StereotypeBreakerPageState extends State<StereotypeBreakerPage> {
           missionName: 'Zona Cero Odio',
           primaryColor: const Color(0xFFFFC857),
           secondaryColor: AppTheme.accentGreen,
-          perfectMessage: _english
-              ? 'Forest restored!'
-              : '¡Bosque restaurado!',
+          perfectMessage: _english ? 'Forest restored!' : '¡Bosque restaurado!',
           goodMessage: _english
               ? 'You eliminated the stereotypes'
               : 'Has eliminado los estereotipos',
-          tryAgainMessage: _english ? 'Keep practicing!' : '¡Sigue practicando!',
+          tryAgainMessage: _english
+              ? 'Keep practicing!'
+              : '¡Sigue practicando!',
           learningPoints: _english
               ? const [
                   'Stereotypes hurt people',
@@ -519,7 +519,10 @@ class _StereotypeBreakerPageState extends State<StereotypeBreakerPage> {
               const SizedBox(height: 4),
               Text(
                 _english ? 'Keep it up!' : '¡Sigue así!',
-                style: const TextStyle(color: AppTheme.primaryDark, fontSize: 13),
+                style: const TextStyle(
+                  color: AppTheme.primaryDark,
+                  fontSize: 13,
+                ),
               ),
             ],
           ),

@@ -34,15 +34,45 @@ class AuthService {
   }
 
   /// Ensure user is signed in (sign in if not already)
-  /// Call this on app startup to ensure we always have a user ID
+  /// Call this on app startup to ensure we always have a user ID.
+  ///
+  /// Es resiliente a fallos de red: si ya hay una sesión persistida la usa sin
+  /// tocar la red (funciona offline para usuarios recurrentes). Si no hay sesión
+  /// y no hay conexión, NO relanza el error para no bloquear el arranque: la app
+  /// continúa con datos cacheados y reintenta más tarde.
   Future<String> ensureSignedIn() async {
+    // Usuario recurrente: Firebase Auth persiste la sesión localmente, así que
+    // esto funciona aunque no haya red.
     if (_auth.currentUser != null) {
       final uid = _auth.currentUser!.uid;
       AppLogger.success('AUTH: Already signed in with UID: $uid');
       return uid;
     }
 
-    return await signInAnonymously();
+    try {
+      return await signInAnonymously();
+    } on FirebaseAuthException catch (e) {
+      // network-request-failed u otros: no bloquear el arranque.
+      AppLogger.warning(
+        'AUTH: No se pudo iniciar sesión (¿sin conexión?): ${e.code}. '
+        'La app continúa; se reintentará al reconectar.',
+      );
+      return _auth.currentUser?.uid ?? '';
+    } catch (e) {
+      AppLogger.warning('AUTH: Error inesperado al iniciar sesión: $e');
+      return _auth.currentUser?.uid ?? '';
+    }
+  }
+
+  /// Reintenta el inicio de sesión anónimo si aún no hay sesión (p. ej. cuando
+  /// vuelve la conexión). Seguro de llamar varias veces.
+  Future<void> retrySignInIfNeeded() async {
+    if (_auth.currentUser != null) return;
+    try {
+      await signInAnonymously();
+    } catch (_) {
+      // Silencioso: seguirá sin sesión hasta el próximo intento.
+    }
   }
 
   /// Sign out (useful for testing or resetting the app)

@@ -66,7 +66,9 @@ class _WordTrailPageState extends State<WordTrailPage> {
                 const SizedBox(height: 14),
                 Text(
                   isCorrect
-                      ? (_english ? 'Correct! Keep going' : '¡Correcto! Sigue así')
+                      ? (_english
+                            ? 'Correct! Keep going'
+                            : '¡Correcto! Sigue así')
                       : (_english
                             ? 'Incorrect, try again'
                             : 'Incorrecto, inténtalo otra vez'),
@@ -144,13 +146,13 @@ class _WordTrailPageState extends State<WordTrailPage> {
           missionName: 'Zona Cero Odio',
           primaryColor: AppTheme.accentGreen,
           secondaryColor: AppTheme.accentGreen,
-          perfectMessage: _english
-              ? 'Forest restored!'
-              : '¡Bosque restaurado!',
+          perfectMessage: _english ? 'Forest restored!' : '¡Bosque restaurado!',
           goodMessage: _english
               ? 'You cleaned up the digital forest'
               : 'Has limpiado el bosque digital',
-          tryAgainMessage: _english ? 'Keep practicing!' : '¡Sigue practicando!',
+          tryAgainMessage: _english
+              ? 'Keep practicing!'
+              : '¡Sigue practicando!',
           learningPoints: _english
               ? const [
                   'Words can hurt or help',
@@ -217,7 +219,9 @@ class _WordTrailPageState extends State<WordTrailPage> {
                       const SizedBox(height: 14),
                       _buildMissionCard(),
                       const SizedBox(height: 18),
-                      _buildPhraseCard(currentQuestion.newsContent.resolve(_locale)),
+                      _buildPhraseCard(
+                        currentQuestion.newsContent.resolve(_locale),
+                      ),
                       const SizedBox(height: 18),
                       _buildActions(),
                       const SizedBox(height: 14),

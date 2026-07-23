@@ -32,10 +32,8 @@ class TrueFalseQuizData {
           en: 'MAGIC CURE FOR THE COMMON COLD!',
         ),
         newsContent: const LocalizedText(
-          es:
-              'Científicos descubren que beber agua con limón y miel ¡ELIMINA INSTANTÁNEAMENTE CUALQUIER VIRUS! Compartir con todos tus contactos para protegerlos. 🍋',
-          en:
-              'Scientists discover that drinking water with lemon and honey INSTANTLY WIPES OUT ANY VIRUS! Share with all your contacts to protect them. 🍋',
+          es: 'Científicos descubren que beber agua con limón y miel ¡ELIMINA INSTANTÁNEAMENTE CUALQUIER VIRUS! Compartir con todos tus contactos para protegerlos. 🍋',
+          en: 'Scientists discover that drinking water with lemon and honey INSTANTLY WIPES OUT ANY VIRUS! Share with all your contacts to protect them. 🍋',
         ),
         newsShares: const LocalizedText(
           es: '15.2K compartidos',
@@ -56,10 +54,8 @@ class TrueFalseQuizData {
           ),
         ],
         explanation: const LocalizedText(
-          es:
-              '¡Correcto! Esta noticia es FALSA. El lenguaje exagerado, la falta de fuentes verificables y la presión para compartir son señales claras de desinformación.',
-          en:
-              'Correct! This story is FALSE. The exaggerated language, lack of verifiable sources, and pressure to share are all clear signs of misinformation.',
+          es: '¡Correcto! Esta noticia es FALSA. El lenguaje exagerado, la falta de fuentes verificables y la presión para compartir son señales claras de desinformación.',
+          en: 'Correct! This story is FALSE. The exaggerated language, lack of verifiable sources, and pressure to share are all clear signs of misinformation.',
         ),
         type: QuestionType.trueFalse,
         correctAnswer: false,
@@ -100,10 +96,8 @@ class TrueFalseQuizData {
           en: 'Study reveals the benefits of regular exercise',
         ),
         newsContent: const LocalizedText(
-          es:
-              'Investigadores de la Universidad Nacional publicaron un estudio en la revista médica "The Lancet" que muestra cómo 30 minutos de ejercicio diario pueden mejorar la salud cardiovascular. El estudio incluyó 5,000 participantes durante 2 años.',
-          en:
-              'Researchers from the National University published a study in the medical journal "The Lancet" showing how 30 minutes of daily exercise can improve heart health. The study included 5,000 participants over 2 years.',
+          es: 'Investigadores de la Universidad Nacional publicaron un estudio en la revista médica "The Lancet" que muestra cómo 30 minutos de ejercicio diario pueden mejorar la salud cardiovascular. El estudio incluyó 5,000 participantes durante 2 años.',
+          en: 'Researchers from the National University published a study in the medical journal "The Lancet" showing how 30 minutes of daily exercise can improve heart health. The study included 5,000 participants over 2 years.',
         ),
         newsShares: const LocalizedText(
           es: '2.3K compartidos',
@@ -124,10 +118,8 @@ class TrueFalseQuizData {
           ),
         ],
         explanation: const LocalizedText(
-          es:
-              '¡Correcto! Esta noticia es VERDADERA. Tiene fuentes verificables, datos específicos y lenguaje profesional. Es información confiable.',
-          en:
-              'Correct! This story is TRUE. It has verifiable sources, specific data, and professional language. It\'s reliable information.',
+          es: '¡Correcto! Esta noticia es VERDADERA. Tiene fuentes verificables, datos específicos y lenguaje profesional. Es información confiable.',
+          en: 'Correct! This story is TRUE. It has verifiable sources, specific data, and professional language. It\'s reliable information.',
         ),
         type: QuestionType.trueFalse,
         correctAnswer: true,
@@ -165,10 +157,8 @@ class TrueFalseQuizData {
           en: 'GOVERNMENT IS HIDING THE TRUTH!',
         ),
         newsContent: const LocalizedText(
-          es:
-              '¡LO QUE NO QUIEREN QUE SEPAS! Las antenas 5G están controlando nuestras mentes. ¡COMPARTE ANTES DE QUE BORREN ESTE MENSAJE! Solo los despiertos conocen la verdad. 👁️',
-          en:
-              'WHAT THEY DON\'T WANT YOU TO KNOW! 5G towers are controlling our minds. SHARE BEFORE THEY DELETE THIS MESSAGE! Only the woke ones know the truth. 👁️',
+          es: '¡LO QUE NO QUIEREN QUE SEPAS! Las antenas 5G están controlando nuestras mentes. ¡COMPARTE ANTES DE QUE BORREN ESTE MENSAJE! Solo los despiertos conocen la verdad. 👁️',
+          en: 'WHAT THEY DON\'T WANT YOU TO KNOW! 5G towers are controlling our minds. SHARE BEFORE THEY DELETE THIS MESSAGE! Only the woke ones know the truth. 👁️',
         ),
         newsShares: const LocalizedText(
           es: '45.8K compartidos',
@@ -189,10 +179,8 @@ class TrueFalseQuizData {
           ),
         ],
         explanation: const LocalizedText(
-          es:
-              '¡Correcto! Esta es una teoría de conspiración FALSA. El autor anónimo, lenguaje alarmista y falta de evidencia son señales claras de desinformación.',
-          en:
-              'Correct! This is a FALSE conspiracy theory. The anonymous author, alarmist language, and lack of evidence are all clear signs of misinformation.',
+          es: '¡Correcto! Esta es una teoría de conspiración FALSA. El autor anónimo, lenguaje alarmista y falta de evidencia son señales claras de desinformación.',
+          en: 'Correct! This is a FALSE conspiracy theory. The anonymous author, alarmist language, and lack of evidence are all clear signs of misinformation.',
         ),
         type: QuestionType.trueFalse,
         correctAnswer: false,

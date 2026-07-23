@@ -213,47 +213,55 @@ class _HomePageState extends State<HomePage> {
                           childAspectRatio: 1.28,
                           shrinkWrap: true,
                           physics: const NeverScrollableScrollPhysics(),
-                          children: [
-                            _QuickCard(
-                              title: strings.t('learn'),
-                              icon: Icons.play_lesson_outlined,
-                              fill: AppTheme.blueFill(dark),
-                              iconColor: AppTheme.blueText(dark),
-                              onTap: () =>
-                                  Navigator.pushNamed(context, AppRoutes.learn),
-                            ),
-                            _QuickCard(
-                              title: strings.t('glossary'),
-                              icon: Icons.menu_book_outlined,
-                              fill: AppTheme.greenFill(dark),
-                              iconColor: AppTheme.greenText(dark),
-                              onTap: () => Navigator.pushNamed(
-                                context,
-                                AppRoutes.glossary,
-                              ),
-                            ),
-                            _QuickCard(
-                              title: strings.t('achievements'),
-                              icon: Icons.emoji_events_outlined,
-                              fill: AppTheme.goldFill(dark),
-                              iconColor: AppTheme.goldText(dark),
-                              onTap: () => Navigator.pushNamed(
-                                context,
-                                AppRoutes.achievements,
-                              ),
-                            ),
-                            _QuickCard(
-                              title: strings.t('shop'),
-                              icon: Icons.storefront_rounded,
-                              fill: AppTheme.coralFill(dark),
-                              iconColor: AppTheme.coralText(dark),
-                              onTap: () =>
-                                  Navigator.pushNamed(context, AppRoutes.shop),
-                            ),
-                          ].animate(interval: 60.ms).fadeIn(duration: 300.ms).scale(
-                            begin: const Offset(0.92, 0.92),
-                            curve: Curves.easeOutBack,
-                          ),
+                          children:
+                              [
+                                    _QuickCard(
+                                      title: strings.t('learn'),
+                                      icon: Icons.play_lesson_outlined,
+                                      fill: AppTheme.blueFill(dark),
+                                      iconColor: AppTheme.blueText(dark),
+                                      onTap: () => Navigator.pushNamed(
+                                        context,
+                                        AppRoutes.learn,
+                                      ),
+                                    ),
+                                    _QuickCard(
+                                      title: strings.t('glossary'),
+                                      icon: Icons.menu_book_outlined,
+                                      fill: AppTheme.greenFill(dark),
+                                      iconColor: AppTheme.greenText(dark),
+                                      onTap: () => Navigator.pushNamed(
+                                        context,
+                                        AppRoutes.glossary,
+                                      ),
+                                    ),
+                                    _QuickCard(
+                                      title: strings.t('achievements'),
+                                      icon: Icons.emoji_events_outlined,
+                                      fill: AppTheme.goldFill(dark),
+                                      iconColor: AppTheme.goldText(dark),
+                                      onTap: () => Navigator.pushNamed(
+                                        context,
+                                        AppRoutes.achievements,
+                                      ),
+                                    ),
+                                    _QuickCard(
+                                      title: strings.t('shop'),
+                                      icon: Icons.storefront_rounded,
+                                      fill: AppTheme.coralFill(dark),
+                                      iconColor: AppTheme.coralText(dark),
+                                      onTap: () => Navigator.pushNamed(
+                                        context,
+                                        AppRoutes.shop,
+                                      ),
+                                    ),
+                                  ]
+                                  .animate(interval: 60.ms)
+                                  .fadeIn(duration: 300.ms)
+                                  .scale(
+                                    begin: const Offset(0.92, 0.92),
+                                    curve: Curves.easeOutBack,
+                                  ),
                         ),
                         if (_userProgress != null)
                           ProgressCircle(

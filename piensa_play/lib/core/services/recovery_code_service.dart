@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:piensa_play/core/services/firestore_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'logger_service.dart';
@@ -29,7 +30,7 @@ class RecoveryCodeService {
     'reward_claims',
   ];
 
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseFirestore _firestore = FirestoreProvider.instance;
 
   String _generateRandomCode() {
     final random = Random.secure();

@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../features/shop/domain/entities/shop_item.dart';
 import 'app_data_service.dart';
+import 'firestore_provider.dart';
 import 'logger_service.dart';
 import 'user_id_provider.dart';
 
@@ -11,7 +12,7 @@ class ShopService {
   factory ShopService() => _instance;
   ShopService._internal();
 
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseFirestore _firestore = FirestoreProvider.instance;
 
   Future<List<ShopItem>> getShopItems() async {
     final cachedItems = AppDataService.instance.shopItems;

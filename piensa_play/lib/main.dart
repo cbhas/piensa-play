@@ -2,16 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
 import 'firebase_options.dart'; // generado por flutterfire configure
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_provider.dart';
 import 'core/services/auth_service.dart';
+import 'core/services/firestore_provider.dart';
+import 'core/services/connectivity_service.dart';
 import 'core/services/logger_service.dart';
 import 'core/services/user_id_provider.dart';
 import 'core/services/notification_service.dart';
 import 'core/services/widget_service.dart';
+import 'core/widgets/offline_banner.dart';
 import 'core/localization/app_locale.dart';
 import 'core/accessibility/accessibility_controller.dart';
 import 'core/routes/app_routes.dart';
@@ -23,32 +25,26 @@ void main() async {
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-  // Configure Firestore
-  if (kIsWeb) {
-    FirebaseFirestore.instance.settings = const Settings(
-      cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
-    );
-  } else {
-    FirebaseFirestore.instance.settings = const Settings(
-      persistenceEnabled: true,
-      cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
-    );
-  }
+  // Configure Firestore (caché/persistencia) en un solo lugar.
+  FirestoreProvider.configure();
 
-  final authService = AuthService();
+  // Detección de conectividad (para el indicador offline).
+  await ConnectivityService.instance.initialize();
+
+  // El arranque no debe fallar por problemas de red: una primera apertura sin
+  // conexión sigue funcionando con el id de instalación local y la caché.
   try {
-    await authService.ensureSignedIn();
+    await AuthService().ensureSignedIn();
   } catch (error) {
-    // Una primera apertura sin red puede seguir en el modo demo local.
     AppLogger.warning('AUTH: continuing with offline installation ID: $error');
   }
 
   if (!kIsWeb) {
-    // Initialize notifications (Mobile only)
-    await NotificationService().initialize();
-
-    // Initialize home screen widget (Mobile only)
-    await WidgetService().initialize();
+    // Initialize notifications + home widget (Mobile only), en paralelo.
+    await Future.wait([
+      NotificationService().initialize(),
+      WidgetService().initialize(),
+    ]);
   }
 
   runApp(const PiensaPlayApp());
@@ -97,6 +93,8 @@ class PiensaPlayApp extends StatelessWidget {
                     ],
                     builder: (context, child) {
                       final media = MediaQuery.of(context);
+                      // Accesibilidad (main) envolviendo el aviso de sin
+                      // conexión (offline-first): ambos deben aplicarse.
                       return MediaQuery(
                         data: media.copyWith(
                           textScaler: TextScaler.linear(
@@ -106,7 +104,9 @@ class PiensaPlayApp extends StatelessWidget {
                               accessibility.reducedMotion ||
                               media.disableAnimations,
                         ),
-                        child: child ?? const SizedBox.shrink(),
+                        child: OfflineBanner(
+                          child: child ?? const SizedBox.shrink(),
+                        ),
                       );
                     },
                     initialRoute: _resolveInitialRoute(),

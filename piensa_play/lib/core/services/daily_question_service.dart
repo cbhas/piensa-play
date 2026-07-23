@@ -4,18 +4,26 @@ import '../domain/reward_policy.dart';
 import '../../features/achievements/domain/entities/achievement.dart';
 import '../../features/missions/domain/entities/unified_question.dart';
 import 'app_data_service.dart';
+import 'connectivity_service.dart';
+import 'firestore_provider.dart';
 import 'logger_service.dart';
 import 'user_id_provider.dart';
 import 'widget_service.dart';
 
 /// Pregunta diaria estable e idempotente.
+///
+/// Igual que [GamificationService], tiene dos caminos de escritura: una
+/// transaccion cuando hay red y un camino optimista cuando no la hay
+/// (`runTransaction` no funciona offline). Ambos usan [DailyRewardPolicy], de
+/// modo que el calculo de racha y la guarda de "ya respondio hoy" son
+/// identicos en los dos.
 class DailyQuestionService {
   static final DailyQuestionService _instance =
       DailyQuestionService._internal();
   factory DailyQuestionService() => _instance;
   DailyQuestionService._internal();
 
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseFirestore _firestore = FirestoreProvider.instance;
   UnifiedQuestion? _todaysQuestion;
   DateTime? _lastFetchDate;
 
@@ -23,6 +31,9 @@ class DailyQuestionService {
 
   String _dateString(DateTime date) =>
       '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+
+  String get _yesterdayString =>
+      _dateString(DateTime.now().subtract(const Duration(days: 1)));
 
   int _getDailyIndex(int poolSize) {
     final now = DateTime.now();
@@ -34,6 +45,13 @@ class DailyQuestionService {
           .collection('users')
           .doc(userId)
           .collection('daily_progress')
+          .doc('current');
+
+  DocumentReference<Map<String, dynamic>> _achievementRef(String userId) =>
+      _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('achievements')
           .doc('current');
 
   Future<bool> hasAnsweredToday() async {
@@ -79,99 +97,253 @@ class DailyQuestionService {
     }
   }
 
-  /// Actualiza progreso y monedas en una sola transaccion. Una segunda llamada
-  /// el mismo dia devuelve cero y no altera contadores.
+  /// Registra la respuesta del dia y otorga recompensas una sola vez.
+  ///
+  /// Una segunda llamada el mismo dia devuelve cero y no altera contadores,
+  /// tanto online como offline.
   Future<Map<String, int>> submitAnswer(bool isCorrect) async {
+    if (ConnectivityService.instance.isOnline) {
+      try {
+        return await _submitAtomically(isCorrect);
+      } catch (error) {
+        AppLogger.warning(
+          'DAILY: transaccion no disponible, usando camino offline: $error',
+        );
+      }
+    }
+    return _submitOptimistically(isCorrect);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Camino atomico (requiere conexion)
+  // ---------------------------------------------------------------------------
+
+  Future<Map<String, int>> _submitAtomically(bool isCorrect) async {
     final userId = UserIdProvider.currentUserId;
     final progressRef = _dailyProgressRef(userId);
-    final achievementRef = _firestore
-        .collection('users')
-        .doc(userId)
-        .collection('achievements')
-        .doc('current');
+    final achievementRef = _achievementRef(userId);
 
     var xpAwarded = 0;
     var coinsAwarded = 0;
     var streak = 0;
     var bestStreak = 0;
     var totalAnswered = 0;
+    var totalCorrect = 0;
     var updatedAchievement = Achievement.initial();
 
+    await _firestore.runTransaction((transaction) async {
+      final progressSnapshot = await transaction.get(progressRef);
+      final achievementSnapshot = await transaction.get(achievementRef);
+      final progress = progressSnapshot.data() ?? const <String, dynamic>{};
+
+      updatedAchievement = achievementSnapshot.exists
+          ? Achievement.fromJson(achievementSnapshot.data()!)
+          : Achievement.initial();
+
+      final decision = DailyRewardPolicy.decide(
+        isCorrect: isCorrect,
+        today: _todayString,
+        yesterday: _yesterdayString,
+        lastAnsweredDate: progress['lastAnsweredDate'] as String?,
+        currentStreak: progress['streak'] as int? ?? 0,
+        currentBestStreak: progress['bestStreak'] as int? ?? 0,
+        currentTotalAnswered: progress['totalAnswered'] as int? ?? 0,
+        currentTotalCorrect: progress['totalCorrect'] as int? ?? 0,
+      );
+      streak = decision.streak;
+      bestStreak = decision.bestStreak;
+      totalAnswered = decision.totalAnswered;
+      totalCorrect = decision.totalCorrect;
+      if (!decision.grantReward) return;
+      xpAwarded = decision.xp;
+      coinsAwarded = decision.coins;
+
+      final totalXP = updatedAchievement.totalXP + xpAwarded;
+      updatedAchievement = updatedAchievement.copyWith(
+        totalXP: totalXP,
+        coins: updatedAchievement.coins + coinsAwarded,
+        currentLevel: Achievement.calculateLevel(totalXP),
+      );
+
+      transaction.set(progressRef, {
+        'lastAnsweredDate': _todayString,
+        'streak': streak,
+        'bestStreak': bestStreak,
+        'totalAnswered': totalAnswered,
+        'totalCorrect': decision.totalCorrect,
+        'lastUpdated': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+      transaction.set(achievementRef, {
+        ...updatedAchievement.toJson(),
+        'lastUpdated': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    });
+
+    if (xpAwarded > 0 || coinsAwarded > 0) {
+      AppDataService.instance.updateAchievement(updatedAchievement);
+      AppDataService.instance.updateDailyProgress(
+        streak: streak,
+        bestStreak: bestStreak,
+        totalAnswered: totalAnswered,
+        totalCorrect: totalCorrect,
+        lastAnsweredDate: _todayString,
+      );
+      await _updateWidget(streak);
+    }
+
+    return {
+      'xp': xpAwarded,
+      'coins': coinsAwarded,
+      'streak': streak,
+      'totalXP': updatedAchievement.totalXP,
+      'totalCoins': updatedAchievement.coins,
+    };
+  }
+
+  // ---------------------------------------------------------------------------
+  // Camino optimista (funciona sin conexion)
+  //
+  // La racha es el gancho diario de la app: perderla por estar sin red seria
+  // peor que arriesgar una carrera entre dispositivos, que aqui es improbable
+  // (una respuesta al dia, por usuario).
+  // ---------------------------------------------------------------------------
+
+  Future<Map<String, int>> _submitOptimistically(bool isCorrect) async {
     try {
-      await _firestore.runTransaction((transaction) async {
-        final progressSnapshot = await transaction.get(progressRef);
-        final achievementSnapshot = await transaction.get(achievementRef);
-        final progress = progressSnapshot.data() ?? const <String, dynamic>{};
+      final userId = UserIdProvider.currentUserId;
+      final cache = AppDataService.instance;
 
-        updatedAchievement = achievementSnapshot.exists
-            ? Achievement.fromJson(achievementSnapshot.data()!)
-            : Achievement.initial();
+      // Se parte de la cache en memoria, NO de un get() a Firestore: sin red,
+      // `get()` lanza `unavailable` cuando el documento nunca estuvo en la
+      // cache local (usuario nuevo), y eso abortaria la respuesta entera. La
+      // cache se hidrata al arrancar y es la fuente unica offline.
+      final progress = await _readOrNull(_dailyProgressRef(userId));
 
-        final yesterday = _dateString(
-          DateTime.now().subtract(const Duration(days: 1)),
-        );
-        final decision = DailyRewardPolicy.decide(
-          isCorrect: isCorrect,
-          today: _todayString,
-          yesterday: yesterday,
-          lastAnsweredDate: progress['lastAnsweredDate'] as String?,
-          currentStreak: progress['streak'] as int? ?? 0,
-          currentBestStreak: progress['bestStreak'] as int? ?? 0,
-          currentTotalAnswered: progress['totalAnswered'] as int? ?? 0,
-          currentTotalCorrect: progress['totalCorrect'] as int? ?? 0,
-        );
-        streak = decision.streak;
-        bestStreak = decision.bestStreak;
-        totalAnswered = decision.totalAnswered;
-        if (!decision.grantReward) return;
-        xpAwarded = decision.xp;
-        coinsAwarded = decision.coins;
+      final decision = DailyRewardPolicy.decide(
+        isCorrect: isCorrect,
+        today: _todayString,
+        yesterday: _yesterdayString,
+        lastAnsweredDate:
+            progress?['lastAnsweredDate'] as String? ??
+            cache.dailyLastAnsweredDate,
+        currentStreak: progress?['streak'] as int? ?? cache.dailyStreak,
+        currentBestStreak:
+            progress?['bestStreak'] as int? ?? cache.dailyBestStreak,
+        currentTotalAnswered:
+            progress?['totalAnswered'] as int? ?? cache.dailyTotalAnswered,
+        currentTotalCorrect:
+            progress?['totalCorrect'] as int? ?? cache.dailyTotalCorrect,
+      );
 
-        final totalXP = updatedAchievement.totalXP + xpAwarded;
-        updatedAchievement = updatedAchievement.copyWith(
-          totalXP: totalXP,
-          coins: updatedAchievement.coins + coinsAwarded,
-          currentLevel: Achievement.calculateLevel(totalXP),
-        );
+      final current = await _loadAchievement(userId);
 
-        transaction.set(progressRef, {
-          'lastAnsweredDate': _todayString,
-          'streak': streak,
-          'bestStreak': bestStreak,
-          'totalAnswered': totalAnswered,
-          'totalCorrect': decision.totalCorrect,
-          'lastUpdated': FieldValue.serverTimestamp(),
-        }, SetOptions(merge: true));
-        transaction.set(achievementRef, {
-          ...updatedAchievement.toJson(),
-          'lastUpdated': FieldValue.serverTimestamp(),
-        }, SetOptions(merge: true));
-      });
-
-      if (xpAwarded > 0 || coinsAwarded > 0) {
-        AppDataService.instance.updateAchievement(updatedAchievement);
-        AppDataService.instance.updateDailyProgress(
-          streak: streak,
-          bestStreak: bestStreak,
-          totalAnswered: totalAnswered,
-        );
-        try {
-          await WidgetService().markAsCompleted(streak);
-        } catch (error) {
-          AppLogger.warning('DAILY: widget update skipped: $error');
-        }
+      // Ya respondio hoy: no se altera nada.
+      if (!decision.grantReward) {
+        return {
+          'xp': 0,
+          'coins': 0,
+          'streak': decision.streak,
+          'totalXP': current.totalXP,
+          'totalCoins': current.coins,
+        };
       }
 
+      final totalXP = current.totalXP + decision.xp;
+      final updated = current.copyWith(
+        totalXP: totalXP,
+        coins: current.coins + decision.coins,
+        currentLevel: Achievement.calculateLevel(totalXP),
+      );
+
+      // 1. Cache primero -> UI inmediata, online u offline. Registrar
+      //    lastAnsweredDate es lo que da idempotencia sin red: si la respuesta
+      //    se repite hoy, la politica ya la rechaza aunque Firestore siga sin
+      //    poder leerse.
+      AppDataService.instance.updateAchievement(updated);
+      AppDataService.instance.updateDailyProgress(
+        streak: decision.streak,
+        bestStreak: decision.bestStreak,
+        totalAnswered: decision.totalAnswered,
+        totalCorrect: decision.totalCorrect,
+        lastAnsweredDate: _todayString,
+      );
+
+      // 2. Persistencia en segundo plano: se encola y sincroniza al reconectar.
+      //    No se hace `await`: con persistencia activada el Future no resuelve
+      //    mientras se esta offline.
+      _dailyProgressRef(userId)
+          .set({
+            'lastAnsweredDate': _todayString,
+            'streak': decision.streak,
+            'bestStreak': decision.bestStreak,
+            'totalAnswered': decision.totalAnswered,
+            'totalCorrect': decision.totalCorrect,
+            'lastUpdated': FieldValue.serverTimestamp(),
+          }, SetOptions(merge: true))
+          .catchError((e) {
+            AppLogger.error('DAILY: Error persisting daily progress: $e');
+          });
+
+      _achievementRef(userId)
+          .set({
+            ...updated.toJson(),
+            'lastUpdated': FieldValue.serverTimestamp(),
+          }, SetOptions(merge: true))
+          .catchError((e) {
+            AppLogger.error('DAILY: Error persisting achievement: $e');
+          });
+
+      await _updateWidget(decision.streak);
+
+      AppLogger.success(
+        'DAILY: Rewards granted (offline) - XP: +${decision.xp}, '
+        'Coins: +${decision.coins}, Streak: ${decision.streak}',
+      );
+
       return {
-        'xp': xpAwarded,
-        'coins': coinsAwarded,
-        'streak': streak,
-        'totalXP': updatedAchievement.totalXP,
-        'totalCoins': updatedAchievement.coins,
+        'xp': decision.xp,
+        'coins': decision.coins,
+        'streak': decision.streak,
+        'totalXP': updated.totalXP,
+        'totalCoins': updated.coins,
       };
     } catch (error) {
-      AppLogger.error('DAILY: atomic answer failed: $error');
+      AppLogger.error('DAILY: Error submitting answer: $error');
       return {'xp': 0, 'coins': 0, 'streak': 0};
+    }
+  }
+
+  /// Lee un documento tolerando el modo offline.
+  ///
+  /// Firestore NO devuelve "no existe" cuando falta la red: `get()` lanza
+  /// `unavailable` si el documento nunca estuvo en la cache local. Para el
+  /// llamador ambos casos son lo mismo — no hay dato — asi que se devuelve
+  /// null en vez de propagar el error.
+  Future<Map<String, dynamic>?> _readOrNull(
+    DocumentReference<Map<String, dynamic>> ref,
+  ) async {
+    try {
+      final snapshot = await ref.get();
+      return snapshot.exists ? snapshot.data() : null;
+    } catch (error) {
+      AppLogger.warning('DAILY: documento no disponible offline: $error');
+      return null;
+    }
+  }
+
+  /// Achievement actual. Sin red cae a la cache en memoria, que se hidrata al
+  /// arrancar; nunca a Achievement.initial() si hay algo mejor disponible.
+  Future<Achievement> _loadAchievement(String userId) async {
+    final data = await _readOrNull(_achievementRef(userId));
+    if (data != null) return Achievement.fromJson(data);
+    return AppDataService.instance.achievement;
+  }
+
+  Future<void> _updateWidget(int streak) async {
+    try {
+      await WidgetService().markAsCompleted(streak);
+    } catch (error) {
+      AppLogger.warning('DAILY: widget update skipped: $error');
     }
   }
 
