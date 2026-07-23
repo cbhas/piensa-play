@@ -25,8 +25,13 @@ void main() async {
   // Detección de conectividad (para el indicador offline).
   await ConnectivityService.instance.initialize();
 
-  final authService = AuthService();
-  await authService.ensureSignedIn();
+  // El arranque no debe fallar por problemas de red: ensureSignedIn ya es
+  // resiliente, pero envolvemos por seguridad para no romper nunca el inicio.
+  try {
+    await AuthService().ensureSignedIn();
+  } catch (_) {
+    // La app continúa con datos cacheados / id de respaldo.
+  }
 
   if (!kIsWeb) {
     // Initialize notifications + home widget (Mobile only), en paralelo.

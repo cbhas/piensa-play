@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:piensa_play/core/services/connectivity_service.dart';
 
-/// Envuelve la app y muestra un banner en la parte inferior cuando no hay
-/// conexión, comunicando al usuario que su progreso se guardará localmente y se
-/// sincronizará al reconectar (offline-first).
+/// Envuelve la app y muestra una píldora flotante discreta cuando no hay
+/// conexión. No empuja el contenido ni bloquea toques: solo informa que se
+/// está offline (el progreso se guarda y se sincroniza al reconectar).
 class OfflineBanner extends StatelessWidget {
   final Widget child;
   const OfflineBanner({super.key, required this.child});
@@ -18,14 +18,26 @@ class OfflineBanner extends StatelessWidget {
           children: [
             child,
             Positioned(
+              top: 0,
               left: 0,
               right: 0,
-              bottom: 0,
-              child: AnimatedSlide(
-                duration: const Duration(milliseconds: 250),
-                curve: Curves.easeOut,
-                offset: isOnline ? const Offset(0, 1) : Offset.zero,
-                child: const _OfflineBar(),
+              child: SafeArea(
+                bottom: false,
+                child: IgnorePointer(
+                  child: AnimatedSlide(
+                    duration: const Duration(milliseconds: 250),
+                    curve: Curves.easeOut,
+                    offset: isOnline ? const Offset(0, -2) : Offset.zero,
+                    child: AnimatedOpacity(
+                      duration: const Duration(milliseconds: 250),
+                      opacity: isOnline ? 0 : 1,
+                      child: const Padding(
+                        padding: EdgeInsets.only(top: 8),
+                        child: Center(child: _OfflinePill()),
+                      ),
+                    ),
+                  ),
+                ),
               ),
             ),
           ],
@@ -35,37 +47,31 @@ class OfflineBanner extends StatelessWidget {
   }
 }
 
-class _OfflineBar extends StatelessWidget {
-  const _OfflineBar();
+class _OfflinePill extends StatelessWidget {
+  const _OfflinePill();
 
   @override
   Widget build(BuildContext context) {
     return Material(
       color: Colors.transparent,
-      child: SafeArea(
-        top: false,
-        child: Container(
-          width: double.infinity,
-          color: const Color(0xFF132757),
-          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-          child: const Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.cloud_off_rounded, color: Colors.white, size: 18),
-              SizedBox(width: 8),
-              Flexible(
-                child: Text(
-                  'Sin conexión — tu progreso se guardará y se sincronizará al reconectar',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ],
-          ),
+      child: Container(
+        width: 34,
+        height: 34,
+        decoration: BoxDecoration(
+          color: const Color(0xFF132757).withValues(alpha: 0.92),
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.18),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: const Icon(
+          Icons.cloud_off_rounded,
+          color: Colors.white,
+          size: 18,
         ),
       ),
     );

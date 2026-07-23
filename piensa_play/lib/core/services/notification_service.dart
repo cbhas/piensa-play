@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/timezone.dart' as tz;
@@ -26,6 +27,7 @@ class NotificationService {
 
   /// Inicializa el servicio de notificaciones
   Future<void> initialize() async {
+    if (kIsWeb) return; // flutter_local_notifications no soporta web
     if (_isInitialized) return;
 
     // Inicializar timezone
@@ -75,6 +77,7 @@ class NotificationService {
 
   /// Solicita permisos de notificación
   Future<bool> requestPermissions() async {
+    if (kIsWeb) return false;
     final android = _notifications
         .resolvePlatformSpecificImplementation<
           AndroidFlutterLocalNotificationsPlugin
@@ -132,6 +135,7 @@ class NotificationService {
 
   /// Programa todas las notificaciones
   Future<void> scheduleAllNotifications() async {
+    if (kIsWeb) return;
     await _scheduleDailyReminder();
     await _scheduleStreakRisk();
   }
@@ -231,11 +235,13 @@ class NotificationService {
 
   /// Cancela una notificación por ID
   Future<void> cancelNotification(int id) async {
+    if (kIsWeb) return;
     await _notifications.cancel(id);
   }
 
   /// Cancela todas las notificaciones programadas
   Future<void> cancelAllNotifications() async {
+    if (kIsWeb) return;
     await _notifications.cancelAll();
     AppLogger.log('NOTIFICATIONS: All notifications cancelled');
   }
@@ -248,6 +254,7 @@ class NotificationService {
 
   /// Muestra una notificación inmediata (para testing)
   Future<void> showTestNotification() async {
+    if (kIsWeb) return;
     await _notifications.show(
       99,
       '¡Test de Notificación! 🧪',
@@ -271,6 +278,7 @@ class NotificationService {
     String title = '¡La pregunta del día te espera! 📚',
     String body = 'No pierdas tu racha de aprendizaje 🔥',
   }) async {
+    if (kIsWeb) return;
     await _notifications.show(
       100,
       title,

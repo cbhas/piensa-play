@@ -26,8 +26,11 @@ class OnboardingRepositoryImpl {
       await prefs.setString(_profileKey, profileJson);
       AppLogger.success('Perfil guardado en SharedPreferences: $profileJson');
 
-      // 2. Guardar en Firebase (para persistencia y recuperación)
-      await _firestore
+      // 2. Persistir en Firebase en segundo plano (offline-first): NO se hace
+      //    await porque, con la persistencia de Firestore activada, ese Future
+      //    no resuelve sin conexión y colgaría el final del onboarding. La
+      //    escritura queda en cola local y se sincroniza al reconectar.
+      _firestore
           .collection('users')
           .doc(_userId)
           .collection('profile')
@@ -38,8 +41,11 @@ class OnboardingRepositoryImpl {
             'avatarId': profile.avatarId,
             'studentCode': profile.studentCode,
             'updatedAt': FieldValue.serverTimestamp(),
+          })
+          .catchError((e) {
+            AppLogger.error('Error guardando perfil en Firebase: $e');
           });
-      AppLogger.success('Perfil guardado en Firebase');
+      AppLogger.success('Perfil encolado para sincronizar con Firebase');
     } catch (e) {
       AppLogger.error('Error guardando perfil: $e');
       rethrow;
@@ -80,13 +86,17 @@ class OnboardingRepositoryImpl {
         String studentCode = data['studentCode'] ?? '';
         if (studentCode.isEmpty) {
           studentCode = UserProfile.generateStudentCode();
-          // Guardar el código generado en Firebase
-          await _firestore
+          // Guardar el código generado en segundo plano (offline-first): no se
+          // hace await para no colgar la carga del perfil sin conexión.
+          _firestore
               .collection('users')
               .doc(_userId)
               .collection('profile')
               .doc('data')
-              .update({'studentCode': studentCode});
+              .update({'studentCode': studentCode})
+              .catchError((e) {
+                AppLogger.error('Error guardando studentCode: $e');
+              });
           AppLogger.log(
             'Código de estudiante generado para usuario existente: $studentCode',
           );

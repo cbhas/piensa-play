@@ -1,6 +1,7 @@
 // lib/features/settings/presentation/pages/settings_page.dart
 
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/theme/app_theme.dart';
@@ -461,10 +462,14 @@ class _SettingsPageState extends State<SettingsPage> {
               },
             ),
             const SizedBox(height: 8),
-            // Botones de demo
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Row(
+            // Botones de demo (solo visibles en debug; ocultos en release)
+            if (kDebugMode)
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+                child: Row(
                 children: [
                   Expanded(
                     child: OutlinedButton.icon(

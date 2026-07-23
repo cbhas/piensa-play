@@ -11,11 +11,7 @@ import '../../../../core/services/app_data_service.dart';
 import '../../../../core/services/audio_service.dart';
 import '../../../daily_question/presentation/pages/daily_question_page.dart';
 import '../../../missions/domain/entities/unified_question.dart';
-import '../../domain/entities/dashboard_stats.dart';
 import '../../domain/entities/user_progress.dart';
-import '../../domain/usecases/get_dashboard_stats.dart';
-import '../../domain/usecases/get_user_progress.dart';
-import '../../../onboarding/domain/usecases/get_user_profile.dart';
 import '../widgets/dashboard_header.dart';
 import '../widgets/mission_banner.dart';
 import '../widgets/dashboard_card.dart';
@@ -30,15 +26,11 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final GetDashboardStats _getDashboardStats = GetDashboardStats();
-  final GetUserProgress _getUserProgress = GetUserProgress();
-  final GetUserProfile _getUserProfile = GetUserProfile();
   final DailyQuestionService _dailyService = DailyQuestionService();
 
   // Use Firebase Anonymous Auth UID instead of hardcoded ID
   String get userId => UserIdProvider.currentUserId;
 
-  DashboardStats? _stats;
   UserProgress? _progress;
   String? _avatarId;
   String? _avatarPath;
@@ -53,28 +45,46 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    _loadFromCacheFirst();
+    _loadFromCache();
   }
 
-  Future<void> _loadFromCacheFirst() async {
-    // Primero intenta cargar desde caché (instantáneo, sin loading)
-    final cachedProfile = AppDataService.instance.userProfile;
+  /// El home se renderiza SIEMPRE desde la caché de AppDataService (cargada en
+  /// el splash): perfil, progreso, racha y progreso de misiones ya están en
+  /// memoria. No hace lecturas secuenciales a Firestore ni muestra spinner.
+  /// Solo la pregunta diaria y el "respondió hoy" se cargan en segundo plano.
+  void _loadFromCache() {
+    final app = AppDataService.instance;
+    setState(() {
+      _userName = app.userProfile?.name;
+      _avatarId = app.userProfile?.avatarId;
+      _progress = app.userProgress;
+      _dailyStreak = app.dailyStreak;
+      _isLoading = false;
+    });
+    _refreshInBackground();
+  }
 
-    if (cachedProfile != null) {
-      // Ya hay datos en caché - mostrar inmediatamente sin loading
-      setState(() {
-        _userName = cachedProfile.name;
-        _avatarId = cachedProfile.avatarId;
-        _dailyStreak = AppDataService.instance.dailyStreak;
-        _isLoading = false;
-      });
+  Future<void> _refreshInBackground() async {
+    final app = AppDataService.instance;
 
-      // Cargar datos adicionales en background (sin bloquear UI)
-      _loadDailyQuestionData();
-    } else {
-      // No hay caché - hacer carga completa con loading
-      await _loadData();
+    // Si el perfil no está en caché (p. ej. recién terminó el onboarding),
+    // refrescarlo (lee SharedPreferences, es rápido) y actualizar la UI.
+    if (app.userProfile == null) {
+      try {
+        await app.refreshProfile();
+        final profile = app.userProfile;
+        if (mounted && profile != null) {
+          setState(() {
+            _userName = profile.name;
+            _avatarId = profile.avatarId;
+          });
+        }
+      } catch (e) {
+        AppLogger.warning('HOME: Error refrescando perfil: $e');
+      }
     }
+
+    await _loadDailyQuestionData();
   }
 
   Future<void> _loadDailyQuestionData() async {
@@ -90,51 +100,6 @@ class _HomePageState extends State<HomePage> {
       }
     } catch (e) {
       AppLogger.warning('HOME: Error loading daily question: $e');
-    }
-  }
-
-  Future<void> _loadData() async {
-    setState(() => _isLoading = true);
-    try {
-      AppLogger.log('HOME: Iniciando carga de datos...');
-
-      // Carga los tres datos EN SECUENCIA
-      final profile = await _getUserProfile.execute();
-      final stats = await _getDashboardStats.execute(userId);
-      final progress = await _getUserProgress.execute(userId);
-
-      // Cargar estado de pregunta diaria
-      final dailyAnswered = await _dailyService.hasAnsweredToday();
-      final dailyStreak = await _dailyService.getStreak();
-      final dailyQuestion = await _dailyService.getTodaysQuestion();
-
-      AppLogger.log('HOME: Perfil recuperado: $profile');
-      AppLogger.log('HOME: AvatarId: ${profile?.avatarId}');
-      AppLogger.log(
-        'HOME: Daily answered: $dailyAnswered, streak: $dailyStreak',
-      );
-
-      // Actualiza el estado con los datos cargados
-      setState(() {
-        _userName = profile?.name;
-        _avatarId = profile?.avatarId;
-        _stats = stats;
-        _progress = progress;
-        _dailyAnswered = dailyAnswered;
-        _dailyStreak = dailyStreak;
-        _dailyQuestion = dailyQuestion;
-        _isLoading = false;
-      });
-
-      // Guarda en Firestore DESPUÉS de renderizar
-      await _getDashboardStats.save(userId, stats);
-      await _getUserProgress.save(userId, progress);
-
-      AppLogger.success('HOME: Avatar cargado: $_avatarId');
-      AppLogger.success('HOME: Datos guardados en Firestore');
-    } catch (e) {
-      setState(() => _isLoading = false);
-      AppLogger.error('HOME: Error: $e');
     }
   }
 
@@ -192,9 +157,10 @@ class _HomePageState extends State<HomePage> {
         ),
       );
 
-      // Si respondió, recargar datos
+      // Si respondió, refrescar desde la caché (submitAnswer ya actualizó
+      // racha/monedas/XP en AppDataService) y recargar el estado diario.
       if (result == true) {
-        _loadData();
+        _loadFromCache();
       }
     }
   }

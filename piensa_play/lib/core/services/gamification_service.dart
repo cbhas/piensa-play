@@ -34,9 +34,11 @@ class GamificationService {
 
     try {
       // 0. Guarda de idempotencia: si la misión YA estaba completada, no se
-      //    vuelven a otorgar XP/monedas (evita inflación al rejugar). Se lee de
-      //    la caché en memoria, que funciona offline.
-      final alreadyCompleted = _isMissionCompletedInCache(mission.id);
+      //    vuelven a otorgar XP/monedas (evita inflación al rejugar).
+      final alreadyCompleted = await _isMissionAlreadyCompleted(
+        userId,
+        mission.id,
+      );
 
       // 1. Cargar achievement actual (lectura: offline-ok vía caché de Firestore)
       var achievement = await _loadAchievement(userId);
@@ -110,14 +112,35 @@ class GamificationService {
     }
   }
 
-  /// Indica si una misión ya está marcada como completada en la caché en memoria.
-  bool _isMissionCompletedInCache(String missionId) {
-    for (final category in AppDataService.instance.missionCategories) {
-      for (final mission in category.missions) {
-        if (mission.id == missionId) return mission.isCompleted;
+  /// Indica si una misión ya está completada. Prefiere la caché en memoria
+  /// (instantánea, offline-ok); si la caché no se cargó (p. ej. el splash falló
+  /// sin conexión) cae a Firestore, cuya lectura offline usa la persistencia
+  /// local. Así evita otorgar XP/monedas dos veces al rejugar incluso si la
+  /// caché está vacía.
+  Future<bool> _isMissionAlreadyCompleted(
+    String userId,
+    String missionId,
+  ) async {
+    final categories = AppDataService.instance.missionCategories;
+    if (categories.isNotEmpty) {
+      for (final category in categories) {
+        for (final mission in category.missions) {
+          if (mission.id == missionId) return mission.isCompleted;
+        }
       }
     }
-    return false;
+    // Caché vacía: verificar en Firestore (offline lee de la persistencia).
+    try {
+      final doc = await _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('mission_progress')
+          .doc(missionId)
+          .get();
+      return doc.exists && (doc.data()?['isCompleted'] == true);
+    } catch (_) {
+      return false;
+    }
   }
 
   /// Indica si todas las misiones de una categoría están completas según la
