@@ -184,9 +184,7 @@ class CiberseguridadFeedbackPage extends StatelessWidget {
       child: Column(
         children: [
           Icon(
-                isCorrect
-                    ? Icons.celebration_rounded
-                    : Icons.thumb_up_rounded,
+                isCorrect ? Icons.celebration_rounded : Icons.thumb_up_rounded,
                 size: 80,
                 color: isCorrect ? Colors.green : Colors.orange,
               )
@@ -310,7 +308,11 @@ class CiberseguridadFeedbackPage extends StatelessWidget {
     ).animate().slideY(delay: 400.ms, begin: 0.2, duration: 400.ms);
   }
 
-  Widget _buildElementsGrid(QuizQuestion question, Locale locale, bool english) {
+  Widget _buildElementsGrid(
+    QuizQuestion question,
+    Locale locale,
+    bool english,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

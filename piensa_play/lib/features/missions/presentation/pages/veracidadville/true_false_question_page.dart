@@ -24,13 +24,17 @@ class _TrueFalseQuestionPageState extends State<TrueFalseQuestionPage> {
         final english = Localizations.localeOf(context).languageCode == 'en';
         if (!provider.isValidQuestionIndex(provider.currentQuestionIndex)) {
           _showErrorAndGoBack(
-            english ? 'Error: invalid question index' : 'Error: Índice de pregunta inválido',
+            english
+                ? 'Error: invalid question index'
+                : 'Error: Índice de pregunta inválido',
           );
         }
       } catch (e) {
         final english = Localizations.localeOf(context).languageCode == 'en';
         _showErrorAndGoBack(
-          english ? 'Error: provider unavailable' : 'Error: Provider no disponible',
+          english
+              ? 'Error: provider unavailable'
+              : 'Error: Provider no disponible',
         );
       }
     });

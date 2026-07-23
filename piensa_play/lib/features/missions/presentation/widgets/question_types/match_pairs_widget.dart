@@ -78,11 +78,15 @@ class _MatchPairsWidgetState extends State<MatchPairsWidget> {
                 children: [
                   // Ícono
                   Center(
-                    child: Icon(
-                      Icons.link_rounded,
-                      size: 48,
-                      color: AppTheme.primaryDark,
-                    ).animate().scale(duration: 300.ms, curve: Curves.elasticOut),
+                    child:
+                        Icon(
+                          Icons.link_rounded,
+                          size: 48,
+                          color: AppTheme.primaryDark,
+                        ).animate().scale(
+                          duration: 300.ms,
+                          curve: Curves.elasticOut,
+                        ),
                   ),
                   const SizedBox(height: 16),
 

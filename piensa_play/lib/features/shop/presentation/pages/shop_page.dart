@@ -66,7 +66,9 @@ class _ShopPageState extends State<ShopPage>
     if (item.isPurchased) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(_english ? 'You already own this item' : 'Ya tienes este item'),
+          content: Text(
+            _english ? 'You already own this item' : 'Ya tienes este item',
+          ),
           backgroundColor: AppTheme.primaryDark,
         ),
       );

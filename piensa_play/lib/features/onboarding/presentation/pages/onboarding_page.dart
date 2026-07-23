@@ -167,9 +167,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
                       alpha: 0.22,
                     ),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(
-                        AppTheme.radiusMd,
-                      ),
+                      borderRadius: BorderRadius.circular(AppTheme.radiusMd),
                       side: BorderSide.none,
                     ),
                     padding: const EdgeInsets.symmetric(
@@ -239,9 +237,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
                               ),
                               boxShadow: selected ? AppTheme.softShadow : null,
                             ),
-                            child: Image.asset(
-                              'assets/avatars/$avatar.png',
-                            ),
+                            child: Image.asset('assets/avatars/$avatar.png'),
                           ),
                           const SizedBox(height: 6),
                           Text(

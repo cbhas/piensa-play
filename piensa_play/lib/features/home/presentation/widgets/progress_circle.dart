@@ -52,8 +52,9 @@ class ProgressCircle extends StatelessWidget {
                     children: [
                       Text(
                         '${(progress * 100).toInt()}%',
-                        style: Theme.of(context).textTheme.displaySmall
-                            ?.copyWith(fontSize: 36),
+                        style: Theme.of(
+                          context,
+                        ).textTheme.displaySmall?.copyWith(fontSize: 36),
                       ),
                       Text(
                         english ? 'Completed' : 'Completado',

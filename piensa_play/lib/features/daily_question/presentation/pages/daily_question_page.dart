@@ -367,7 +367,9 @@ class _DailyQuestionPageState extends State<DailyQuestionPage> {
                 const SizedBox(width: 12),
                 Text(
                   _isCorrect
-                      ? (_english ? 'Why is it correct?' : '¿Por qué es correcto?')
+                      ? (_english
+                            ? 'Why is it correct?'
+                            : '¿Por qué es correcto?')
                       : (_english ? 'Explanation' : 'Explicación'),
                   style: Theme.of(context).textTheme.titleLarge,
                 ),

@@ -57,11 +57,15 @@ class _FillBlankWidgetState extends State<FillBlankWidget> {
                 children: [
                   // Ícono
                   Center(
-                    child: Icon(
-                      Icons.edit_rounded,
-                      size: 48,
-                      color: AppTheme.primaryDark,
-                    ).animate().scale(duration: 300.ms, curve: Curves.elasticOut),
+                    child:
+                        Icon(
+                          Icons.edit_rounded,
+                          size: 48,
+                          color: AppTheme.primaryDark,
+                        ).animate().scale(
+                          duration: 300.ms,
+                          curve: Curves.elasticOut,
+                        ),
                   ),
                   const SizedBox(height: 16),
 

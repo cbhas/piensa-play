@@ -36,52 +36,52 @@ class BadgeGrid extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.all(20),
           child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: AppTheme.goldFill(dark),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  Icons.emoji_events,
-                  color: AppTheme.goldText(dark),
-                  size: 20,
-                ),
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppTheme.goldFill(dark),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(
+                      Icons.emoji_events,
+                      color: AppTheme.goldText(dark),
+                      size: 20,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    english ? 'Badges' : 'Insignias',
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                ],
               ),
-              const SizedBox(width: 12),
-              Text(
-                english ? 'Badges' : 'Insignias',
-                style: Theme.of(context).textTheme.titleLarge,
+              const SizedBox(height: 18),
+              GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 14,
+                  mainAxisSpacing: 14,
+                  childAspectRatio: 1.0,
+                ),
+                itemCount: badges.length,
+                itemBuilder: (context, index) {
+                  final badge = badges[index];
+                  return BadgeItem(
+                    title: badge.title,
+                    icon: _getIconFromName(badge.iconName),
+                    isUnlocked: badge.isUnlocked,
+                  ).staggeredEntry(
+                    index: index,
+                    staggerDelay: const Duration(milliseconds: 60),
+                  );
+                },
               ),
-            ],
-          ),
-          const SizedBox(height: 18),
-          GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: 14,
-              mainAxisSpacing: 14,
-              childAspectRatio: 1.0,
-            ),
-            itemCount: badges.length,
-            itemBuilder: (context, index) {
-              final badge = badges[index];
-              return BadgeItem(
-                title: badge.title,
-                icon: _getIconFromName(badge.iconName),
-                isUnlocked: badge.isUnlocked,
-              ).staggeredEntry(
-                index: index,
-                staggerDelay: const Duration(milliseconds: 60),
-              );
-            },
-          ),
             ],
           ),
         ),

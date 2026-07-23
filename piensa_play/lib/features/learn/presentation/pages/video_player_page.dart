@@ -204,9 +204,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
             style: TextStyle(
               fontSize: 16,
               height: 1.5,
-              color: isDark
-                  ? AppTheme.textSecondaryDark
-                  : Colors.grey.shade700,
+              color: isDark ? AppTheme.textSecondaryDark : Colors.grey.shade700,
             ),
           ),
         ],

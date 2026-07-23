@@ -285,9 +285,7 @@ class CiberseguridadIntroPage extends StatelessWidget {
                     ),
                   ],
                 ),
-                child: Center(
-                  child: Icon(icon, size: 32, color: Colors.white),
-                ),
+                child: Center(child: Icon(icon, size: 32, color: Colors.white)),
               ),
               const SizedBox(width: 16),
               Expanded(

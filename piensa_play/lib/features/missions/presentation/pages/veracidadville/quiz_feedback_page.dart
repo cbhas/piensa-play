@@ -121,9 +121,7 @@ class QuizFeedbackPage extends StatelessWidget {
       child: Column(
         children: [
           Icon(
-                isCorrect
-                    ? Icons.celebration_rounded
-                    : Icons.thumb_up_rounded,
+                isCorrect ? Icons.celebration_rounded : Icons.thumb_up_rounded,
                 size: 80,
                 color: isCorrect ? Colors.green : Colors.orange,
               )
@@ -405,9 +403,7 @@ class QuizFeedbackPage extends StatelessWidget {
                         color: color.withValues(alpha: 0.2),
                         shape: BoxShape.circle,
                       ),
-                      child: Center(
-                        child: Icon(icon, size: 32, color: color),
-                      ),
+                      child: Center(child: Icon(icon, size: 32, color: color)),
                     ),
                     const SizedBox(height: 12),
                     Text(

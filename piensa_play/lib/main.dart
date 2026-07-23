@@ -39,7 +39,6 @@ void main() async {
     AppLogger.warning('AUTH: continuing with offline installation ID: $error');
   }
 
-
   if (!kIsWeb) {
     // Initialize notifications + home widget (Mobile only), en paralelo.
     await Future.wait([

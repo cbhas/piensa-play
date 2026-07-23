@@ -223,7 +223,9 @@ class TrueFalseIntroPage extends StatelessWidget {
       {
         'icon': Icons.psychology_alt_rounded,
         'title': english ? 'Decide' : 'Decide',
-        'description': english ? 'Is it true or false?' : '¿Es verdadera o falsa?',
+        'description': english
+            ? 'Is it true or false?'
+            : '¿Es verdadera o falsa?',
         'color': const Color(0xFFEC407A),
       },
     ];
@@ -286,9 +288,7 @@ class TrueFalseIntroPage extends StatelessWidget {
                     ),
                   ],
                 ),
-                child: Center(
-                  child: Icon(icon, size: 32, color: Colors.white),
-                ),
+                child: Center(child: Icon(icon, size: 32, color: Colors.white)),
               ),
               const SizedBox(width: 16),
               Expanded(

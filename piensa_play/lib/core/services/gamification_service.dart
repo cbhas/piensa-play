@@ -252,7 +252,8 @@ class GamificationService {
       var coinsAwarded = 0;
 
       if (!alreadyCompleted) {
-        final newTotalXP = achievement.totalXP + GamificationConfig.xpPerMission;
+        final newTotalXP =
+            achievement.totalXP + GamificationConfig.xpPerMission;
         achievement = achievement.copyWith(
           totalXP: newTotalXP,
           coins: achievement.coins + GamificationConfig.coinsPerMission,
@@ -359,7 +360,9 @@ class GamificationService {
       final snapshot = await ref.get();
       return snapshot.exists ? snapshot.data() : null;
     } catch (error) {
-      AppLogger.warning('GAMIFICATION: documento no disponible offline: $error');
+      AppLogger.warning(
+        'GAMIFICATION: documento no disponible offline: $error',
+      );
       return null;
     }
   }

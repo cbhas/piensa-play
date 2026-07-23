@@ -126,9 +126,7 @@ class TrueFalseFeedbackPage extends StatelessWidget {
       child: Column(
         children: [
           Icon(
-                isCorrect
-                    ? Icons.celebration_rounded
-                    : Icons.thumb_up_rounded,
+                isCorrect ? Icons.celebration_rounded : Icons.thumb_up_rounded,
                 size: 80,
                 color: isCorrect ? Colors.green : Colors.orange,
               )

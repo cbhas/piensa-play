@@ -13,15 +13,10 @@ class CiberseguridadQuizData {
         en: 'Urgent! Update your banking information',
       ),
       newsContent: const LocalizedText(
-        es:
-            'Hemos detectado actividad sospechosa en tu cuenta. Por favor, haz clic aquí y actualiza tu información inmediatamente para evitar el bloqueo.',
-        en:
-            'We\'ve detected suspicious activity on your account. Please click here and update your information immediately to avoid being locked out.',
+        es: 'Hemos detectado actividad sospechosa en tu cuenta. Por favor, haz clic aquí y actualiza tu información inmediatamente para evitar el bloqueo.',
+        en: 'We\'ve detected suspicious activity on your account. Please click here and update your information immediately to avoid being locked out.',
       ),
-      newsSource: const LocalizedText(
-        es: 'BancoFalso.com',
-        en: 'FakeBank.com',
-      ),
+      newsSource: const LocalizedText(es: 'BancoFalso.com', en: 'FakeBank.com'),
       newsDate: const LocalizedText(es: 'Publicado: Hoy', en: 'Posted: Today'),
       newsAuthor: const LocalizedText(
         es: 'Departamento de Seguridad',
@@ -62,10 +57,8 @@ class CiberseguridadQuizData {
         ),
       ],
       explanation: const LocalizedText(
-        es:
-            '¡Correcto! Este es un intento de phishing. Los correos urgentes, de remitentes desconocidos y con enlaces sospechosos suelen ser fraudulentos.',
-        en:
-            'Correct! This is a phishing attempt. Urgent emails from unknown senders with suspicious links are usually fraudulent.',
+        es: '¡Correcto! Este es un intento de phishing. Los correos urgentes, de remitentes desconocidos y con enlaces sospechosos suelen ser fraudulentos.',
+        en: 'Correct! This is a phishing attempt. Urgent emails from unknown senders with suspicious links are usually fraudulent.',
       ),
       type: QuestionType.quiz,
     ),
@@ -74,15 +67,12 @@ class CiberseguridadQuizData {
     QuizQuestion(
       id: 'q2_malware',
       newsTitle: const LocalizedText(
-        es:
-            'Descarga gratis el nuevo juego [Nombre del Juego] ¡Edición Limitada!',
+        es: 'Descarga gratis el nuevo juego [Nombre del Juego] ¡Edición Limitada!',
         en: 'Download the new [Game Name] for free — Limited Edition!',
       ),
       newsContent: const LocalizedText(
-        es:
-            '¡Sé el primero en jugar el nuevo [Nombre del Juego]! Descárgalo ahora desde nuestro sitio web.',
-        en:
-            'Be the first to play the new [Game Name]! Download it now from our website.',
+        es: '¡Sé el primero en jugar el nuevo [Nombre del Juego]! Descárgalo ahora desde nuestro sitio web.',
+        en: 'Be the first to play the new [Game Name]! Download it now from our website.',
       ),
       newsSource: const LocalizedText(
         es: 'SitioWebDeJuegosFalsos.com',
@@ -131,10 +121,8 @@ class CiberseguridadQuizData {
         ),
       ],
       explanation: const LocalizedText(
-        es:
-            '¡Correcto! Este podría ser un intento de distribuir malware. Descargar software de fuentes no oficiales es peligroso.',
-        en:
-            'Correct! This could be an attempt to spread malware. Downloading software from unofficial sources is risky.',
+        es: '¡Correcto! Este podría ser un intento de distribuir malware. Descargar software de fuentes no oficiales es peligroso.',
+        en: 'Correct! This could be an attempt to spread malware. Downloading software from unofficial sources is risky.',
       ),
       type: QuestionType.quiz,
     ),
@@ -147,10 +135,8 @@ class CiberseguridadQuizData {
         en: 'Your password is your key!',
       ),
       newsContent: const LocalizedText(
-        es:
-            '¿Usas la misma contraseña para todo? ¡Es hora de cambiar eso! Una contraseña segura debe ser larga, aleatoria y única.',
-        en:
-            'Do you use the same password for everything? It\'s time to change that! A strong password should be long, random, and unique.',
+        es: '¿Usas la misma contraseña para todo? ¡Es hora de cambiar eso! Una contraseña segura debe ser larga, aleatoria y única.',
+        en: 'Do you use the same password for everything? It\'s time to change that! A strong password should be long, random, and unique.',
       ),
       newsSource: const LocalizedText(
         es: 'BlogDeSeguridad.net',
@@ -199,10 +185,8 @@ class CiberseguridadQuizData {
         ),
       ],
       explanation: const LocalizedText(
-        es:
-            '¡Correcto! Usar contraseñas débiles es un riesgo. Asegúrate de crear contraseñas fuertes y únicas para cada cuenta.',
-        en:
-            'Correct! Using weak passwords is risky. Make sure to create strong, unique passwords for every account.',
+        es: '¡Correcto! Usar contraseñas débiles es un riesgo. Asegúrate de crear contraseñas fuertes y únicas para cada cuenta.',
+        en: 'Correct! Using weak passwords is risky. Make sure to create strong, unique passwords for every account.',
       ),
       type: QuestionType.quiz,
     ),

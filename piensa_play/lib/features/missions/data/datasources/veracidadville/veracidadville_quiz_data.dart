@@ -10,16 +10,12 @@ class VeracidadvilleQuizData {
       QuizQuestion(
         id: 'q1_zanahoria',
         newsTitle: const LocalizedText(
-          es:
-              'Científicos descubren que beber jugo de zanahoria hace que puedas ver en la oscuridad',
-          en:
-              'Scientists discover that drinking carrot juice lets you see in the dark',
+          es: 'Científicos descubren que beber jugo de zanahoria hace que puedas ver en la oscuridad',
+          en: 'Scientists discover that drinking carrot juice lets you see in the dark',
         ),
         newsContent: const LocalizedText(
-          es:
-              'Según un estudio reciente, beber un vaso de jugo de zanahoria diariamente durante 30 días permite desarrollar visión nocturna similar a la de los gatos.',
-          en:
-              'According to a recent study, drinking a glass of carrot juice every day for 30 days lets you develop night vision just like a cat\'s.',
+          es: 'Según un estudio reciente, beber un vaso de jugo de zanahoria diariamente durante 30 días permite desarrollar visión nocturna similar a la de los gatos.',
+          en: 'According to a recent study, drinking a glass of carrot juice every day for 30 days lets you develop night vision just like a cat\'s.',
         ),
         newsSource: const LocalizedText(
           es: 'ElNoticiero.com',
@@ -77,10 +73,8 @@ class VeracidadvilleQuizData {
           ),
         ],
         explanation: const LocalizedText(
-          es:
-              '¡Correcto! Esta noticia es falsa. El autor "Dr. Inventado" no es real, la fuente no es confiable, y los datos son exagerados. Las zanahorias ayudan a la salud visual pero no dan visión nocturna.',
-          en:
-              'Correct! This story is fake. The author "Dr. MadeUp" isn\'t real, the source isn\'t trustworthy, and the claims are exaggerated. Carrots are good for your eyes, but they don\'t give you night vision.',
+          es: '¡Correcto! Esta noticia es falsa. El autor "Dr. Inventado" no es real, la fuente no es confiable, y los datos son exagerados. Las zanahorias ayudan a la salud visual pero no dan visión nocturna.',
+          en: 'Correct! This story is fake. The author "Dr. MadeUp" isn\'t real, the source isn\'t trustworthy, and the claims are exaggerated. Carrots are good for your eyes, but they don\'t give you night vision.',
         ),
         type: QuestionType.quiz, // Quiz type
       ),
@@ -93,10 +87,8 @@ class VeracidadvilleQuizData {
           en: 'URGENT! Vaccines give kids superpowers, study says',
         ),
         newsContent: const LocalizedText(
-          es:
-              'Un grupo de científicos anónimos reveló que las vacunas están diseñadas para dar superpoderes a los niños. ¡Comparte antes de que lo borren!',
-          en:
-              'A group of anonymous scientists revealed that vaccines are secretly designed to give kids superpowers. Share before they delete this!',
+          es: 'Un grupo de científicos anónimos reveló que las vacunas están diseñadas para dar superpoderes a los niños. ¡Comparte antes de que lo borren!',
+          en: 'A group of anonymous scientists revealed that vaccines are secretly designed to give kids superpowers. Share before they delete this!',
         ),
         newsSource: const LocalizedText(
           es: 'NoticiasTotales.net',
@@ -106,7 +98,10 @@ class VeracidadvilleQuizData {
           es: 'Publicado: Hace 2 horas',
           en: 'Published: 2 hours ago',
         ),
-        newsAuthor: const LocalizedText(es: 'Por: Anónimo', en: 'By: Anonymous'),
+        newsAuthor: const LocalizedText(
+          es: 'Por: Anónimo',
+          en: 'By: Anonymous',
+        ),
         newsShares: const LocalizedText(
           es: 'Compartido: 50,000 veces',
           en: 'Shared: 50,000 times',
@@ -151,10 +146,8 @@ class VeracidadvilleQuizData {
           ),
         ],
         explanation: const LocalizedText(
-          es:
-              '¡Correcto! Esta es una noticia falsa peligrosa. El autor es anónimo (no confiable), la fuente no es verificada, y la afirmación de "superpoderes" es completamente falsa. Las vacunas salvan vidas, no dan superpoderes.',
-          en:
-              'Correct! This is a dangerous fake story. The author is anonymous (not trustworthy), the source isn\'t verified, and the "superpowers" claim is completely false. Vaccines save lives — they don\'t give superpowers.',
+          es: '¡Correcto! Esta es una noticia falsa peligrosa. El autor es anónimo (no confiable), la fuente no es verificada, y la afirmación de "superpoderes" es completamente falsa. Las vacunas salvan vidas, no dan superpoderes.',
+          en: 'Correct! This is a dangerous fake story. The author is anonymous (not trustworthy), the source isn\'t verified, and the "superpowers" claim is completely false. Vaccines save lives — they don\'t give superpowers.',
         ),
         type: QuestionType.quiz,
       ),
@@ -163,15 +156,12 @@ class VeracidadvilleQuizData {
       QuizQuestion(
         id: 'q3_agua_mar',
         newsTitle: const LocalizedText(
-          es:
-              'Médicos ocultan la verdad: beber agua de mar cura todas las enfermedades',
+          es: 'Médicos ocultan la verdad: beber agua de mar cura todas las enfermedades',
           en: 'Doctors hide the truth: seawater cures every disease',
         ),
         newsContent: const LocalizedText(
-          es:
-              'La industria farmacéutica no quiere que sepas esto: el agua de mar puede curar cáncer, diabetes y hasta el resfriado común. Miles de personas ya lo probaron.',
-          en:
-              'The pharmaceutical industry doesn\'t want you to know this: seawater can cure cancer, diabetes, and even the common cold. Thousands of people have already tried it.',
+          es: 'La industria farmacéutica no quiere que sepas esto: el agua de mar puede curar cáncer, diabetes y hasta el resfriado común. Miles de personas ya lo probaron.',
+          en: 'The pharmaceutical industry doesn\'t want you to know this: seawater can cure cancer, diabetes, and even the common cold. Thousands of people have already tried it.',
         ),
         newsSource: const LocalizedText(
           es: 'SaludAlternativa.blog',
@@ -229,10 +219,8 @@ class VeracidadvilleQuizData {
           ),
         ],
         explanation: const LocalizedText(
-          es:
-              '¡Correcto! Esta noticia es falsa y peligrosa. "Naturista123" no es un médico, la fuente es un blog no verificado, y afirmar que algo "cura todo" es una señal clara de información falsa. Beber agua de mar es peligroso.',
-          en:
-              'Correct! This story is fake and dangerous. "NaturalHealer123" isn\'t a doctor, the source is an unverified blog, and claiming something "cures everything" is a clear sign of misinformation. Drinking seawater is actually dangerous.',
+          es: '¡Correcto! Esta noticia es falsa y peligrosa. "Naturista123" no es un médico, la fuente es un blog no verificado, y afirmar que algo "cura todo" es una señal clara de información falsa. Beber agua de mar es peligroso.',
+          en: 'Correct! This story is fake and dangerous. "NaturalHealer123" isn\'t a doctor, the source is an unverified blog, and claiming something "cures everything" is a clear sign of misinformation. Drinking seawater is actually dangerous.',
         ),
         type: QuestionType.quiz,
       ),

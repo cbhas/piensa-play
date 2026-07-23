@@ -166,8 +166,9 @@ class _MissionCategoryCardState extends State<MissionCategoryCard>
                       children: [
                         Text(
                           widget.category.title,
-                          style: Theme.of(context).textTheme.titleLarge
-                              ?.copyWith(fontSize: 18),
+                          style: Theme.of(
+                            context,
+                          ).textTheme.titleLarge?.copyWith(fontSize: 18),
                         ),
                         const SizedBox(height: 4),
                         Text(
@@ -394,11 +395,7 @@ class _MissionCategoryCardState extends State<MissionCategoryCard>
                 const SizedBox(height: 2),
                 Text(
                   mission.description,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: mutedText,
-                    height: 1.2,
-                  ),
+                  style: TextStyle(fontSize: 12, color: mutedText, height: 1.2),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),

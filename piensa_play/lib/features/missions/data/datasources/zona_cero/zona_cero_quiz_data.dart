@@ -316,7 +316,10 @@ class ZonaCeroQuizData {
         es: 'Mensaje Escondido',
         en: 'Hidden Message',
       ),
-      newsContent: const LocalizedText(es: 'Eres muy raro.', en: 'You\'re so weird.'),
+      newsContent: const LocalizedText(
+        es: 'Eres muy raro.',
+        en: 'You\'re so weird.',
+      ),
       newsSource: const LocalizedText(
         es: 'Zona Cero Odio',
         en: 'Zero Hate Zone',
@@ -416,20 +419,15 @@ class ZonaCeroQuizData {
         ),
       ],
       explanation: const LocalizedText(
-        es:
-            'Los juguetes son para todos. Mejor: "Niñas y niños pueden jugar con lo que quieran"',
-        en:
-            'Toys are for everyone. Better: "Girls and boys can play with whatever they like"',
+        es: 'Los juguetes son para todos. Mejor: "Niñas y niños pueden jugar con lo que quieran"',
+        en: 'Toys are for everyone. Better: "Girls and boys can play with whatever they like"',
       ),
       type: QuestionType.trueFalse,
       correctAnswer: false,
     ),
     QuizQuestion(
       id: 'zc_stereo_2',
-      newsTitle: const LocalizedText(
-        es: 'En la escuela',
-        en: 'At school',
-      ),
+      newsTitle: const LocalizedText(es: 'En la escuela', en: 'At school'),
       newsContent: const LocalizedText(
         es: 'Todos pueden opinar y participar',
         en: 'Everyone can share their opinion and take part',
