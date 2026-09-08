@@ -1,4 +1,4 @@
-# PiensaPlay
+# PiensaPlay 
 
 **Every click can change the world.** PiensaPlay is a bilingual, child-centred media and information literacy game for learners aged 8–12. Players restore trust in a digital city by checking sources, recognizing manipulated media and choosing responsible ways to share information.
 
