@@ -1,8 +1,8 @@
-# PiensaPlay 
+# PiensaPlay
 
 **Every click can change the world.** PiensaPlay is a bilingual, child-centred media and information literacy game for learners aged 8–12. Players restore trust in a digital city by checking sources, recognizing manipulated media and choosing responsible ways to share information.
 
-The project is being prepared for the [UNESCO Youth Hackathon 2026](https://www.unesco.org/en/articles/unesco-youth-hackathon-2026), under the theme *Play Your Part: Youth Designing the Future of Media and Information Literacy*.
+The project was submitted to the [UNESCO Youth Hackathon 2026](https://www.unesco.org/en/articles/unesco-youth-hackathon-2026), under the theme *Play Your Part: Youth Designing the Future of Media and Information Literacy*.
 
 ## What makes it different
 
@@ -12,6 +12,13 @@ The project is being prepared for the [UNESCO Youth Hackathon 2026](https://www.
 - **Inclusive by design:** Spanish and English, larger text, reduced motion, dark mode and a classroom mode.
 - **Low-connectivity ready:** the flagship experience and local progress work without an account or network.
 - **Child safety:** no ads, no public profiles and no need to collect a child's real name.
+
+## Tech stack
+
+- **Flutter / Dart** — single codebase for mobile and web
+- **Firebase (Firestore)** — content catalogue and optional account data, with least-privilege security rules
+- **Local persistence** — offline-first missions and progress
+- **GitHub Actions** — formatting, static analysis, tests and web build on every push and pull request
 
 ## Run the project
 
@@ -67,4 +74,11 @@ The repository contains a functional prototype and a complete flagship learning 
 
 ## Team
 
-Dara Van Gijsel · Carlos Mejía · Sebastián Calderón · Alex Ramírez
+A four-person team from Universidad Técnica Particular de Loja (UTPL), Ecuador.
+
+| Member | Role | Contribution |
+| --- | --- | --- |
+| **Dara Van Gijsel** | Learning design, MIL content and communication | Pedagogical framing of the PIENSA routine, scenario writing, bilingual content review, facilitator materials |
+| **Carlos Mejía** | Developer, content engineering | Mission content model, question catalogue, glossary and learning modules, quality checks |
+| **Sebastián Calderón** | Developer, systems integration | Mission modules, gamification and progress services, account recovery, content seeding scripts |
+| **Alex Ramírez** | Technical lead, Flutter developer | App architecture, core learning engine, offline persistence, Firebase security rules, release builds |
